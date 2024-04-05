@@ -1,41 +1,48 @@
 <Project>
-  <!-- Uncomment to suppress warning that .NET Core 2.1 is used with .NET 6 library. -->
-  <!--
-  <PropertyGroup>
-    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
-  </PropertyGroup>
-  -->
+    <!-- Supported frameworks (included in NuGet packages): -->
+    <!--    .NET Core 6 until 12-NOV-2024 -->
+    <!--    .NET Core 7 until 14-MAY-2024 -->
+    <!--    .NET Core 8 until 10-NOV-2026 -->
+    <!--    .NET 4.8 -->
+    <!-- Possible frameworks (NOT included in NuGet packages): -->
+    <!--    .NET 4.6.2 -->
+    <!--    .NET 4.7.2 -->
+    <!-- No longer supported frameworks because of end of life: -->
+    <!--    .NET Core 2.0 is end of life since 1-OCT-2018. No support possible anymore. -->
+    <!--    .NET Core 2.1 is end of life since 21-AUG-2021. No support possible anymore. -->
+    <!--    .NET Core 2.2 is end of life since 31-DEC-2019. No support possible anymore. -->
+    <!--    .NET Core 3.0 is end of life since 03-MAR-2020. No support possible anymore. -->
+    <!--    .NET Core 3.1 is end of life since 13-DEC-2021. No support possible anymore. -->
+    <!--    .NET 5.0 is end of life since 10-MAY-2022. No support possible anymore. -->
+    <!--    .NET 4.6 is end of life since 26-APR-2022. No support possible anymore. -->
+    <!--    .NET 4.6.1 is end of life since 26-APR-2022. No support possible anymore. -->
   <Choose>
-    <!-- Note: .NET Core 3.1, .NET 5.0 and .NET Core 2.x is end of life. -->
-    <!-- Visual Studio 2022, supports .NET 4.8, .NET 6.0, .NET 7.0 and .NET 8.0 -->
+    <!-- Visual Studio 2022 -->
     <When  Condition="'$(VisualStudioVersion)' == '17.0'">
       <PropertyGroup>
         <AnalysisLevel>preview-all</AnalysisLevel>
         <AppTargetFrameworks>net48;net6.0;net7.0;net8.0</AppTargetFrameworks>
         <AppTargetFramework>net6.0</AppTargetFramework>
         <TestsTargetFrameworks>net48;net8.0</TestsTargetFrameworks>
-        <LibTargetFrameworks>net48;net6.0;net7.0;net8.0</LibTargetFrameworks>
-        <HttpsTargetFrameworks>net48;net6.0;net7.0;net8.0</HttpsTargetFrameworks>
+        <LibTargetFrameworks>net462;net472;net48;net6.0;net7.0;net8.0</LibTargetFrameworks>
       </PropertyGroup>
     </When>
-    <!-- Visual Studio 2019, supports only .NET 4.8 -->
+    <!-- Visual Studio 2019 -->
     <When Condition="'$(VisualStudioVersion)' == '16.0'">
       <PropertyGroup>
         <AppTargetFrameworks>net48</AppTargetFrameworks>
         <AppTargetFramework>net48</AppTargetFramework>
         <TestsTargetFrameworks>net48</TestsTargetFrameworks>
-        <LibTargetFrameworks>net48</LibTargetFrameworks>
-        <HttpsTargetFrameworks>net48</HttpsTargetFrameworks>
+        <LibTargetFrameworks>net462;net472;net48</LibTargetFrameworks>
       </PropertyGroup>
     </When>
-    <!-- Visual Studio 2017 and earlier, support only .NET 4.8. -->
+    <!-- Visual Studio 2017 and earlier -->
     <Otherwise>
       <PropertyGroup>
         <AppTargetFrameworks>net48</AppTargetFrameworks>
         <AppTargetFramework>net48</AppTargetFramework>
         <TestsTargetFrameworks>net48</TestsTargetFrameworks>
-        <LibTargetFrameworks>net48</LibTargetFrameworks>
-        <HttpsTargetFrameworks>net48</HttpsTargetFrameworks>
+        <LibTargetFrameworks>net462;net472;net48</LibTargetFrameworks>
       </PropertyGroup>
     </Otherwise>
   </Choose>

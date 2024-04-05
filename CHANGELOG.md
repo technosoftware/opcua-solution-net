@@ -8,6 +8,8 @@
 - Moved reference applications to the **reference** directoy
 - New tutorial examples can be found now in the **tutorials** directory
 - Added GetApplicationInstanceCertificateExpiryDateAsync()
+- The Technosoftware.UaCore nuget package now includes support again for .NET 4.7.2 and .NET 4.6.2 to be 
+  able to create custom builds of the solutions
 
 ### Fixed issues
 
