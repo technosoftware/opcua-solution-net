@@ -34,7 +34,6 @@ Documentation of the Model Compiler can be found [here](https://github.com/OPCFo
 
 ### Build Status
 
-[![Build status](https://ci.appveyor.com/api/projects/status/8rkeekyht2pvs8v5?svg=true)](https://ci.appveyor.com/project/technosoftware/opcua-solution-net)
 [![Build and Test .NET 8.0, .NET 7.0 and .NET 6.0](https://github.com/technosoftware-gmbh/opcua-solution-net/actions/workflows/buildandtest.yml/badge.svg)](https://github.com/technosoftware-gmbh/opcua-solution-net/actions/workflows/buildandtest.yml)
 [![Build Tutorial Sampless .NET 8.0, .NET 7.0 and .NET 6.0](https://github.com/technosoftware-gmbh/opcua-solution-net/actions/workflows/build.yml/badge.svg)](https://github.com/technosoftware-gmbh/opcua-solution-net/actions/workflows/build.yml)
 
