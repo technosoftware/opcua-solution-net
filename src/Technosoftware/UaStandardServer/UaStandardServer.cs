@@ -72,7 +72,7 @@ namespace Technosoftware.UaStandardServer
         {
             base.OnServerStarted(server);
 
-            UpdateConfiguration(base.Configuration);
+            UpdateConfiguration(Configuration);
             StartTimer(true);
         }
 
@@ -120,7 +120,11 @@ namespace Technosoftware.UaStandardServer
         /// <returns>true if the reverse connection is found and removed</returns>
         public virtual bool RemoveReverseConnection(Uri url)
         {
-            if (url == null) throw new ArgumentNullException(nameof(url));
+            if (url == null)
+            {
+                throw new ArgumentNullException(nameof(url));
+            }
+
             lock (connectionsLock_)
             {
                 var connectionRemoved = connections_.Remove(url);
@@ -161,7 +165,7 @@ namespace Technosoftware.UaStandardServer
             {
                 lock (connectionsLock_)
                 {
-                    foreach (var reverseConnection in connections_.Values)
+                    foreach (UaReverseConnectProperty reverseConnection in connections_.Values)
                     {
                         // recharge a rejected connection after timeout
                         if (reverseConnection.LastState == UaReverseConnectState.Rejected &&
@@ -171,7 +175,7 @@ namespace Technosoftware.UaStandardServer
                         }
 
                         // try the reverse connect
-                        if ((reverseConnection.Enabled) &&
+                        if (reverseConnection.Enabled &&
                             (reverseConnection.MaxSessionCount == 0 ||
                             (reverseConnection.MaxSessionCount == 1 && reverseConnection.LastState == UaReverseConnectState.Closed) ||
                              reverseConnection.MaxSessionCount > ServerData.SessionManager.GetSessions().Count))
@@ -179,7 +183,7 @@ namespace Technosoftware.UaStandardServer
                             try
                             {
                                 reverseConnection.LastState = UaReverseConnectState.Connecting;
-                                base.CreateConnection(reverseConnection.ClientUrl,
+                                CreateConnection(reverseConnection.ClientUrl,
                                     reverseConnection.Timeout > 0 ? reverseConnection.Timeout : connectTimeout_);
                                 Utils.LogInfo("Create Connection! [{0}][{1}]", reverseConnection.LastState, reverseConnection.ClientUrl);
                             }
@@ -211,10 +215,9 @@ namespace Technosoftware.UaStandardServer
         {
             lock (connectionsLock_)
             {
-                UaReverseConnectProperty reverseConnection = null;
-                if (connections_.TryGetValue(e.EndpointUrl, out reverseConnection))
+                if (connections_.TryGetValue(e.EndpointUrl, out UaReverseConnectProperty reverseConnection))
                 {
-                    var priorStatus = reverseConnection.ServiceResult;
+                    ServiceResult priorStatus = reverseConnection.ServiceResult;
                     if (ServiceResult.IsBad(e.ChannelStatus))
                     {
                         reverseConnection.ServiceResult = e.ChannelStatus;
@@ -288,10 +291,10 @@ namespace Technosoftware.UaStandardServer
         {
             lock (connectionsLock_)
             {
-                var toRemove = connections_.Where(r => r.Value.ConfigEntry == configEntry);
-                foreach (var entry in toRemove)
+                IEnumerable<KeyValuePair<Uri, UaReverseConnectProperty>> toRemove = connections_.Where(r => r.Value.ConfigEntry == configEntry);
+                foreach (KeyValuePair<Uri, UaReverseConnectProperty> entry in toRemove)
                 {
-                    connections_.Remove(entry.Key);
+                    _ = connections_.Remove(entry.Key);
                 }
             }
         }
@@ -304,7 +307,7 @@ namespace Technosoftware.UaStandardServer
             ClearConnections(true);
 
             // get the configuration for the reverse connections.
-            var reverseConnect = configuration?.ServerConfiguration?.ReverseConnect;
+            ReverseConnectServerConfiguration reverseConnect = configuration?.ServerConfiguration?.ReverseConnect;
 
             // add configuration reverse client connection properties.
             if (reverseConnect != null)
@@ -316,9 +319,9 @@ namespace Technosoftware.UaStandardServer
                     rejectTimeout_ = reverseConnect.RejectTimeout > 0 ? reverseConnect.RejectTimeout : DefaultReverseConnectRejectTimeout;
                     if (reverseConnect.Clients != null)
                     {
-                        foreach (var client in reverseConnect.Clients)
+                        foreach (ReverseConnectClient client in reverseConnect.Clients)
                         {
-                            var uri = Utils.ParseUri(client.EndpointUrl);
+                            Uri uri = Utils.ParseUri(client.EndpointUrl);
                             if (uri != null)
                             {
                                 if (connections_.ContainsKey(uri))
@@ -343,8 +346,8 @@ namespace Technosoftware.UaStandardServer
         private int connectInterval_;
         private int connectTimeout_;
         private int rejectTimeout_;
-        private Dictionary<Uri, UaReverseConnectProperty> connections_;
-        private object connectionsLock_ = new object();
+        private readonly Dictionary<Uri, UaReverseConnectProperty> connections_;
+        private readonly object connectionsLock_ = new object();
         #endregion
     }
 }

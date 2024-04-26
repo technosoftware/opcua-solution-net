@@ -126,7 +126,7 @@ namespace Technosoftware.UaServer
                 {
                     if (PredefinedNodes != null)
                     {
-                        foreach (var node in PredefinedNodes.Values)
+                        foreach (NodeState node in PredefinedNodes.Values)
                         {
                             Utils.SilentDispose(node);
                         }
@@ -302,7 +302,7 @@ namespace Technosoftware.UaServer
                     return null;
                 }
 
-                if (!PredefinedNodes.TryGetValue(nodeId, out var node))
+                if (!PredefinedNodes.TryGetValue(nodeId, out NodeState node))
                 {
                     return null;
                 }
@@ -327,7 +327,7 @@ namespace Technosoftware.UaServer
             QualifiedName browseName,
             BaseInstanceState instance)
         {
-            var contextToUse = SystemContext.Copy(context);
+            UaServerContext contextToUse = SystemContext.Copy(context);
 
             lock (Lock)
             {
@@ -340,7 +340,7 @@ namespace Technosoftware.UaServer
 
                 if (parentId != null)
                 {
-                    if (!PredefinedNodes.TryGetValue(parentId, out var parent))
+                    if (!PredefinedNodes.TryGetValue(parentId, out NodeState parent))
                     {
                         throw ServiceResultException.Create(
                             StatusCodes.BadNodeIdUnknown,
@@ -365,7 +365,7 @@ namespace Technosoftware.UaServer
             UaServerContext context,
             NodeId nodeId)
         {
-            var contextToUse = SystemContext.Copy(context);
+            UaServerContext contextToUse = SystemContext.Copy(context);
 
             var found = false;
             var referencesToRemove = new List<LocalReference>();
@@ -377,7 +377,7 @@ namespace Technosoftware.UaServer
                     return false;
                 }
 
-                if (PredefinedNodes.TryGetValue(nodeId, out var node))
+                if (PredefinedNodes.TryGetValue(nodeId, out NodeState node))
                 {
                     RemovePredefinedNode(contextToUse, node, referencesToRemove);
                     found = true;
@@ -477,7 +477,7 @@ namespace Technosoftware.UaServer
             predefinedNodes.LoadFromResource(context, resourcePath, assembly, true);
 
             // add the predefined nodes to the node manager.
-            foreach (var node in predefinedNodes)
+            foreach (NodeState node in predefinedNodes)
             {
                 AddPredefinedNode(context, node);
             }
@@ -505,10 +505,10 @@ namespace Technosoftware.UaServer
             IDictionary<NodeId, IList<IReference>> externalReferences)
         {
             // load the predefined nodes from an XML document.
-            var predefinedNodes = LoadPredefinedNodes(context);
+            NodeStateCollection predefinedNodes = LoadPredefinedNodes(context);
 
             // add the predefined nodes to the node manager.
-            foreach (var t in predefinedNodes)
+            foreach (NodeState t in predefinedNodes)
             {
                 AddPredefinedNode(context, t);
             }
@@ -557,7 +557,7 @@ namespace Technosoftware.UaServer
                 }
             }
 
-            var activeNode = AddBehaviourToPredefinedNode(context, node);
+            NodeState activeNode = AddBehaviourToPredefinedNode(context, node);
             PredefinedNodes[activeNode.NodeId] = activeNode;
 
             if (activeNode is BaseTypeState type)
@@ -593,7 +593,7 @@ namespace Technosoftware.UaServer
             var children = new List<BaseInstanceState>();
             activeNode.GetChildren(context, children);
 
-            foreach (var child in children)
+            foreach (BaseInstanceState child in children)
             {
                 AddPredefinedNode(context, child);
             }
@@ -631,12 +631,12 @@ namespace Technosoftware.UaServer
             var children = new List<BaseInstanceState>();
             node.GetChildren(context, children);
 
-            foreach (var child in children)
+            foreach (BaseInstanceState child in children)
             {
                 node.RemoveChild(child);
             }
 
-            foreach (var child in children)
+            foreach (BaseInstanceState child in children)
             {
                 RemovePredefinedNode(context, child, referencesToRemove);
             }
@@ -652,7 +652,7 @@ namespace Technosoftware.UaServer
             var references = new List<IReference>();
             node.GetReferences(context, references);
 
-            foreach (var reference in references)
+            foreach (IReference reference in references)
             {
                 if (reference.TargetId.IsAbsolute)
                 {
@@ -689,13 +689,13 @@ namespace Technosoftware.UaServer
                 return;
             }
 
-            foreach (var source in PredefinedNodes.Values)
+            foreach (NodeState source in PredefinedNodes.Values)
             {
 
                 IList<IReference> references = new List<IReference>();
                 source.GetReferences(SystemContext, references);
 
-                foreach (var reference in references)
+                foreach (IReference reference in references)
                 {
                     // nothing to do with external nodes.
                     if (reference.TargetId == null || reference.TargetId.IsAbsolute)
@@ -719,7 +719,7 @@ namespace Technosoftware.UaServer
 
                     // add inverse reference to internal targets.
 
-                    if (PredefinedNodes.TryGetValue(targetId, out var target))
+                    if (PredefinedNodes.TryGetValue(targetId, out NodeState target))
                     {
                         if (!target.ReferenceExists(reference.ReferenceTypeId, !reference.IsInverse, source.NodeId))
                         {
@@ -769,15 +769,16 @@ namespace Technosoftware.UaServer
         {
             // get list of references to external nodes.
 
-            if (!externalReferences.TryGetValue(sourceId, out var referencesToAdd))
+            if (!externalReferences.TryGetValue(sourceId, out IList<IReference> referencesToAdd))
             {
                 externalReferences[sourceId] = referencesToAdd = new List<IReference>();
             }
 
             // add reserve reference from external node.
-            var referenceToAdd = new ReferenceNode
-            {
-                ReferenceTypeId = referenceTypeId, IsInverse = isInverse, TargetId = targetId
+            var referenceToAdd = new ReferenceNode {
+                ReferenceTypeId = referenceTypeId,
+                IsInverse = isInverse,
+                TargetId = targetId
             };
 
 
@@ -814,7 +815,7 @@ namespace Technosoftware.UaServer
         /// <param name="typeId">The node ID of the type to add.</param>
         protected void AddTypesToTypeTree(NodeId typeId)
         {
-            if (!PredefinedNodes.TryGetValue(typeId, out var node))
+            if (!PredefinedNodes.TryGetValue(typeId, out NodeState node))
             {
                 return;
             }
@@ -840,7 +841,7 @@ namespace Technosoftware.UaServer
                 return null;
             }
 
-            if (!PredefinedNodes.TryGetValue(nodeId, out var node))
+            if (!PredefinedNodes.TryGetValue(nodeId, out NodeState node))
             {
                 return null;
             }
@@ -866,7 +867,7 @@ namespace Technosoftware.UaServer
             {
                 if (PredefinedNodes != null)
                 {
-                    foreach (var node in PredefinedNodes.Values)
+                    foreach (NodeState node in PredefinedNodes.Values)
                     {
                         Utils.SilentDispose(node);
                     }
@@ -910,7 +911,7 @@ namespace Technosoftware.UaServer
 
             if (PredefinedNodes != null)
             {
-                if (PredefinedNodes.TryGetValue(nodeId, out var node))
+                if (PredefinedNodes.TryGetValue(nodeId, out NodeState node))
                 {
                     var handle = new UaNodeHandle { NodeId = nodeId, Node = node, Validated = true };
 
@@ -932,10 +933,10 @@ namespace Technosoftware.UaServer
         {
             lock (Lock)
             {
-                foreach (var current in references)
+                foreach (KeyValuePair<NodeId, IList<IReference>> current in references)
                 {
                     // get the handle.
-                    var source = GetManagerHandle(SystemContext, current.Key, null);
+                    UaNodeHandle source = GetManagerHandle(SystemContext, current.Key, null);
 
                     // only support external references to nodes that are stored in memory.
                     if (source == null || !source.Validated || source.Node == null)
@@ -944,7 +945,7 @@ namespace Technosoftware.UaServer
                     }
 
                     // add reference to external target.
-                    foreach (var reference in current.Value)
+                    foreach (IReference reference in current.Value)
                     {
                         if (!source.Node.ReferenceExists(reference.ReferenceTypeId, reference.IsInverse, reference.TargetId))
                         {
@@ -959,16 +960,16 @@ namespace Technosoftware.UaServer
         /// This method is used to delete bi-directional references to nodes from other node managers.
         /// </summary>
         public virtual ServiceResult DeleteReference(
-            object         sourceHandle,
-            NodeId         referenceTypeId,
-            bool           isInverse,
+            object sourceHandle,
+            NodeId referenceTypeId,
+            bool isInverse,
             ExpandedNodeId targetId,
-            bool           deleteBiDirectional)
+            bool deleteBiDirectional)
         {
             lock (Lock)
             {
                 // get the handle.
-                var source = IsHandleInNamespace(sourceHandle);
+                UaNodeHandle source = IsHandleInNamespace(sourceHandle);
 
                 if (source == null)
                 {
@@ -989,7 +990,7 @@ namespace Technosoftware.UaServer
                     // check if the target is also managed by this node manager.
                     if (!targetId.IsAbsolute)
                     {
-                        var target = GetManagerHandle(SystemContext, (NodeId)targetId, null);
+                        UaNodeHandle target = GetManagerHandle(SystemContext, (NodeId)targetId, null);
 
                         if (target != null && target.Validated && target.Node != null)
                         {
@@ -1013,15 +1014,15 @@ namespace Technosoftware.UaServer
         /// <param name="resultMask">The returned basic metadata.</param>
         public virtual UaNodeMetadata GetNodeMetadata(
             UaServerOperationContext context,
-            object           targetHandle,
+            object targetHandle,
             BrowseResultMask resultMask)
         {
-            var systemContext = SystemContext.Copy(context);
+            UaServerContext systemContext = SystemContext.Copy(context);
 
             lock (Lock)
             {
                 // check for valid handle.
-                var handle = IsHandleInNamespace(targetHandle);
+                UaNodeHandle handle = IsHandleInNamespace(targetHandle);
 
                 if (handle == null)
                 {
@@ -1029,7 +1030,7 @@ namespace Technosoftware.UaServer
                 }
 
                 // validate node.
-                var target = ValidateNode(systemContext, handle, null);
+                NodeState target = ValidateNode(systemContext, handle, null);
 
                 if (target == null)
                 {
@@ -1037,7 +1038,7 @@ namespace Technosoftware.UaServer
                 }
 
                 // read the attributes.
-                var values = target.ReadAttributes(
+                List<object> values = target.ReadAttributes(
                     systemContext,
                     Attributes.WriteMask,
                     Attributes.UserWriteMask,
@@ -1054,9 +1055,10 @@ namespace Technosoftware.UaServer
                     Attributes.UserRolePermissions);
 
                 // construct the metadata object.
-                var metadata = new UaNodeMetadata(target, target.NodeId)
-                {
-                    NodeClass = target.NodeClass, BrowseName = target.BrowseName, DisplayName = target.DisplayName
+                var metadata = new UaNodeMetadata(target, target.NodeId) {
+                    NodeClass = target.NodeClass,
+                    BrowseName = target.BrowseName,
+                    DisplayName = target.DisplayName
                 };
 
 
@@ -1184,13 +1186,13 @@ namespace Technosoftware.UaServer
         /// </remarks>
         public virtual void Browse(
             UaServerOperationContext context,
-            ref UaContinuationPoint       continuationPoint,
+            ref UaContinuationPoint continuationPoint,
             IList<ReferenceDescription> references)
         {
             if (continuationPoint == null) throw new ArgumentNullException(nameof(continuationPoint));
             if (references == null) throw new ArgumentNullException(nameof(references));
 
-            var systemContext = SystemContext.Copy(context);
+            UaServerContext systemContext = SystemContext.Copy(context);
 
             // check for valid view.
             ValidateViewDescription(systemContext, continuationPoint.View);
@@ -1200,7 +1202,7 @@ namespace Technosoftware.UaServer
             lock (Lock)
             {
                 // check for valid handle.
-                var handle = IsHandleInNamespace(continuationPoint.NodeToBrowse);
+                UaNodeHandle handle = IsHandleInNamespace(continuationPoint.NodeToBrowse);
 
                 if (handle == null)
                 {
@@ -1208,7 +1210,7 @@ namespace Technosoftware.UaServer
                 }
 
                 // validate node.
-                var source = ValidateNode(systemContext, handle, null);
+                NodeState source = ValidateNode(systemContext, handle, null);
 
                 if (source == null)
                 {
@@ -1252,10 +1254,10 @@ namespace Technosoftware.UaServer
                 // apply filters to references.
                 var cache = new Dictionary<NodeId, NodeState>();
 
-                for (var reference = browser.Next(); reference != null; reference = browser.Next())
+                for (IReference reference = browser.Next(); reference != null; reference = browser.Next())
                 {
                     // validate Browse permission
-                    var serviceResult = ValidateRolePermissions(context,
+                    ServiceResult serviceResult = ValidateRolePermissions(context,
                         ExpandedNodeId.ToNodeId(reference.TargetId, ServerData.NamespaceUris),
                         PermissionType.Browse);
                     if (ServiceResult.IsBad(serviceResult))
@@ -1264,7 +1266,7 @@ namespace Technosoftware.UaServer
                         continue;
                     }
                     // create the type definition reference.
-                    var description = GetReferenceDescription(systemContext, cache, reference, continuationPoint);
+                    ReferenceDescription description = GetReferenceDescription(systemContext, cache, reference, continuationPoint);
 
                     if (description == null)
                     {
@@ -1476,19 +1478,19 @@ namespace Technosoftware.UaServer
         /// browse name.
         /// </remarks>
         public virtual void TranslateBrowsePath(
-            UaServerOperationContext      context,
-            object                sourceHandle,
-            RelativePathElement   relativePath,
+            UaServerOperationContext context,
+            object sourceHandle,
+            RelativePathElement relativePath,
             IList<ExpandedNodeId> targetIds,
-            IList<NodeId>         unresolvedTargetIds)
+            IList<NodeId> unresolvedTargetIds)
         {
-            var systemContext = SystemContext.Copy(context);
+            UaServerContext systemContext = SystemContext.Copy(context);
             IDictionary<NodeId, NodeState> operationCache = new NodeIdDictionary<NodeState>();
 
             lock (Lock)
             {
                 // check for valid handle.
-                var handle = IsHandleInNamespace(sourceHandle);
+                UaNodeHandle handle = IsHandleInNamespace(sourceHandle);
 
                 if (handle == null)
                 {
@@ -1496,7 +1498,7 @@ namespace Technosoftware.UaServer
                 }
 
                 // validate node.
-                var source = ValidateNode(systemContext, handle, operationCache);
+                NodeState source = ValidateNode(systemContext, handle, operationCache);
 
                 if (source == null)
                 {
@@ -1504,7 +1506,7 @@ namespace Technosoftware.UaServer
                 }
 
                 // get list of references that relative path.
-                var browser = source.CreateBrowser(
+                INodeBrowser browser = source.CreateBrowser(
                     systemContext,
                     null,
                     relativePath.ReferenceTypeId,
@@ -1517,7 +1519,7 @@ namespace Technosoftware.UaServer
                 // check the browse names.
                 try
                 {
-                    for (var reference = browser.Next(); reference != null; reference = browser.Next())
+                    for (IReference reference = browser.Next(); reference != null; reference = browser.Next())
                     {
                         // ignore unknown external references.
                         if (reference.TargetId.IsAbsolute)
@@ -1546,7 +1548,7 @@ namespace Technosoftware.UaServer
                             }
 
                             // look up the target manually.
-                            var targetHandle = GetManagerHandle(systemContext, targetId, operationCache);
+                            UaNodeHandle targetHandle = GetManagerHandle(systemContext, targetId, operationCache);
 
                             if (targetHandle == null)
                             {
@@ -1584,12 +1586,12 @@ namespace Technosoftware.UaServer
         /// </summary>
         public virtual void Read(
             UaServerOperationContext context,
-            double               maxAge,
-            IList<ReadValueId>   nodesToRead,
-            IList<DataValue>     values,
+            double maxAge,
+            IList<ReadValueId> nodesToRead,
+            IList<DataValue> values,
             IList<ServiceResult> errors)
         {
-            var systemContext = SystemContext.Copy(context);
+            UaServerContext systemContext = SystemContext.Copy(context);
             IDictionary<NodeId, NodeState> operationCache = new NodeIdDictionary<NodeState>();
             var nodesToValidate = new List<UaNodeHandle>();
 
@@ -1597,7 +1599,7 @@ namespace Technosoftware.UaServer
             {
                 for (var ii = 0; ii < nodesToRead.Count; ii++)
                 {
-                    var nodeToRead = nodesToRead[ii];
+                    ReadValueId nodeToRead = nodesToRead[ii];
 
                     // skip items that have already been processed.
                     if (nodeToRead.Processed)
@@ -1606,7 +1608,7 @@ namespace Technosoftware.UaServer
                     }
 
                     // check for valid handle.
-                    var handle = GetManagerHandle(systemContext, nodeToRead.NodeId, operationCache);
+                    UaNodeHandle handle = GetManagerHandle(systemContext, nodeToRead.NodeId, operationCache);
 
                     if (handle == null)
                     {
@@ -1617,12 +1619,12 @@ namespace Technosoftware.UaServer
                     nodeToRead.Processed = true;
 
                     // create an initial value.
-                    var value = values[ii] = new DataValue();
+                    DataValue value = values[ii] = new DataValue();
 
-                    value.Value           = null;
+                    value.Value = null;
                     value.ServerTimestamp = DateTime.UtcNow;
                     value.SourceTimestamp = DateTime.MinValue;
-                    value.StatusCode      = StatusCodes.Good;
+                    value.StatusCode = StatusCodes.Good;
 
                     // check if the node is a area in memory.
                     if (handle.Node == null)
@@ -1696,7 +1698,7 @@ namespace Technosoftware.UaServer
             }
 
             // construct id for root node.
-            var rootId = handle.RootId;
+            NodeId rootId = handle.RootId;
 
             if (cache != null)
             {
@@ -1762,7 +1764,7 @@ namespace Technosoftware.UaServer
             IDictionary<NodeId, NodeState> cache)
         {
             // lookup in cache.
-            var target = FindNodeInCache(context, handle, cache);
+            NodeState target = FindNodeInCache(context, handle, cache);
 
             if (target != null)
             {
@@ -1792,20 +1794,20 @@ namespace Technosoftware.UaServer
             List<UaNodeHandle> nodesToValidate,
             IDictionary<NodeId, NodeState> cache)
         {
-            foreach (var handle in nodesToValidate)
+            foreach (UaNodeHandle handle in nodesToValidate)
             {
                 lock (Lock)
                 {
                     // validate node.
-                    var source = ValidateNode(context, handle, cache);
+                    NodeState source = ValidateNode(context, handle, cache);
 
                     if (source == null)
                     {
                         continue;
                     }
 
-                    var nodeToRead = nodesToRead[handle.Index];
-                    var value = values[handle.Index];
+                    ReadValueId nodeToRead = nodesToRead[handle.Index];
+                    DataValue value = values[handle.Index];
 
                     // update the attribute value.
                     errors[handle.Index] = source.ReadAttribute(
@@ -1823,11 +1825,11 @@ namespace Technosoftware.UaServer
         /// Writes the value for the specified attributes.
         /// </summary>
         public virtual void Write(
-            UaServerOperationContext     context,
-            IList<WriteValue>    nodesToWrite,
+            UaServerOperationContext context,
+            IList<WriteValue> nodesToWrite,
             IList<ServiceResult> errors)
         {
-            var systemContext = SystemContext.Copy(context);
+            UaServerContext systemContext = SystemContext.Copy(context);
             IDictionary<NodeId, NodeState> operationCache = new NodeIdDictionary<NodeState>();
             var nodesToValidate = new List<UaNodeHandle>();
 
@@ -1835,7 +1837,7 @@ namespace Technosoftware.UaServer
             {
                 for (var ii = 0; ii < nodesToWrite.Count; ii++)
                 {
-                    var nodeToWrite = nodesToWrite[ii];
+                    WriteValue nodeToWrite = nodesToWrite[ii];
 
                     // skip items that have already been processed.
                     if (nodeToWrite.Processed)
@@ -1844,7 +1846,7 @@ namespace Technosoftware.UaServer
                     }
 
                     // check for valid handle.
-                    var handle = GetManagerHandle(systemContext, nodeToWrite.NodeId, operationCache);
+                    UaNodeHandle handle = GetManagerHandle(systemContext, nodeToWrite.NodeId, operationCache);
 
                     if (handle == null)
                     {
@@ -2021,17 +2023,17 @@ namespace Technosoftware.UaServer
             }
 
             //look for the Parent and its monitoring items
-            foreach (var monitoredNode in MonitoredNodes.Values)
+            foreach (UaMonitoredNode monitoredNode in MonitoredNodes.Values)
             {
-                var propertyState = monitoredNode.Node.FindChild(systemContext, property.BrowseName);
+                BaseInstanceState propertyState = monitoredNode.Node.FindChild(systemContext, property.BrowseName);
 
                 if (propertyState != null && property != null && propertyState.NodeId == property.NodeId && !Utils.IsEqual(newPropertyValue, previousPropertyValue))
                 {
-                    foreach (var monitoredItem in monitoredNode.DataChangeMonitoredItems)
+                    foreach (UaMonitoredItem monitoredItem in monitoredNode.DataChangeMonitoredItems)
                     {
                         if (monitoredItem.AttributeId == Attributes.Value)
                         {
-                            var node = monitoredNode.Node;
+                            NodeState node = monitoredNode.Node;
 
                             if ((node is AnalogItemState && (propertyName == BrowseNames.EURange || propertyName == BrowseNames.EngineeringUnits)) ||
                                 (node is TwoStateDiscreteState && (propertyName == BrowseNames.FalseState || propertyName == BrowseNames.TrueState)) ||
@@ -2073,19 +2075,19 @@ namespace Technosoftware.UaServer
             IDictionary<NodeId, NodeState> cache)
         {
             // validates the nodes (reads values from the underlying data source if required).
-            foreach (var handle in nodesToValidate)
+            foreach (UaNodeHandle handle in nodesToValidate)
             {
                 lock (Lock)
                 {
                     // validate node.
-                    var source = ValidateNode(context, handle, cache);
+                    NodeState source = ValidateNode(context, handle, cache);
 
                     if (source == null)
                     {
                         continue;
                     }
 
-                    var nodeToWrite = nodesToWrite[handle.Index];
+                    WriteValue nodeToWrite = nodesToWrite[handle.Index];
 
                     // write the attribute value.
                     errors[handle.Index] = source.WriteAttribute(
@@ -2105,15 +2107,15 @@ namespace Technosoftware.UaServer
         /// Reads the history for the specified nodes.
         /// </summary>
         public virtual void HistoryRead(
-            UaServerOperationContext          context,
-            HistoryReadDetails        details,
-            TimestampsToReturn        timestampsToReturn,
-            bool                      releaseContinuationPoints,
+            UaServerOperationContext context,
+            HistoryReadDetails details,
+            TimestampsToReturn timestampsToReturn,
+            bool releaseContinuationPoints,
             IList<HistoryReadValueId> nodesToRead,
-            IList<HistoryReadResult>  results,
-            IList<ServiceResult>      errors)
+            IList<HistoryReadResult> results,
+            IList<ServiceResult> errors)
         {
-            var systemContext = SystemContext.Copy(context);
+            UaServerContext systemContext = SystemContext.Copy(context);
             IDictionary<NodeId, NodeState> operationCache = new NodeIdDictionary<NodeState>();
             var nodesToProcess = new List<UaNodeHandle>();
 
@@ -2121,7 +2123,7 @@ namespace Technosoftware.UaServer
             {
                 for (var ii = 0; ii < nodesToRead.Count; ii++)
                 {
-                    var nodeToRead = nodesToRead[ii];
+                    HistoryReadValueId nodeToRead = nodesToRead[ii];
 
                     // skip items that have already been processed.
                     if (nodeToRead.Processed)
@@ -2130,7 +2132,7 @@ namespace Technosoftware.UaServer
                     }
 
                     // check for valid handle.
-                    var handle = GetManagerHandle(systemContext, nodeToRead.NodeId, operationCache);
+                    UaNodeHandle handle = GetManagerHandle(systemContext, nodeToRead.NodeId, operationCache);
 
                     if (handle == null)
                     {
@@ -2141,11 +2143,11 @@ namespace Technosoftware.UaServer
                     nodeToRead.Processed = true;
 
                     // create an initial result.
-                    var result = results[ii] = new HistoryReadResult();
+                    HistoryReadResult result = results[ii] = new HistoryReadResult();
 
-                    result.HistoryData       = null;
+                    result.HistoryData = null;
                     result.ContinuationPoint = null;
-                    result.StatusCode        = StatusCodes.Good;
+                    result.StatusCode = StatusCodes.Good;
 
                     // check if the node is a area in memory.
                     if (handle.Node == null)
@@ -2216,10 +2218,10 @@ namespace Technosoftware.UaServer
             List<UaNodeHandle> nodesToProcess,
             IDictionary<NodeId, NodeState> cache)
         {
-            foreach (var handle in nodesToProcess)
+            foreach (UaNodeHandle handle in nodesToProcess)
             {
                 // validate node.
-                var source = ValidateNode(context, handle, cache);
+                NodeState source = ValidateNode(context, handle, cache);
 
                 if (source == null)
                 {
@@ -2243,10 +2245,10 @@ namespace Technosoftware.UaServer
             List<UaNodeHandle> nodesToProcess,
             IDictionary<NodeId, NodeState> cache)
         {
-            foreach (var handle in nodesToProcess)
+            foreach (UaNodeHandle handle in nodesToProcess)
             {
                 // validate node.
-                var source = ValidateNode(context, handle, cache);
+                NodeState source = ValidateNode(context, handle, cache);
 
                 if (source == null)
                 {
@@ -2270,10 +2272,10 @@ namespace Technosoftware.UaServer
             List<UaNodeHandle> nodesToProcess,
             IDictionary<NodeId, NodeState> cache)
         {
-            foreach (var handle in nodesToProcess)
+            foreach (UaNodeHandle handle in nodesToProcess)
             {
                 // validate node.
-                var source = ValidateNode(context, handle, cache);
+                NodeState source = ValidateNode(context, handle, cache);
 
                 if (source == null)
                 {
@@ -2297,10 +2299,10 @@ namespace Technosoftware.UaServer
             List<UaNodeHandle> nodesToProcess,
             IDictionary<NodeId, NodeState> cache)
         {
-            foreach (var handle in nodesToProcess)
+            foreach (UaNodeHandle handle in nodesToProcess)
             {
                 // validate node.
-                var source = ValidateNode(context, handle, cache);
+                NodeState source = ValidateNode(context, handle, cache);
 
                 if (source == null)
                 {
@@ -2324,10 +2326,10 @@ namespace Technosoftware.UaServer
             List<UaNodeHandle> nodesToProcess,
             IDictionary<NodeId, NodeState> cache)
         {
-            foreach (var handle in nodesToProcess)
+            foreach (UaNodeHandle handle in nodesToProcess)
             {
                 // validate node.
-                var source = ValidateNode(context, handle, cache);
+                NodeState source = ValidateNode(context, handle, cache);
 
                 if (source == null)
                 {
@@ -2470,7 +2472,7 @@ namespace Technosoftware.UaServer
                 }
 
                 // validate the event filter.
-                var result = readEventDetails.Filter.Validate(new FilterContext(ServerData.NamespaceUris, ServerData.TypeTree, context));
+                EventFilter.Result result = readEventDetails.Filter.Validate(new FilterContext(ServerData.NamespaceUris, ServerData.TypeTree, context));
 
                 if (ServiceResult.IsBad(result.Status))
                 {
@@ -2495,13 +2497,13 @@ namespace Technosoftware.UaServer
         /// Updates the history for the specified nodes.
         /// </summary>
         public virtual void HistoryUpdate(
-            UaServerOperationContext            context,
-            Type                        detailsType,
+            UaServerOperationContext context,
+            Type detailsType,
             IList<HistoryUpdateDetails> nodesToUpdate,
-            IList<HistoryUpdateResult>  results,
-            IList<ServiceResult>        errors)
+            IList<HistoryUpdateResult> results,
+            IList<ServiceResult> errors)
         {
-            var systemContext = SystemContext.Copy(context);
+            UaServerContext systemContext = SystemContext.Copy(context);
             IDictionary<NodeId, NodeState> operationCache = new NodeIdDictionary<NodeState>();
             var nodesToProcess = new List<UaNodeHandle>();
 
@@ -2509,7 +2511,7 @@ namespace Technosoftware.UaServer
             {
                 for (var ii = 0; ii < nodesToUpdate.Count; ii++)
                 {
-                    var nodeToUpdate = nodesToUpdate[ii];
+                    HistoryUpdateDetails nodeToUpdate = nodesToUpdate[ii];
 
                     // skip items that have already been processed.
                     if (nodeToUpdate.Processed)
@@ -2518,7 +2520,7 @@ namespace Technosoftware.UaServer
                     }
 
                     // check for valid handle.
-                    var handle = GetManagerHandle(systemContext, nodeToUpdate.NodeId, operationCache);
+                    UaNodeHandle handle = GetManagerHandle(systemContext, nodeToUpdate.NodeId, operationCache);
 
                     if (handle == null)
                     {
@@ -2529,7 +2531,7 @@ namespace Technosoftware.UaServer
                     nodeToUpdate.Processed = true;
 
                     // create an initial result.
-                    var result = results[ii] = new HistoryUpdateResult();
+                    HistoryUpdateResult result = results[ii] = new HistoryUpdateResult();
                     result.StatusCode = StatusCodes.Good;
 
                     // check if the node is a area in memory.
@@ -2593,11 +2595,11 @@ namespace Technosoftware.UaServer
         /// </summary>
         protected virtual void HistoryUpdate(
             UaServerContext context,
-            Type                           detailsType,
-            IList<HistoryUpdateDetails>    nodesToUpdate,
-            IList<HistoryUpdateResult>     results,
-            IList<ServiceResult>           errors,
-            List<UaNodeHandle>               nodesToProcess,
+            Type detailsType,
+            IList<HistoryUpdateDetails> nodesToUpdate,
+            IList<HistoryUpdateResult> results,
+            IList<ServiceResult> errors,
+            List<UaNodeHandle> nodesToProcess,
             IDictionary<NodeId, NodeState> cache)
         {
             // handle update data request.
@@ -2736,10 +2738,10 @@ namespace Technosoftware.UaServer
             List<UaNodeHandle> nodesToProcess,
             IDictionary<NodeId, NodeState> cache)
         {
-            foreach (var handle in nodesToProcess)
+            foreach (UaNodeHandle handle in nodesToProcess)
             {
                 // validate node.
-                var source = ValidateNode(context, handle, cache);
+                NodeState source = ValidateNode(context, handle, cache);
 
                 if (source == null)
                 {
@@ -2761,10 +2763,10 @@ namespace Technosoftware.UaServer
             List<UaNodeHandle> nodesToProcess,
             IDictionary<NodeId, NodeState> cache)
         {
-            foreach (var handle in nodesToProcess)
+            foreach (UaNodeHandle handle in nodesToProcess)
             {
                 // validate node.
-                var source = ValidateNode(context, handle, cache);
+                NodeState source = ValidateNode(context, handle, cache);
 
                 if (source == null)
                 {
@@ -2786,10 +2788,10 @@ namespace Technosoftware.UaServer
             List<UaNodeHandle> nodesToProcess,
             IDictionary<NodeId, NodeState> cache)
         {
-            foreach (var handle in nodesToProcess)
+            foreach (UaNodeHandle handle in nodesToProcess)
             {
                 // validate node.
-                var source = ValidateNode(context, handle, cache);
+                NodeState source = ValidateNode(context, handle, cache);
 
                 if (source == null)
                 {
@@ -2811,10 +2813,10 @@ namespace Technosoftware.UaServer
             List<UaNodeHandle> nodesToProcess,
             IDictionary<NodeId, NodeState> cache)
         {
-            foreach (var handle in nodesToProcess)
+            foreach (UaNodeHandle handle in nodesToProcess)
             {
                 // validate node.
-                var source = ValidateNode(context, handle, cache);
+                NodeState source = ValidateNode(context, handle, cache);
 
                 if (source == null)
                 {
@@ -2836,10 +2838,10 @@ namespace Technosoftware.UaServer
             List<UaNodeHandle> nodesToProcess,
             IDictionary<NodeId, NodeState> cache)
         {
-            foreach (var handle in nodesToProcess)
+            foreach (UaNodeHandle handle in nodesToProcess)
             {
                 // validate node.
-                var source = ValidateNode(context, handle, cache);
+                NodeState source = ValidateNode(context, handle, cache);
 
                 if (source == null)
                 {
@@ -2861,10 +2863,10 @@ namespace Technosoftware.UaServer
             List<UaNodeHandle> nodesToProcess,
             IDictionary<NodeId, NodeState> cache)
         {
-            foreach (var handle in nodesToProcess)
+            foreach (UaNodeHandle handle in nodesToProcess)
             {
                 // validate node.
-                var source = ValidateNode(context, handle, cache);
+                NodeState source = ValidateNode(context, handle, cache);
 
                 if (source == null)
                 {
@@ -2885,12 +2887,12 @@ namespace Technosoftware.UaServer
             IList<CallMethodResult> results,
             IList<ServiceResult> errors)
         {
-            var systemContext = SystemContext.Copy(context);
+            UaServerContext systemContext = SystemContext.Copy(context);
             IDictionary<NodeId, NodeState> operationCache = new NodeIdDictionary<NodeState>();
 
             for (var ii = 0; ii < methodsToCall.Count; ii++)
             {
-                var methodToCall = methodsToCall[ii];
+                CallMethodRequest methodToCall = methodsToCall[ii];
 
                 // skip items that have already been processed.
                 if (methodToCall.Processed)
@@ -2903,7 +2905,7 @@ namespace Technosoftware.UaServer
                 lock (Lock)
                 {
                     // check for valid handle.
-                    var handle = GetManagerHandle(systemContext, methodToCall.ObjectId, operationCache);
+                    UaNodeHandle handle = GetManagerHandle(systemContext, methodToCall.ObjectId, operationCache);
 
                     if (handle == null)
                     {
@@ -2914,7 +2916,7 @@ namespace Technosoftware.UaServer
                     methodToCall.Processed = true;
 
                     // validate the source node.
-                    var source = ValidateNode(systemContext, handle, operationCache);
+                    NodeState source = ValidateNode(systemContext, handle, operationCache);
 
                     if (source == null)
                     {
@@ -2953,7 +2955,7 @@ namespace Technosoftware.UaServer
                 }
 
                 // call the method.
-                var result = results[ii] = new CallMethodResult();
+                CallMethodResult result = results[ii] = new CallMethodResult();
 
                 errors[ii] = Call(
                     systemContext,
@@ -2976,7 +2978,7 @@ namespace Technosoftware.UaServer
             var argumentErrors = new List<ServiceResult>();
             var outputArguments = new VariantCollection();
 
-            var error = method.Call(
+            ServiceResult error = method.Call(
                 context,
                 methodToCall.ObjectId,
                 methodToCall.InputArguments,
@@ -2991,7 +2993,7 @@ namespace Technosoftware.UaServer
             // check for argument errors.
             var argumentsValid = true;
 
-            foreach (var argumentError in argumentErrors)
+            foreach (ServiceResult argumentError in argumentErrors)
             {
                 if (argumentError != null)
                 {
@@ -3051,18 +3053,18 @@ namespace Technosoftware.UaServer
         /// the notifier hierarchy.
         /// </remarks>
         public virtual ServiceResult SubscribeToEvents(
-            UaServerOperationContext    context,
-            object              sourceId,
-            uint                subscriptionId,
+            UaServerOperationContext context,
+            object sourceId,
+            uint subscriptionId,
             IUaEventMonitoredItem monitoredItem,
-            bool                unsubscribe)
+            bool unsubscribe)
         {
-            var systemContext = SystemContext.Copy(context);
+            UaServerContext systemContext = SystemContext.Copy(context);
 
             lock (Lock)
             {
                 // check for valid handle.
-                var handle = IsHandleInNamespace(sourceId);
+                UaNodeHandle handle = IsHandleInNamespace(sourceId);
 
                 if (handle == null)
                 {
@@ -3070,7 +3072,7 @@ namespace Technosoftware.UaServer
                 }
 
                 // check for valid node.
-                var source = ValidateNode(systemContext, handle, null);
+                NodeState source = ValidateNode(systemContext, handle, null);
 
                 if (source == null)
                 {
@@ -3090,12 +3092,12 @@ namespace Technosoftware.UaServer
         /// manager must start/stop reporting events for all objects that it manages.
         /// </remarks>
         public virtual ServiceResult SubscribeToAllEvents(
-            UaServerOperationContext    context,
-            uint                subscriptionId,
+            UaServerOperationContext context,
+            uint subscriptionId,
             IUaEventMonitoredItem monitoredItem,
-            bool                unsubscribe)
+            bool unsubscribe)
         {
-            var systemContext = SystemContext.Copy(context);
+            UaServerContext systemContext = SystemContext.Copy(context);
 
             lock (Lock)
             {
@@ -3104,7 +3106,7 @@ namespace Technosoftware.UaServer
                 // reference count for all root notifiers.
                 if (RootNotifiers != null)
                 {
-                    foreach (var t in RootNotifiers)
+                    foreach (NodeState t in RootNotifiers)
                     {
                         SubscribeToEvents(systemContext, t, monitoredItem, unsubscribe);
                     }
@@ -3166,9 +3168,9 @@ namespace Technosoftware.UaServer
             // subscribe to existing events.
             if (ServerData.EventManager != null)
             {
-                var monitoredItems = ServerData.EventManager.GetMonitoredItems();
+                IList<IUaEventMonitoredItem> monitoredItems = ServerData.EventManager.GetMonitoredItems();
 
-                foreach (var t in monitoredItems)
+                foreach (IUaEventMonitoredItem t in monitoredItems)
                 {
                     if (t.MonitoringAllEvents)
                     {
@@ -3224,9 +3226,9 @@ namespace Technosoftware.UaServer
         /// <returns>Any error code.</returns>
         protected virtual ServiceResult SubscribeToEvents(
             UaServerContext context,
-            NodeState           source,
+            NodeState source,
             IUaEventMonitoredItem monitoredItem,
-            bool                unsubscribe)
+            bool unsubscribe)
         {
             UaMonitoredNode monitoredNode;
 
@@ -3308,7 +3310,7 @@ namespace Technosoftware.UaServer
         protected virtual void OnSubscribeToEvents(
             UaServerContext context,
             UaMonitoredNode monitoredNode,
-            bool                unsubscribe)
+            bool unsubscribe)
         {
             // defined by the sub-class
         }
@@ -3325,9 +3327,9 @@ namespace Technosoftware.UaServer
             UaServerOperationContext context,
             IList<IUaEventMonitoredItem> monitoredItems)
         {
-            var systemContext = SystemContext.Copy(context);
+            UaServerContext systemContext = SystemContext.Copy(context);
 
-            foreach (var uaEventMonitoredItem in monitoredItems)
+            foreach (IUaEventMonitoredItem uaEventMonitoredItem in monitoredItems)
             {
                 // the IUaEventMonitoredItem should always be MonitoredItems since they are created by the MasterNodeManager.
                 var monitoredItem = uaEventMonitoredItem as UaMonitoredItem;
@@ -3354,7 +3356,7 @@ namespace Technosoftware.UaServer
                     {
                         // check for existing monitored node.
 
-                        if (!MonitoredNodes.TryGetValue(monitoredItem.NodeId, out var monitoredNode))
+                        if (!MonitoredNodes.TryGetValue(monitoredItem.NodeId, out UaMonitoredNode monitoredNode))
                         {
                             continue;
                         }
@@ -3365,16 +3367,16 @@ namespace Technosoftware.UaServer
                 }
 
                 // block and wait for the refresh.
-                foreach (var nodeToRefresh in nodesToRefresh)
+                foreach (NodeState nodeToRefresh in nodesToRefresh)
                 {
                     nodeToRefresh.ConditionRefresh(systemContext, events, true);
                 }
 
                 // queue the events.
-                foreach (var queuedEvent in events)
+                foreach (IFilterTarget queuedEvent in events)
                 {
                     // verify if the event can be received by the current monitored item
-                    var result = ValidateEventRolePermissions(monitoredItem, queuedEvent);
+                    ServiceResult result = ValidateEventRolePermissions(monitoredItem, queuedEvent);
                     if (ServiceResult.IsBad(result))
                     {
                         continue;
@@ -3394,17 +3396,17 @@ namespace Technosoftware.UaServer
         /// This method only handles data change subscriptions. Event subscriptions are created by the SDK.
         /// </remarks>
         public virtual void CreateMonitoredItems(
-            UaServerOperationContext                  context,
-            uint                              subscriptionId,
-            double                            publishingInterval,
-            TimestampsToReturn                timestampsToReturn,
+            UaServerOperationContext context,
+            uint subscriptionId,
+            double publishingInterval,
+            TimestampsToReturn timestampsToReturn,
             IList<MonitoredItemCreateRequest> itemsToCreate,
-            IList<ServiceResult>              errors,
-            IList<MonitoringFilterResult>     filterResults,
-            IList<IUaMonitoredItem>             monitoredItems,
-            ref long                          globalIdCounter)
+            IList<ServiceResult> errors,
+            IList<MonitoringFilterResult> filterResults,
+            IList<IUaMonitoredItem> monitoredItems,
+            ref long globalIdCounter)
         {
-            var systemContext = SystemContext.Copy(context);
+            UaServerContext systemContext = SystemContext.Copy(context);
             IDictionary<NodeId, NodeState> operationCache = new NodeIdDictionary<NodeState>();
             var nodesToValidate = new List<UaNodeHandle>();
             var createdItems = new List<IUaMonitoredItem>();
@@ -3413,7 +3415,7 @@ namespace Technosoftware.UaServer
             {
                 for (var ii = 0; ii < itemsToCreate.Count; ii++)
                 {
-                    var itemToCreate = itemsToCreate[ii];
+                    MonitoredItemCreateRequest itemToCreate = itemsToCreate[ii];
 
                     // skip items that have already been processed.
                     if (itemToCreate.Processed)
@@ -3421,10 +3423,10 @@ namespace Technosoftware.UaServer
                         continue;
                     }
 
-                    var itemToMonitor = itemToCreate.ItemToMonitor;
+                    ReadValueId itemToMonitor = itemToCreate.ItemToMonitor;
 
                     // check for valid handle.
-                    var handle = GetManagerHandle(systemContext, itemToMonitor.NodeId, operationCache);
+                    UaNodeHandle handle = GetManagerHandle(systemContext, itemToMonitor.NodeId, operationCache);
 
                     if (handle == null)
                     {
@@ -3449,7 +3451,7 @@ namespace Technosoftware.UaServer
             }
 
             // validates the nodes (reads values from the underlying data source if required).
-            foreach (var handle in nodesToValidate)
+            foreach (UaNodeHandle handle in nodesToValidate)
             {
                 MonitoringFilterResult filterResult;
                 IUaMonitoredItem monitoredItem;
@@ -3457,14 +3459,14 @@ namespace Technosoftware.UaServer
                 lock (Lock)
                 {
                     // validate node.
-                    var source = ValidateNode(systemContext, handle, operationCache);
+                    NodeState source = ValidateNode(systemContext, handle, operationCache);
 
                     if (source == null)
                     {
                         continue;
                     }
 
-                    var itemToCreate = itemsToCreate[handle.Index];
+                    MonitoredItemCreateRequest itemToCreate = itemsToCreate[handle.Index];
 
                     // create monitored item.
                     errors[handle.Index] = CreateMonitoredItem(
@@ -3528,7 +3530,7 @@ namespace Technosoftware.UaServer
             monitoredItem = null;
 
             // validate parameters.
-            var parameters = itemToCreate.RequestedParameters;
+            MonitoringParameters parameters = itemToCreate.RequestedParameters;
 
             // validate attribute.
             if (!Attributes.IsValid(handle.Node.NodeClass, itemToCreate.ItemToMonitor.AttributeId))
@@ -3538,9 +3540,9 @@ namespace Technosoftware.UaServer
 
             // check if the node is already being monitored.
 
-            if (!MonitoredNodes.TryGetValue(handle.Node.NodeId, out var monitoredNode))
+            if (!MonitoredNodes.TryGetValue(handle.Node.NodeId, out UaMonitoredNode monitoredNode))
             {
-                var cachedNode = AddNodeToComponentCache(context, handle, handle.Node);
+                NodeState cachedNode = AddNodeToComponentCache(context, handle, handle.Node);
                 MonitoredNodes[handle.Node.NodeId] = monitoredNode = new UaMonitoredNode(this, cachedNode);
             }
 
@@ -3589,8 +3591,15 @@ namespace Technosoftware.UaServer
                 samplingInterval,
                 queueSize,
                 parameters.Filter,
-                out var filterToUse,
+                out MonitoringFilter filterToUse,
+
+/* Unmerged change from project 'Technosoftware.UaServer (net48)'
+Before:
                 out var euRange,
+After:
+                out Range euRange,
+*/
+                out Opc.Ua.Range euRange,
                 out filterResult);
 
             if (ServiceResult.IsBad(error))
@@ -3662,7 +3671,7 @@ namespace Technosoftware.UaServer
             initialValue.SourceTimestamp = DateTime.MinValue;
             initialValue.StatusCode = StatusCodes.BadWaitingForInitialData;
 
-            var error = handle.Node.ReadAttribute(
+            ServiceResult error = handle.Node.ReadAttribute(
                 context,
                 monitoredItem.AttributeId,
                 monitoredItem.IndexRange,
@@ -3711,7 +3720,7 @@ namespace Technosoftware.UaServer
                 return StatusCodes.Good;
             }
 
-            var nodeMetadata = nodeManager.GetNodeMetadata(operationContext, nodeHandle, BrowseResultMask.All);
+            UaNodeMetadata nodeMetadata = nodeManager.GetNodeMetadata(operationContext, nodeHandle, BrowseResultMask.All);
 
             return MasterNodeManager.ValidateRolePermissions(operationContext, nodeMetadata, requestedPermission);
         }
@@ -3737,7 +3746,7 @@ namespace Technosoftware.UaServer
                 eventTypeId = baseEventState.EventType?.Value;
                 sourceNodeId = baseEventState.SourceNode?.Value;
             }
-            
+
             UaServerOperationContext operationContext = new UaServerOperationContext(monitoredItem);
 
             // validate the event type id permissions as specified
@@ -3793,8 +3802,7 @@ namespace Technosoftware.UaServer
                     return StatusCodes.BadAggregateNotSupported;
                 }
 
-                var revisedFilter = new ServerAggregateFilter
-                {
+                var revisedFilter = new ServerAggregateFilter {
                     AggregateType = aggregateFilter.AggregateType,
                     StartTime = aggregateFilter.StartTime,
                     ProcessingInterval = aggregateFilter.ProcessingInterval,
@@ -3802,15 +3810,14 @@ namespace Technosoftware.UaServer
                     Stepped = false
                 };
 
-                var error = ReviseAggregateFilter(context, handle, samplingInterval, queueSize, revisedFilter);
+                StatusCode error = ReviseAggregateFilter(context, handle, samplingInterval, queueSize, revisedFilter);
 
                 if (StatusCode.IsBad(error))
                 {
                     return error;
                 }
 
-                var aggregateFilterResult = new AggregateFilterResult
-                {
+                var aggregateFilterResult = new AggregateFilterResult {
                     RevisedProcessingInterval = aggregateFilter.ProcessingInterval,
                     RevisedStartTime = aggregateFilter.StartTime,
                     RevisedAggregateConfiguration = aggregateFilter.AggregateConfiguration
@@ -3904,7 +3911,7 @@ namespace Technosoftware.UaServer
                 filterToUse.ProcessingInterval = ServerData.AggregateManager.MinimumProcessingInterval;
             }
 
-            var earliestStartTime = DateTime.UtcNow.AddMilliseconds(-(queueSize - 1) * filterToUse.ProcessingInterval);
+            DateTime earliestStartTime = DateTime.UtcNow.AddMilliseconds(-(queueSize - 1) * filterToUse.ProcessingInterval);
 
             if (earliestStartTime > filterToUse.StartTime)
             {
@@ -3925,20 +3932,20 @@ namespace Technosoftware.UaServer
         /// </summary>
         public virtual void ModifyMonitoredItems(
             UaServerOperationContext context,
-            TimestampsToReturn                timestampsToReturn,
-            IList<IUaMonitoredItem>             monitoredItems,
+            TimestampsToReturn timestampsToReturn,
+            IList<IUaMonitoredItem> monitoredItems,
             IList<MonitoredItemModifyRequest> itemsToModify,
-            IList<ServiceResult>              errors,
-            IList<MonitoringFilterResult>     filterResults)
+            IList<ServiceResult> errors,
+            IList<MonitoringFilterResult> filterResults)
         {
-            var systemContext = SystemContext.Copy(context);
+            UaServerContext systemContext = SystemContext.Copy(context);
             var modifiedItems = new List<IUaMonitoredItem>();
 
             lock (Lock)
             {
                 for (var ii = 0; ii < monitoredItems.Count; ii++)
                 {
-                    var itemToModify = itemsToModify[ii];
+                    MonitoredItemModifyRequest itemToModify = itemsToModify[ii];
 
                     // skip items that have already been processed.
                     if (itemToModify.Processed || monitoredItems[ii] == null)
@@ -3947,7 +3954,7 @@ namespace Technosoftware.UaServer
                     }
 
                     // check handle.
-                    var handle = IsHandleInNamespace(monitoredItems[ii].ManagerHandle);
+                    UaNodeHandle handle = IsHandleInNamespace(monitoredItems[ii].ManagerHandle);
 
                     if (handle == null)
                     {
@@ -3966,7 +3973,7 @@ namespace Technosoftware.UaServer
                         monitoredItems[ii],
                         itemToModify,
                         handle,
-                        out var filterResult);
+                        out MonitoringFilterResult filterResult);
 
                     // save any filter error details.
                     filterResults[ii] = filterResult;
@@ -4010,7 +4017,7 @@ namespace Technosoftware.UaServer
             var datachangeItem = monitoredItem as UaMonitoredItem;
 
             // validate parameters.
-            var parameters = itemToModify.RequestedParameters;
+            MonitoringParameters parameters = itemToModify.RequestedParameters;
 
             var previousSamplingInterval = datachangeItem.SamplingInterval;
 
@@ -4056,8 +4063,15 @@ namespace Technosoftware.UaServer
                 samplingInterval,
                 queueSize,
                 parameters.Filter,
-                out var filterToUse,
+                out MonitoringFilter filterToUse,
+
+/* Unmerged change from project 'Technosoftware.UaServer (net48)'
+Before:
                 out var euRange,
+After:
+                out Range euRange,
+*/
+                out Opc.Ua.Range euRange,
                 out filterResult);
 
             if (ServiceResult.IsBad(error))
@@ -4105,12 +4119,12 @@ namespace Technosoftware.UaServer
         /// Deletes a set of monitored items.
         /// </summary>
         public virtual void DeleteMonitoredItems(
-            UaServerOperationContext     context,
+            UaServerOperationContext context,
             IList<IUaMonitoredItem> monitoredItems,
-            IList<bool>          processedItems,
+            IList<bool> processedItems,
             IList<ServiceResult> errors)
         {
-            var systemContext = SystemContext.Copy(context);
+            UaServerContext systemContext = SystemContext.Copy(context);
             var deletedItems = new List<IUaMonitoredItem>();
 
             lock (Lock)
@@ -4124,7 +4138,7 @@ namespace Technosoftware.UaServer
                     }
 
                     // check handle.
-                    var handle = IsHandleInNamespace(monitoredItems[ii].ManagerHandle);
+                    UaNodeHandle handle = IsHandleInNamespace(monitoredItems[ii].ManagerHandle);
 
                     if (handle == null)
                     {
@@ -4174,7 +4188,7 @@ namespace Technosoftware.UaServer
 
             // check if the node is already being monitored.
 
-            if (MonitoredNodes.TryGetValue(handle.NodeId, out var monitoredNode))
+            if (MonitoredNodes.TryGetValue(handle.NodeId, out UaMonitoredNode monitoredNode))
             {
                 monitoredNode.Remove(datachangeItem);
 
@@ -4283,12 +4297,12 @@ namespace Technosoftware.UaServer
         /// <param name="errors">Any errors.</param>
         public virtual void SetMonitoringMode(
             UaServerOperationContext context,
-            MonitoringMode        monitoringMode,
+            MonitoringMode monitoringMode,
             IList<IUaMonitoredItem> monitoredItems,
-            IList<bool>           processedItems,
-            IList<ServiceResult>  errors)
+            IList<bool> processedItems,
+            IList<ServiceResult> errors)
         {
-            var systemContext = SystemContext.Copy(context);
+            UaServerContext systemContext = SystemContext.Copy(context);
             var changedItems = new List<IUaMonitoredItem>();
 
             lock (Lock)
@@ -4302,7 +4316,7 @@ namespace Technosoftware.UaServer
                     }
 
                     // check handle.
-                    var handle = IsHandleInNamespace(monitoredItems[ii].ManagerHandle);
+                    UaNodeHandle handle = IsHandleInNamespace(monitoredItems[ii].ManagerHandle);
 
                     if (handle == null)
                     {
@@ -4353,7 +4367,7 @@ namespace Technosoftware.UaServer
             var datachangeItem = monitoredItem as UaMonitoredItem;
 
             // update monitoring mode.
-            var previousMode = datachangeItem.SetMonitoringMode(monitoringMode);
+            MonitoringMode previousMode = datachangeItem.SetMonitoringMode(monitoringMode);
 
             // must send the latest value after enabling a disabled item.
             if (monitoringMode == MonitoringMode.Reporting && previousMode == MonitoringMode.Disabled)
@@ -4607,14 +4621,14 @@ namespace Technosoftware.UaServer
 
                 if (componentCache_ != null)
                 {
-                    var nodeId = handle.NodeId;
+                    NodeId nodeId = handle.NodeId;
 
                     if (!string.IsNullOrEmpty(handle.ComponentPath))
                     {
                         nodeId = handle.RootId;
                     }
 
-                    if (componentCache_.TryGetValue(nodeId, out var entry))
+                    if (componentCache_.TryGetValue(nodeId, out CacheEntry entry))
                     {
                         entry.RefCount--;
 
@@ -4647,7 +4661,7 @@ namespace Technosoftware.UaServer
                 // check if a component is actually specified.
                 if (!string.IsNullOrEmpty(handle.ComponentPath))
                 {
-                    if (componentCache_.TryGetValue(handle.RootId, out var entry))
+                    if (componentCache_.TryGetValue(handle.RootId, out CacheEntry entry))
                     {
                         entry.RefCount++;
 
@@ -4659,7 +4673,7 @@ namespace Technosoftware.UaServer
                         return entry.Entry;
                     }
 
-                    var root = node.GetHierarchyRoot();
+                    NodeState root = node.GetHierarchyRoot();
 
                     if (root != null)
                     {
@@ -4671,7 +4685,7 @@ namespace Technosoftware.UaServer
                 // simply add the node to the cache.
                 else
                 {
-                    if (componentCache_.TryGetValue(handle.NodeId, out var entry))
+                    if (componentCache_.TryGetValue(handle.NodeId, out CacheEntry entry))
                     {
                         entry.RefCount++;
                         return entry.Entry;

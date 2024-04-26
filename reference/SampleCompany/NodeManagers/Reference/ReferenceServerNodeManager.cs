@@ -116,7 +116,7 @@ namespace SampleCompany.NodeManagers.Reference
         {
             lock (Lock)
             {
-                if (!externalReferences.TryGetValue(ObjectIds.ObjectsFolder, out var references))
+                if (!externalReferences.TryGetValue(ObjectIds.ObjectsFolder, out IList<IReference> references))
                 {
                     externalReferences[ObjectIds.ObjectsFolder] = References = new List<IReference>();
                 }
@@ -124,8 +124,8 @@ namespace SampleCompany.NodeManagers.Reference
                 {
                     References = references;
                 }
-                
-                var root = CreateFolderState(null, "CTT", "CTT", null);
+
+                FolderState root = CreateFolderState(null, "CTT", "CTT", null);
 
                 var variables = new List<BaseDataVariableState>();
 
@@ -133,12 +133,12 @@ namespace SampleCompany.NodeManagers.Reference
                 {
                     #region Scalar_Static
                     ResetRandomGenerator(1);
-                    var scalarFolder = CreateFolderState(root, "Scalar", "Scalar", null);
-                    var scalarInstructions = CreateBaseDataVariableState(scalarFolder, "Scalar_Instructions", "Scalar_Instructions", null, DataTypeIds.String, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    FolderState scalarFolder = CreateFolderState(root, "Scalar", "Scalar", null);
+                    BaseDataVariableState scalarInstructions = CreateBaseDataVariableState(scalarFolder, "Scalar_Instructions", "Scalar_Instructions", null, DataTypeIds.String, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     scalarInstructions.Value = "A library of Read/Write Variables of all supported data-types.";
                     variables.Add(scalarInstructions);
 
-                    var staticFolder = CreateFolderState(scalarFolder, "Scalar_Static", "Scalar_Static", null);
+                    FolderState staticFolder = CreateFolderState(scalarFolder, "Scalar_Static", "Scalar_Static", null);
                     const string scalarStatic = "Scalar_Static_";
                     variables.Add(CreateBaseDataVariableState(staticFolder, scalarStatic + "Boolean", "Boolean", null, DataTypeIds.Boolean, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null));
                     variables.Add(CreateBaseDataVariableState(staticFolder, scalarStatic + "Byte", "Byte", null, DataTypeIds.Byte, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null));
@@ -167,7 +167,7 @@ namespace SampleCompany.NodeManagers.Reference
                     variables.Add(CreateBaseDataVariableState(staticFolder, scalarStatic + "Variant", "Variant", null, BuiltInType.Variant, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null));
                     variables.Add(CreateBaseDataVariableState(staticFolder, scalarStatic + "XmlElement", "XmlElement", null, DataTypeIds.XmlElement, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null).MinimumSamplingInterval(1000));
 
-                    var decimalVariable = CreateBaseDataVariableState(staticFolder, scalarStatic + "Decimal", "Decimal", null, DataTypeIds.DecimalDataType, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState decimalVariable = CreateBaseDataVariableState(staticFolder, scalarStatic + "Decimal", "Decimal", null, DataTypeIds.DecimalDataType, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     // Set an arbitrary precision decimal value.
                     var largeInteger = BigInteger.Parse("1234567890123546789012345678901234567890123456789012345");
                     var decimalValue = new DecimalDataType {
@@ -180,7 +180,7 @@ namespace SampleCompany.NodeManagers.Reference
 
                     #region Scalar_Static_Arrays
                     ResetRandomGenerator(2);
-                    var arraysFolder = CreateFolderState(staticFolder, "Scalar_Static_Arrays", "Arrays", null);
+                    FolderState arraysFolder = CreateFolderState(staticFolder, "Scalar_Static_Arrays", "Arrays", null);
                     const string staticArrays = "Scalar_Static_Arrays_";
 
                     variables.Add(CreateBaseDataVariableState(arraysFolder, staticArrays + "Boolean", "Boolean", null, DataTypeIds.Boolean, ValueRanks.OneDimension, AccessLevels.CurrentReadOrWrite, null));
@@ -188,7 +188,7 @@ namespace SampleCompany.NodeManagers.Reference
                     variables.Add(CreateBaseDataVariableState(arraysFolder, staticArrays + "ByteString", "ByteString", null, DataTypeIds.ByteString, ValueRanks.OneDimension, AccessLevels.CurrentReadOrWrite, null));
                     variables.Add(CreateBaseDataVariableState(arraysFolder, staticArrays + "DateTime", "DateTime", null, DataTypeIds.DateTime, ValueRanks.OneDimension, AccessLevels.CurrentReadOrWrite, null));
 
-                    var doubleArrayVar = CreateBaseDataVariableState(arraysFolder, staticArrays + "Double", "Double", null, DataTypeIds.Double, ValueRanks.OneDimension, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState doubleArrayVar = CreateBaseDataVariableState(arraysFolder, staticArrays + "Double", "Double", null, DataTypeIds.Double, ValueRanks.OneDimension, AccessLevels.CurrentReadOrWrite, null);
                     // Set the first elements of the array to a smaller value.
                     if (doubleArrayVar.Value is double[] doubleArrayVal)
                     {
@@ -202,7 +202,7 @@ namespace SampleCompany.NodeManagers.Reference
 
                     variables.Add(CreateBaseDataVariableState(arraysFolder, staticArrays + "Duration", "Duration", null, DataTypeIds.Duration, ValueRanks.OneDimension, AccessLevels.CurrentReadOrWrite, null));
 
-                    var floatArrayVar = CreateBaseDataVariableState(arraysFolder, staticArrays + "Float", "Float", null, DataTypeIds.Float, ValueRanks.OneDimension, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState floatArrayVar = CreateBaseDataVariableState(arraysFolder, staticArrays + "Float", "Float", null, DataTypeIds.Float, ValueRanks.OneDimension, AccessLevels.CurrentReadOrWrite, null);
                     // Set the first elements of the array to a smaller value.
                     if (floatArrayVar.Value is float[] floatArrayVal)
                     {
@@ -226,7 +226,7 @@ namespace SampleCompany.NodeManagers.Reference
                     variables.Add(CreateBaseDataVariableState(arraysFolder, staticArrays + "QualifiedName", "QualifiedName", null, DataTypeIds.QualifiedName, ValueRanks.OneDimension, AccessLevels.CurrentReadOrWrite, null));
                     variables.Add(CreateBaseDataVariableState(arraysFolder, staticArrays + "SByte", "SByte", null, DataTypeIds.SByte, ValueRanks.OneDimension, AccessLevels.CurrentReadOrWrite, null));
 
-                    var stringArrayVar = CreateBaseDataVariableState(arraysFolder, staticArrays + "String", "String", null, DataTypeIds.String, ValueRanks.OneDimension, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState stringArrayVar = CreateBaseDataVariableState(arraysFolder, staticArrays + "String", "String", null, DataTypeIds.String, ValueRanks.OneDimension, AccessLevels.CurrentReadOrWrite, null);
                     stringArrayVar.Value = new[] {
                         "Лошадь_ Пурпурово( Змейка( Слон",
                         "猪 绿色 绵羊 大象~ 狗 菠萝 猪鼠",
@@ -251,7 +251,7 @@ namespace SampleCompany.NodeManagers.Reference
 
                     #region Scalar_Static_Arrays2D
                     ResetRandomGenerator(3);
-                    var arrays2DFolder = CreateFolderState(staticFolder, "Scalar_Static_Arrays2D", "Arrays2D", null);
+                    FolderState arrays2DFolder = CreateFolderState(staticFolder, "Scalar_Static_Arrays2D", "Arrays2D", null);
                     const string staticArrays2D = "Scalar_Static_Arrays2D_";
                     variables.Add(CreateBaseDataVariableState(arrays2DFolder, staticArrays2D + "Boolean", "Boolean", null, DataTypeIds.Boolean, ValueRanks.TwoDimensions, AccessLevels.CurrentReadOrWrite, null));
                     variables.Add(CreateBaseDataVariableState(arrays2DFolder, staticArrays2D + "Byte", "Byte", null, DataTypeIds.Byte, ValueRanks.TwoDimensions, AccessLevels.CurrentReadOrWrite, null));
@@ -283,7 +283,7 @@ namespace SampleCompany.NodeManagers.Reference
 
                     #region Scalar_Static_ArrayDynamic
                     ResetRandomGenerator(4);
-                    var arrayDynamicFolder = CreateFolderState(staticFolder, "Scalar_Static_ArrayDymamic", "ArrayDymamic", null);
+                    FolderState arrayDynamicFolder = CreateFolderState(staticFolder, "Scalar_Static_ArrayDymamic", "ArrayDymamic", null);
                     const string staticArraysDynamic = "Scalar_Static_ArrayDynamic_";
                     variables.Add(CreateBaseDataVariableState(arrayDynamicFolder, staticArraysDynamic + "Boolean", "Boolean", null, DataTypeIds.Boolean, ValueRanks.OneOrMoreDimensions, AccessLevels.CurrentReadOrWrite, null));
                     variables.Add(CreateBaseDataVariableState(arrayDynamicFolder, staticArraysDynamic + "Byte", "Byte", null, DataTypeIds.Byte, ValueRanks.OneOrMoreDimensions, AccessLevels.CurrentReadOrWrite, null));
@@ -316,7 +316,7 @@ namespace SampleCompany.NodeManagers.Reference
                     #region Scalar_Static_Mass
                     ResetRandomGenerator(5);
                     // create 100 instances of each static scalar type
-                    var massFolder = CreateFolderState(staticFolder, "Scalar_Static_Mass", "Mass", null);
+                    FolderState massFolder = CreateFolderState(staticFolder, "Scalar_Static_Mass", "Mass", null);
                     const string staticMass = "Scalar_Static_Mass_";
                     variables.AddRange(CreateVariables(massFolder, staticMass + "Boolean", "Boolean", null, DataTypeIds.Boolean, ValueRanks.Scalar, 100));
                     variables.AddRange(CreateVariables(massFolder, staticMass + "Byte", "Byte", null, DataTypeIds.Byte, ValueRanks.Scalar, 100));
@@ -346,7 +346,7 @@ namespace SampleCompany.NodeManagers.Reference
 
                     #region Scalar_Simulation
                     ResetRandomGenerator(6);
-                    var simulationFolder = CreateFolderState(scalarFolder, "Scalar_Simulation", "Simulation", null);
+                    FolderState simulationFolder = CreateFolderState(scalarFolder, "Scalar_Simulation", "Simulation", null);
                     const string scalarSimulation = "Scalar_Simulation_";
                     CreateDynamicVariable(simulationFolder, scalarSimulation + "Boolean", "Boolean", null, DataTypeIds.Boolean, ValueRanks.Scalar);
                     CreateDynamicVariable(simulationFolder, scalarSimulation + "Byte", "Byte", null, DataTypeIds.Byte, ValueRanks.Scalar);
@@ -375,18 +375,18 @@ namespace SampleCompany.NodeManagers.Reference
                     CreateDynamicVariable(simulationFolder, scalarSimulation + "Variant", "Variant", null, BuiltInType.Variant, ValueRanks.Scalar);
                     CreateDynamicVariable(simulationFolder, scalarSimulation + "XmlElement", "XmlElement", null, DataTypeIds.XmlElement, ValueRanks.Scalar);
 
-                    var intervalVariable = CreateBaseDataVariableState(simulationFolder, scalarSimulation + "Interval", "Interval", null, DataTypeIds.UInt16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState intervalVariable = CreateBaseDataVariableState(simulationFolder, scalarSimulation + "Interval", "Interval", null, DataTypeIds.UInt16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     intervalVariable.Value = simulationInterval_;
                     intervalVariable.OnSimpleWriteValue = OnWriteInterval;
 
-                    var enabledVariable = CreateBaseDataVariableState(simulationFolder, scalarSimulation + "Enabled", "Enabled", null, DataTypeIds.Boolean, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState enabledVariable = CreateBaseDataVariableState(simulationFolder, scalarSimulation + "Enabled", "Enabled", null, DataTypeIds.Boolean, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     enabledVariable.Value = simulationEnabled_;
                     enabledVariable.OnSimpleWriteValue = OnWriteEnabled;
                     #endregion
 
                     #region Scalar_Simulation_Arrays
                     ResetRandomGenerator(7);
-                    var arraysSimulationFolder = CreateFolderState(simulationFolder, "Scalar_Simulation_Arrays", "Arrays", null);
+                    FolderState arraysSimulationFolder = CreateFolderState(simulationFolder, "Scalar_Simulation_Arrays", "Arrays", null);
                     const string simulationArrays = "Scalar_Simulation_Arrays_";
                     CreateDynamicVariable(arraysSimulationFolder, simulationArrays + "Boolean", "Boolean", null, DataTypeIds.Boolean, ValueRanks.OneDimension);
                     CreateDynamicVariable(arraysSimulationFolder, simulationArrays + "Byte", "Byte", null, DataTypeIds.Byte, ValueRanks.OneDimension);
@@ -418,7 +418,7 @@ namespace SampleCompany.NodeManagers.Reference
 
                     #region Scalar_Simulation_Mass
                     ResetRandomGenerator(8);
-                    var massSimulationFolder = CreateFolderState(simulationFolder, "Scalar_Simulation_Mass", "Mass", null);
+                    FolderState massSimulationFolder = CreateFolderState(simulationFolder, "Scalar_Simulation_Mass", "Mass", null);
                     const string massSimulation = "Scalar_Simulation_Mass_";
                     CreateDynamicVariables(massSimulationFolder, massSimulation + "Boolean", "Boolean", null, DataTypeIds.Boolean, ValueRanks.Scalar, 100);
                     CreateDynamicVariables(massSimulationFolder, massSimulation + "Byte", "Byte", null, DataTypeIds.Byte, ValueRanks.Scalar, 100);
@@ -450,17 +450,17 @@ namespace SampleCompany.NodeManagers.Reference
 
                     #region DataAccess_DataItem
                     ResetRandomGenerator(9);
-                    var daFolder = CreateFolderState(root, "DataAccess", "DataAccess", null);
-                    var daInstructions = CreateBaseDataVariableState(daFolder, "DataAccess_Instructions", "Instructions", null, DataTypeIds.String, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    FolderState daFolder = CreateFolderState(root, "DataAccess", "DataAccess", null);
+                    BaseDataVariableState daInstructions = CreateBaseDataVariableState(daFolder, "DataAccess_Instructions", "Instructions", null, DataTypeIds.String, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     daInstructions.Value = "A library of Read/Write Variables of all supported data-types.";
                     variables.Add(daInstructions);
 
-                    var dataItemFolder = CreateFolderState(daFolder, "DataAccess_DataItem", "DataItem", null);
+                    FolderState dataItemFolder = CreateFolderState(daFolder, "DataAccess_DataItem", "DataItem", null);
                     const string daDataItem = "DataAccess_DataItem_";
 
                     foreach (var name in Enum.GetNames(typeof(BuiltInType)))
                     {
-                        var item = CreateDataItemState(dataItemFolder, daDataItem + name, name, null, (BuiltInType)Enum.Parse(typeof(BuiltInType), name), ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null, AttributeWriteMask.None, AttributeWriteMask.None, String.Empty, 2, null, null);
+                        DataItemState item = CreateDataItemState(dataItemFolder, daDataItem + name, name, null, (BuiltInType)Enum.Parse(typeof(BuiltInType), name), ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null, AttributeWriteMask.None, AttributeWriteMask.None, String.Empty, 2, null, null);
 
                         // set initial value to String.Empty for String node.
                         if (name == BuiltInType.String.ToString())
@@ -472,7 +472,7 @@ namespace SampleCompany.NodeManagers.Reference
 
                     #region DataAccess_AnalogType
                     ResetRandomGenerator(10);
-                    var analogItemFolder = CreateFolderState(daFolder, "DataAccess_AnalogType", "AnalogType", null);
+                    FolderState analogItemFolder = CreateFolderState(daFolder, "DataAccess_AnalogType", "AnalogType", null);
                     const string daAnalogItem = "DataAccess_AnalogType_";
 
                     foreach (var name in Enum.GetNames(typeof(BuiltInType)))
@@ -480,7 +480,7 @@ namespace SampleCompany.NodeManagers.Reference
                         var builtInType = (BuiltInType)Enum.Parse(typeof(BuiltInType), name);
                         if (IsAnalogType(builtInType))
                         {
-                            var item = CreateAnalogItemVariable(analogItemFolder, daAnalogItem + name, name, null, builtInType, ValueRanks.Scalar);
+                            AnalogItemState item = CreateAnalogItemVariable(analogItemFolder, daAnalogItem + name, name, null, builtInType, ValueRanks.Scalar);
 
                             if (builtInType == BuiltInType.Int64 ||
                                 builtInType == BuiltInType.UInt64)
@@ -506,7 +506,7 @@ namespace SampleCompany.NodeManagers.Reference
 
                     #region DataAccess_AnalogType_Array
                     ResetRandomGenerator(11);
-                    var analogArrayFolder = CreateFolderState(analogItemFolder, "DataAccess_AnalogType_Array", "Array", null);
+                    FolderState analogArrayFolder = CreateFolderState(analogItemFolder, "DataAccess_AnalogType_Array", "Array", null);
                     const string daAnalogArray = "DataAccess_AnalogType_Array_";
 
                     CreateAnalogItemVariable(analogArrayFolder, daAnalogArray + "Boolean", "Boolean", null, BuiltInType.Boolean, ValueRanks.OneDimension, new[] { true, false, true, false, true, false, true, false, true });
@@ -540,8 +540,8 @@ namespace SampleCompany.NodeManagers.Reference
 
                     #region DataAccess_DiscreteType
                     ResetRandomGenerator(12);
-                    var discreteTypeFolder = CreateFolderState(daFolder, "DataAccess_DiscreteType", "DiscreteType", null);
-                    var twoStateDiscreteFolder = CreateFolderState(discreteTypeFolder, "DataAccess_TwoStateDiscreteType", "TwoStateDiscreteType", null);
+                    FolderState discreteTypeFolder = CreateFolderState(daFolder, "DataAccess_DiscreteType", "DiscreteType", null);
+                    FolderState twoStateDiscreteFolder = CreateFolderState(discreteTypeFolder, "DataAccess_TwoStateDiscreteType", "TwoStateDiscreteType", null);
                     const string daTwoStateDiscrete = "DataAccess_TwoStateDiscreteType_";
 
                     // Add our Nodes to the folder, and specify their customized discrete enumerations
@@ -551,11 +551,11 @@ namespace SampleCompany.NodeManagers.Reference
                     CreateTwoStateDiscreteState(twoStateDiscreteFolder, daTwoStateDiscrete + "004", "004", null, AccessLevels.CurrentReadOrWrite, false, "left", "right");
                     CreateTwoStateDiscreteState(twoStateDiscreteFolder, daTwoStateDiscrete + "005", "005", null, AccessLevels.CurrentReadOrWrite, false, "circle", "cross");
 
-                    var multiStateDiscreteFolder = CreateFolderState(discreteTypeFolder, "DataAccess_MultiStateDiscreteType", "MultiStateDiscreteType", null);
+                    FolderState multiStateDiscreteFolder = CreateFolderState(discreteTypeFolder, "DataAccess_MultiStateDiscreteType", "MultiStateDiscreteType", null);
                     const string daMultiStateDiscrete = "DataAccess_MultiStateDiscreteType_";
 
                     // Add our Nodes to the folder, and specify their customized discrete enumerations
-                    var variable = CreateMultiStateDiscreteState(multiStateDiscreteFolder, daMultiStateDiscrete + "001", "001", null, AccessLevels.CurrentReadOrWrite, null,
+                    MultiStateDiscreteState variable = CreateMultiStateDiscreteState(multiStateDiscreteFolder, daMultiStateDiscrete + "001", "001", null, AccessLevels.CurrentReadOrWrite, null,
                         AttributeWriteMask.None, AttributeWriteMask.None, null, null, null, "open", "closed", "jammed");
                     variable.OnWriteValue = OnWriteDiscrete;
                     variable = CreateMultiStateDiscreteState(multiStateDiscreteFolder, daMultiStateDiscrete + "002", "002", null, AccessLevels.CurrentReadOrWrite, null,
@@ -574,11 +574,11 @@ namespace SampleCompany.NodeManagers.Reference
 
                     #region DataAccess_MultiStateValueDiscreteType
                     ResetRandomGenerator(13);
-                    var multiStateValueDiscreteFolder = CreateFolderState(discreteTypeFolder, "DataAccess_MultiStateValueDiscreteType", "MultiStateValueDiscreteType", null);
+                    FolderState multiStateValueDiscreteFolder = CreateFolderState(discreteTypeFolder, "DataAccess_MultiStateValueDiscreteType", "MultiStateValueDiscreteType", null);
                     const string daMultiStateValueDiscrete = "DataAccess_MultiStateValueDiscreteType_";
 
                     // Add our Nodes to the folder, and specify their customized discrete enumerations
-                    var valueDiscreteVariable = CreateMultiStateValueDiscreteState(multiStateValueDiscreteFolder, daMultiStateValueDiscrete + "001", "001", null, null, AccessLevels.CurrentReadOrWrite, null, AttributeWriteMask.None, AttributeWriteMask.None, null, null, null, new LocalizedText[] { "open", "closed", "jammed" });
+                    MultiStateValueDiscreteState valueDiscreteVariable = CreateMultiStateValueDiscreteState(multiStateValueDiscreteFolder, daMultiStateValueDiscrete + "001", "001", null, null, AccessLevels.CurrentReadOrWrite, null, AttributeWriteMask.None, AttributeWriteMask.None, null, null, null, new LocalizedText[] { "open", "closed", "jammed" });
                     valueDiscreteVariable.OnWriteValue = OnWriteValueDiscrete;
                     valueDiscreteVariable = CreateMultiStateValueDiscreteState(multiStateValueDiscreteFolder, daMultiStateValueDiscrete + "002", "002", null, null, AccessLevels.CurrentReadOrWrite, null, AttributeWriteMask.None, AttributeWriteMask.None, null, null, null, new LocalizedText[] { "red", "green", "blue", "cyan" });
                     valueDiscreteVariable.OnWriteValue = OnWriteValueDiscrete;
@@ -611,19 +611,19 @@ namespace SampleCompany.NodeManagers.Reference
 
                     #region References
                     ResetRandomGenerator(14);
-                    var referencesFolder = CreateFolderState(root, "References", "References", null);
+                    FolderState referencesFolder = CreateFolderState(root, "References", "References", null);
                     const string referencesPrefix = "References_";
 
-                    var referencesInstructions = CreateBaseDataVariableState(referencesFolder, "References_Instructions", "Instructions", null, DataTypeIds.String, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState referencesInstructions = CreateBaseDataVariableState(referencesFolder, "References_Instructions", "Instructions", null, DataTypeIds.String, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     referencesInstructions.Value = "This folder will contain nodes that have specific Reference configurations.";
                     variables.Add(referencesInstructions);
 
                     // create variable nodes with specific references
-                    var hasForwardReference = CreateMeshVariable(referencesFolder, referencesPrefix + "HasForwardReference", "HasForwardReference");
+                    BaseDataVariableState hasForwardReference = CreateMeshVariable(referencesFolder, referencesPrefix + "HasForwardReference", "HasForwardReference");
                     hasForwardReference.AddReference(ReferenceTypes.HasCause, false, variables[0].NodeId);
                     variables.Add(hasForwardReference);
 
-                    var hasInverseReference = CreateMeshVariable(referencesFolder, referencesPrefix + "HasInverseReference", "HasInverseReference");
+                    BaseDataVariableState hasInverseReference = CreateMeshVariable(referencesFolder, referencesPrefix + "HasInverseReference", "HasInverseReference");
                     hasInverseReference.AddReference(ReferenceTypes.HasCause, true, variables[0].NodeId);
                     variables.Add(hasInverseReference);
 
@@ -635,7 +635,7 @@ namespace SampleCompany.NodeManagers.Reference
                         {
                             referenceString += i.ToString();
                         }
-                        var has3ForwardReferences = CreateMeshVariable(referencesFolder, referencesPrefix + referenceString, referenceString);
+                        BaseDataVariableState has3ForwardReferences = CreateMeshVariable(referencesFolder, referencesPrefix + referenceString, referenceString);
                         has3ForwardReferences.AddReference(ReferenceTypes.HasCause, false, variables[0].NodeId);
                         has3ForwardReferences.AddReference(ReferenceTypes.HasCause, false, variables[1].NodeId);
                         has3ForwardReferences.AddReference(ReferenceTypes.HasCause, false, variables[2].NodeId);
@@ -646,101 +646,101 @@ namespace SampleCompany.NodeManagers.Reference
                         variables.Add(has3ForwardReferences);
                     }
 
-                    var has3InverseReferences = CreateMeshVariable(referencesFolder, referencesPrefix + "Has3InverseReferences", "Has3InverseReferences");
+                    BaseDataVariableState has3InverseReferences = CreateMeshVariable(referencesFolder, referencesPrefix + "Has3InverseReferences", "Has3InverseReferences");
                     has3InverseReferences.AddReference(ReferenceTypes.HasEffect, true, variables[0].NodeId);
                     has3InverseReferences.AddReference(ReferenceTypes.HasEffect, true, variables[1].NodeId);
                     has3InverseReferences.AddReference(ReferenceTypes.HasEffect, true, variables[2].NodeId);
                     variables.Add(has3InverseReferences);
 
-                    var hasForwardAndInverseReferences = CreateMeshVariable(referencesFolder, referencesPrefix + "HasForwardAndInverseReference", "HasForwardAndInverseReference", hasForwardReference, hasInverseReference, has3InverseReference, has3InverseReferences, variables[0]);
+                    BaseDataVariableState hasForwardAndInverseReferences = CreateMeshVariable(referencesFolder, referencesPrefix + "HasForwardAndInverseReference", "HasForwardAndInverseReference", hasForwardReference, hasInverseReference, has3InverseReference, has3InverseReferences, variables[0]);
                     variables.Add(hasForwardAndInverseReferences);
                     #endregion
 
                     #region AccessRights
                     ResetRandomGenerator(15);
-                    var folderAccessRights = CreateFolderState(root, "AccessRights", "AccessRights", null);
+                    FolderState folderAccessRights = CreateFolderState(root, "AccessRights", "AccessRights", null);
                     const string accessRights = "AccessRights_";
 
-                    var accessRightsInstructions = CreateBaseDataVariableState(folderAccessRights, accessRights + "Instructions", "Instructions", null, DataTypeIds.String, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState accessRightsInstructions = CreateBaseDataVariableState(folderAccessRights, accessRights + "Instructions", "Instructions", null, DataTypeIds.String, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     accessRightsInstructions.Value = "This folder will be accessible to all who enter, but contents therein will be secured.";
                     variables.Add(accessRightsInstructions);
 
                     // sub-folder for "AccessAll"
-                    var folderAccessRightsAccessAll = CreateFolderState(folderAccessRights, "AccessRights_AccessAll", "AccessAll", null);
+                    FolderState folderAccessRightsAccessAll = CreateFolderState(folderAccessRights, "AccessRights_AccessAll", "AccessAll", null);
                     const string accessRightsAccessAll = "AccessRights_AccessAll_";
 
-                    var arAllRo = CreateBaseDataVariableState(folderAccessRightsAccessAll, accessRightsAccessAll + "RO", "RO", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState arAllRo = CreateBaseDataVariableState(folderAccessRightsAccessAll, accessRightsAccessAll + "RO", "RO", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     arAllRo.AccessLevel = AccessLevels.CurrentRead;
                     arAllRo.UserAccessLevel = AccessLevels.CurrentRead;
                     variables.Add(arAllRo);
-                    var arAllWo = CreateBaseDataVariableState(folderAccessRightsAccessAll, accessRightsAccessAll + "WO", "WO", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState arAllWo = CreateBaseDataVariableState(folderAccessRightsAccessAll, accessRightsAccessAll + "WO", "WO", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     arAllWo.AccessLevel = AccessLevels.CurrentWrite;
                     arAllWo.UserAccessLevel = AccessLevels.CurrentWrite;
                     variables.Add(arAllWo);
-                    var arAllRw = CreateBaseDataVariableState(folderAccessRightsAccessAll, accessRightsAccessAll + "RW", "RW", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState arAllRw = CreateBaseDataVariableState(folderAccessRightsAccessAll, accessRightsAccessAll + "RW", "RW", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     arAllRw.AccessLevel = AccessLevels.CurrentReadOrWrite;
                     arAllRw.UserAccessLevel = AccessLevels.CurrentReadOrWrite;
                     variables.Add(arAllRw);
-                    var arAllRoNotUser = CreateBaseDataVariableState(folderAccessRightsAccessAll, accessRightsAccessAll + "RO_NotUser", "RO_NotUser", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState arAllRoNotUser = CreateBaseDataVariableState(folderAccessRightsAccessAll, accessRightsAccessAll + "RO_NotUser", "RO_NotUser", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     arAllRoNotUser.AccessLevel = AccessLevels.CurrentRead;
                     arAllRoNotUser.UserAccessLevel = AccessLevels.None;
                     variables.Add(arAllRoNotUser);
-                    var arAllWoNotUser = CreateBaseDataVariableState(folderAccessRightsAccessAll, accessRightsAccessAll + "WO_NotUser", "WO_NotUser", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState arAllWoNotUser = CreateBaseDataVariableState(folderAccessRightsAccessAll, accessRightsAccessAll + "WO_NotUser", "WO_NotUser", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     arAllWoNotUser.AccessLevel = AccessLevels.CurrentWrite;
                     arAllWoNotUser.UserAccessLevel = AccessLevels.None;
                     variables.Add(arAllWoNotUser);
-                    var arAllRwNotUser = CreateBaseDataVariableState(folderAccessRightsAccessAll, accessRightsAccessAll + "RW_NotUser", "RW_NotUser", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState arAllRwNotUser = CreateBaseDataVariableState(folderAccessRightsAccessAll, accessRightsAccessAll + "RW_NotUser", "RW_NotUser", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     arAllRwNotUser.AccessLevel = AccessLevels.CurrentReadOrWrite;
                     arAllRwNotUser.UserAccessLevel = AccessLevels.CurrentRead;
                     variables.Add(arAllRwNotUser);
-                    var arAllRoUserRw = CreateBaseDataVariableState(folderAccessRightsAccessAll, accessRightsAccessAll + "RO_User1_RW", "RO_User1_RW", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState arAllRoUserRw = CreateBaseDataVariableState(folderAccessRightsAccessAll, accessRightsAccessAll + "RO_User1_RW", "RO_User1_RW", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     arAllRoUserRw.AccessLevel = AccessLevels.CurrentRead;
                     arAllRoUserRw.UserAccessLevel = AccessLevels.CurrentReadOrWrite;
                     variables.Add(arAllRoUserRw);
-                    var arAllRoGroupRw = CreateBaseDataVariableState(folderAccessRightsAccessAll, accessRightsAccessAll + "RO_Group1_RW", "RO_Group1_RW", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState arAllRoGroupRw = CreateBaseDataVariableState(folderAccessRightsAccessAll, accessRightsAccessAll + "RO_Group1_RW", "RO_Group1_RW", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     arAllRoGroupRw.AccessLevel = AccessLevels.CurrentRead;
                     arAllRoGroupRw.UserAccessLevel = AccessLevels.CurrentReadOrWrite;
                     variables.Add(arAllRoGroupRw);
 
                     // sub-folder for "AccessUser1"
-                    var folderAccessRightsAccessUser1 = CreateFolderState(folderAccessRights, "AccessRights_AccessUser1", "AccessUser1", null);
+                    FolderState folderAccessRightsAccessUser1 = CreateFolderState(folderAccessRights, "AccessRights_AccessUser1", "AccessUser1", null);
                     const string accessRightsAccessUser1 = "AccessRights_AccessUser1_";
 
-                    var arUserRo = CreateBaseDataVariableState(folderAccessRightsAccessUser1, accessRightsAccessUser1 + "RO", "RO", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState arUserRo = CreateBaseDataVariableState(folderAccessRightsAccessUser1, accessRightsAccessUser1 + "RO", "RO", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     arUserRo.AccessLevel = AccessLevels.CurrentRead;
                     arUserRo.UserAccessLevel = AccessLevels.CurrentRead;
                     variables.Add(arUserRo);
-                    var arUserWo = CreateBaseDataVariableState(folderAccessRightsAccessUser1, accessRightsAccessUser1 + "WO", "WO", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState arUserWo = CreateBaseDataVariableState(folderAccessRightsAccessUser1, accessRightsAccessUser1 + "WO", "WO", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     arUserWo.AccessLevel = AccessLevels.CurrentWrite;
                     arUserWo.UserAccessLevel = AccessLevels.CurrentWrite;
                     variables.Add(arUserWo);
-                    var arUserRw = CreateBaseDataVariableState(folderAccessRightsAccessUser1, accessRightsAccessUser1 + "RW", "RW", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState arUserRw = CreateBaseDataVariableState(folderAccessRightsAccessUser1, accessRightsAccessUser1 + "RW", "RW", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     arUserRw.AccessLevel = AccessLevels.CurrentReadOrWrite;
                     arUserRw.UserAccessLevel = AccessLevels.CurrentReadOrWrite;
                     variables.Add(arUserRw);
 
                     // sub-folder for "AccessGroup1"
-                    var folderAccessRightsAccessGroup1 = CreateFolderState(folderAccessRights, "AccessRights_AccessGroup1", "AccessGroup1", null);
+                    FolderState folderAccessRightsAccessGroup1 = CreateFolderState(folderAccessRights, "AccessRights_AccessGroup1", "AccessGroup1", null);
                     const string accessRightsAccessGroup1 = "AccessRights_AccessGroup1_";
 
-                    var arGroupRo = CreateBaseDataVariableState(folderAccessRightsAccessGroup1, accessRightsAccessGroup1 + "RO", "RO", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState arGroupRo = CreateBaseDataVariableState(folderAccessRightsAccessGroup1, accessRightsAccessGroup1 + "RO", "RO", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     arGroupRo.AccessLevel = AccessLevels.CurrentRead;
                     arGroupRo.UserAccessLevel = AccessLevels.CurrentRead;
                     variables.Add(arGroupRo);
-                    var arGroupWo = CreateBaseDataVariableState(folderAccessRightsAccessGroup1, accessRightsAccessGroup1 + "WO", "WO", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState arGroupWo = CreateBaseDataVariableState(folderAccessRightsAccessGroup1, accessRightsAccessGroup1 + "WO", "WO", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     arGroupWo.AccessLevel = AccessLevels.CurrentWrite;
                     arGroupWo.UserAccessLevel = AccessLevels.CurrentWrite;
                     variables.Add(arGroupWo);
-                    var arGroupRw = CreateBaseDataVariableState(folderAccessRightsAccessGroup1, accessRightsAccessGroup1 + "RW", "RW", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState arGroupRw = CreateBaseDataVariableState(folderAccessRightsAccessGroup1, accessRightsAccessGroup1 + "RW", "RW", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     arGroupRw.AccessLevel = AccessLevels.CurrentReadOrWrite;
                     arGroupRw.UserAccessLevel = AccessLevels.CurrentReadOrWrite;
                     variables.Add(arGroupRw);
 
                     // sub folder for "RolePermissions"
-                    var folderRolePermissions = CreateFolderState(folderAccessRights, "AccessRights_RolePermissions", "RolePermissions", null);
+                    FolderState folderRolePermissions = CreateFolderState(folderAccessRights, "AccessRights_RolePermissions", "RolePermissions", null);
                     const string rolePermissions = "AccessRights_RolePermissions_";
 
-                    var rpAnonymous = CreateBaseDataVariableState(folderRolePermissions, rolePermissions + "AnonymousAccess", "AnonymousAccess", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState rpAnonymous = CreateBaseDataVariableState(folderRolePermissions, rolePermissions + "AnonymousAccess", "AnonymousAccess", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     rpAnonymous.Description = "This node can be accessed by users that have Anonymous Role";
                     rpAnonymous.RolePermissions = new RolePermissionTypeCollection()
                     {
@@ -753,7 +753,7 @@ namespace SampleCompany.NodeManagers.Reference
                     };
                     variables.Add(rpAnonymous);
 
-                    var rpAuthenticatedUser = CreateBaseDataVariableState(folderRolePermissions, rolePermissions + "AuthenticatedUser", "AuthenticatedUser", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState rpAuthenticatedUser = CreateBaseDataVariableState(folderRolePermissions, rolePermissions + "AuthenticatedUser", "AuthenticatedUser", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     rpAuthenticatedUser.Description = "This node can be accessed by users that have AuthenticatedUser Role";
                     rpAuthenticatedUser.RolePermissions = new RolePermissionTypeCollection()
                     {
@@ -766,7 +766,7 @@ namespace SampleCompany.NodeManagers.Reference
                     };
                     variables.Add(rpAuthenticatedUser);
 
-                    var rpSecurityAdminUser = CreateBaseDataVariableState(folderRolePermissions, rolePermissions + "AdminUser", "AdminUser", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState rpSecurityAdminUser = CreateBaseDataVariableState(folderRolePermissions, rolePermissions + "AdminUser", "AdminUser", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     rpSecurityAdminUser.Description = "This node can be accessed by users that have SecurityAdmin Role over an encrypted connection";
                     rpSecurityAdminUser.AccessRestrictions = AccessRestrictionType.EncryptionRequired;
                     rpSecurityAdminUser.RolePermissions = new RolePermissionTypeCollection()
@@ -780,7 +780,7 @@ namespace SampleCompany.NodeManagers.Reference
                     };
                     variables.Add(rpSecurityAdminUser);
 
-                    var rpConfigAdminUser = CreateBaseDataVariableState(folderRolePermissions, rolePermissions + "AdminUser", "AdminUser", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState rpConfigAdminUser = CreateBaseDataVariableState(folderRolePermissions, rolePermissions + "AdminUser", "AdminUser", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     rpConfigAdminUser.Description = "This node can be accessed by users that have ConfigureAdmin Role over an encrypted connection";
                     rpConfigAdminUser.AccessRestrictions = AccessRestrictionType.EncryptionRequired;
                     rpConfigAdminUser.RolePermissions = new RolePermissionTypeCollection()
@@ -795,28 +795,28 @@ namespace SampleCompany.NodeManagers.Reference
                     variables.Add(rpConfigAdminUser);
 
                     // sub-folder for "AccessRestrictions"
-                    var folderAccessRestrictions = CreateFolderState(folderAccessRights, "AccessRights_AccessRestrictions", "AccessRestrictions", null);
+                    FolderState folderAccessRestrictions = CreateFolderState(folderAccessRights, "AccessRights_AccessRestrictions", "AccessRestrictions", null);
                     const string accessRestrictions = "AccessRights_AccessRestrictions_";
 
-                    var arNone = CreateBaseDataVariableState(folderAccessRestrictions, accessRestrictions + "None", "None", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState arNone = CreateBaseDataVariableState(folderAccessRestrictions, accessRestrictions + "None", "None", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     arNone.AccessLevel = AccessLevels.CurrentRead;
                     arNone.UserAccessLevel = AccessLevels.CurrentRead;
                     arNone.AccessRestrictions = AccessRestrictionType.None;
                     variables.Add(arNone);
 
-                    var arSigningRequired = CreateBaseDataVariableState(folderAccessRestrictions, accessRestrictions + "SigningRequired", "SigningRequired", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState arSigningRequired = CreateBaseDataVariableState(folderAccessRestrictions, accessRestrictions + "SigningRequired", "SigningRequired", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     arSigningRequired.AccessLevel = AccessLevels.CurrentRead;
                     arSigningRequired.UserAccessLevel = AccessLevels.CurrentRead;
                     arSigningRequired.AccessRestrictions = AccessRestrictionType.SigningRequired;
                     variables.Add(arSigningRequired);
 
-                    var arEncryptionRequired = CreateBaseDataVariableState(folderAccessRestrictions, accessRestrictions + "EncryptionRequired", "EncryptionRequired", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState arEncryptionRequired = CreateBaseDataVariableState(folderAccessRestrictions, accessRestrictions + "EncryptionRequired", "EncryptionRequired", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     arEncryptionRequired.AccessLevel = AccessLevels.CurrentRead;
                     arEncryptionRequired.UserAccessLevel = AccessLevels.CurrentRead;
                     arEncryptionRequired.AccessRestrictions = AccessRestrictionType.EncryptionRequired;
                     variables.Add(arEncryptionRequired);
 
-                    var arSessionRequired = CreateBaseDataVariableState(folderAccessRestrictions, accessRestrictions + "SessionRequired", "SessionRequired", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState arSessionRequired = CreateBaseDataVariableState(folderAccessRestrictions, accessRestrictions + "SessionRequired", "SessionRequired", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     arSessionRequired.AccessLevel = AccessLevels.CurrentRead;
                     arSessionRequired.UserAccessLevel = AccessLevels.CurrentRead;
                     arSessionRequired.AccessRestrictions = AccessRestrictionType.SessionRequired;
@@ -825,33 +825,33 @@ namespace SampleCompany.NodeManagers.Reference
 
                     #region NodeIds
                     ResetRandomGenerator(16);
-                    var nodeIdsFolder = CreateFolderState(root, "NodeIds", "NodeIds", null);
+                    FolderState nodeIdsFolder = CreateFolderState(root, "NodeIds", "NodeIds", null);
                     const string nodeIds = "NodeIds_";
 
-                    var nodeIdsInstructions = CreateBaseDataVariableState(nodeIdsFolder, nodeIds + "Instructions", "Instructions", null, DataTypeIds.String, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState nodeIdsInstructions = CreateBaseDataVariableState(nodeIdsFolder, nodeIds + "Instructions", "Instructions", null, DataTypeIds.String, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     nodeIdsInstructions.Value = "All supported Node types are available except whichever is in use for the other nodes.";
                     variables.Add(nodeIdsInstructions);
 
-                    var integerNodeId = CreateBaseDataVariableState(nodeIdsFolder, nodeIds + "Int16Integer", "Int16Integer", null, DataTypeIds.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState integerNodeId = CreateBaseDataVariableState(nodeIdsFolder, nodeIds + "Int16Integer", "Int16Integer", null, DataTypeIds.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     integerNodeId.NodeId = new NodeId(9202, NamespaceIndex);
                     variables.Add(integerNodeId);
 
                     variables.Add(CreateBaseDataVariableState(nodeIdsFolder, nodeIds + "Int16String", "Int16String", null, DataTypeIds.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null));
 
-                    var guidNodeId = CreateBaseDataVariableState(nodeIdsFolder, nodeIds + "Int16GUID", "Int16GUID", null, DataTypeIds.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState guidNodeId = CreateBaseDataVariableState(nodeIdsFolder, nodeIds + "Int16GUID", "Int16GUID", null, DataTypeIds.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     guidNodeId.NodeId = new NodeId(new Guid("00000000-0000-0000-0000-000000009204"), NamespaceIndex);
                     variables.Add(guidNodeId);
 
-                    var opaqueNodeId = CreateBaseDataVariableState(nodeIdsFolder, nodeIds + "Int16Opaque", "Int16Opaque", null, DataTypeIds.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState opaqueNodeId = CreateBaseDataVariableState(nodeIdsFolder, nodeIds + "Int16Opaque", "Int16Opaque", null, DataTypeIds.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     opaqueNodeId.NodeId = new NodeId(new byte[] { 9, 2, 0, 5 }, NamespaceIndex);
                     variables.Add(opaqueNodeId);
                     #endregion
 
                     #region Methods
-                    var methodsFolder = CreateFolderState(root, "Methods", "Methods", null);
+                    FolderState methodsFolder = CreateFolderState(root, "Methods", "Methods", null);
                     const string methods = "Methods_";
 
-                    var methodsInstructions = CreateBaseDataVariableState(methodsFolder, methods + "Instructions", "Instructions", null, DataTypeIds.String, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState methodsInstructions = CreateBaseDataVariableState(methodsFolder, methods + "Instructions", "Instructions", null, DataTypeIds.String, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     methodsInstructions.Value = "Contains methods with varying parameter definitions.";
                     variables.Add(methodsInstructions);
 
@@ -860,21 +860,21 @@ namespace SampleCompany.NodeManagers.Reference
                     #endregion
 
                     #region Add Method
-                    var addMethod = CreateMethodState(methodsFolder, methods + "Add", "Add", OnAddCall);
+                    MethodState addMethod = CreateMethodState(methodsFolder, methods + "Add", "Add", OnAddCall);
                     // set input arguments
-                    var inputArgument1 = CreateArgument("Float value", "Float value", BuiltInType.Float, ValueRanks.Scalar);
-                    var inputArgument2 = CreateArgument("UInt32 value", "UInt32 value", BuiltInType.UInt32, ValueRanks.Scalar);
+                    Argument inputArgument1 = CreateArgument("Float value", "Float value", BuiltInType.Float, ValueRanks.Scalar);
+                    Argument inputArgument2 = CreateArgument("UInt32 value", "UInt32 value", BuiltInType.UInt32, ValueRanks.Scalar);
                     AddInputArguments(addMethod, new[] { inputArgument1, inputArgument2 });
 
                     // set output arguments
-                    var outputArgument1 = CreateArgument("Add Result", "Add Result", BuiltInType.Float, ValueRanks.Scalar);
+                    Argument outputArgument1 = CreateArgument("Add Result", "Add Result", BuiltInType.Float, ValueRanks.Scalar);
                     AddOutputArguments(addMethod, new[] { outputArgument1 });
                     #endregion
 
                     #region Multiply Method
-                    var multiplyMethod = CreateMethodState(methodsFolder, methods + "Multiply", "Multiply", OnMultiplyCall);
+                    MethodState multiplyMethod = CreateMethodState(methodsFolder, methods + "Multiply", "Multiply", OnMultiplyCall);
                     // set input arguments
-                    inputArgument1 = CreateArgument("Int16 value","Int16 value",BuiltInType.Int16,ValueRanks.Scalar);
+                    inputArgument1 = CreateArgument("Int16 value", "Int16 value", BuiltInType.Int16, ValueRanks.Scalar);
                     inputArgument2 = CreateArgument("UInt16 value", "UInt16 value", BuiltInType.UInt16, ValueRanks.Scalar);
                     AddInputArguments(multiplyMethod, new[] { inputArgument1, inputArgument2 });
 
@@ -894,7 +894,7 @@ namespace SampleCompany.NodeManagers.Reference
                     #endregion
 
                     #region Divide Method
-                    var divideMethod = CreateMethodState(methodsFolder, methods + "Divide", "Divide", new GenericMethodCalledEventHandler2(OnDivideCall));
+                    MethodState divideMethod = CreateMethodState(methodsFolder, methods + "Divide", "Divide", new GenericMethodCalledEventHandler2(OnDivideCall));
                     // set input arguments
                     inputArgument1 = CreateArgument("Int32 value", "Int32 value", BuiltInType.Int32, ValueRanks.Scalar);
                     inputArgument2 = CreateArgument("UInt16 value", "UInt16 value", BuiltInType.UInt16, ValueRanks.Scalar);
@@ -906,7 +906,7 @@ namespace SampleCompany.NodeManagers.Reference
                     #endregion
 
                     #region Substract Method
-                    var substractMethod = CreateMethodState(methodsFolder, methods + "Substract", "Substract", new GenericMethodCalledEventHandler2(OnSubstractCall));
+                    MethodState substractMethod = CreateMethodState(methodsFolder, methods + "Substract", "Substract", new GenericMethodCalledEventHandler2(OnSubstractCall));
                     // set input arguments
                     inputArgument1 = CreateArgument("Int16 value", "Int16 value", BuiltInType.Int16, ValueRanks.Scalar);
                     inputArgument2 = CreateArgument("Byte value", "Byte value", BuiltInType.Byte, ValueRanks.Scalar);
@@ -918,9 +918,9 @@ namespace SampleCompany.NodeManagers.Reference
                     #endregion
 
                     #region Hello Method
-                    var helloMethod = CreateMethodState(methodsFolder, methods + "Hello", "Hello", new GenericMethodCalledEventHandler2(OnHelloCall));
+                    MethodState helloMethod = CreateMethodState(methodsFolder, methods + "Hello", "Hello", new GenericMethodCalledEventHandler2(OnHelloCall));
                     // set input arguments
-                    inputArgument1 = CreateArgument("String value","String value",BuiltInType.String,ValueRanks.Scalar);
+                    inputArgument1 = CreateArgument("String value", "String value", BuiltInType.String, ValueRanks.Scalar);
                     AddInputArguments(helloMethod, new[] { inputArgument1 });
 
                     // set output arguments
@@ -929,112 +929,112 @@ namespace SampleCompany.NodeManagers.Reference
                     #endregion
 
                     #region Input Method
-                    var inputMethod = CreateMethodState(methodsFolder, methods + "Input", "Input", new GenericMethodCalledEventHandler2(OnInputCall));
+                    MethodState inputMethod = CreateMethodState(methodsFolder, methods + "Input", "Input", new GenericMethodCalledEventHandler2(OnInputCall));
                     // set input arguments
-                    inputArgument1 = CreateArgument("String value","String value",BuiltInType.String,ValueRanks.Scalar);
+                    inputArgument1 = CreateArgument("String value", "String value", BuiltInType.String, ValueRanks.Scalar);
                     AddInputArguments(inputMethod, new[] { inputArgument1 });
                     #endregion
 
                     #region Output Method
-                    var outputMethod = CreateMethodState(methodsFolder, methods + "Output", "Output", new GenericMethodCalledEventHandler2(OnOutputCall));
+                    MethodState outputMethod = CreateMethodState(methodsFolder, methods + "Output", "Output", new GenericMethodCalledEventHandler2(OnOutputCall));
 
                     // set output arguments
-                    outputArgument1 = CreateArgument("Output Result","Output Result",BuiltInType.String,ValueRanks.Scalar);
+                    outputArgument1 = CreateArgument("Output Result", "Output Result", BuiltInType.String, ValueRanks.Scalar);
                     AddOutputArguments(outputMethod, new[] { outputArgument1 });
                     #endregion
                     #endregion
 
                     #region Views
                     ResetRandomGenerator(18);
-                    var viewsFolder = CreateFolderState(root, "Views", "Views", null);
+                    FolderState viewsFolder = CreateFolderState(root, "Views", "Views", null);
                     const string views = "Views_";
 
-                    var viewStateOperations = CreateViewState(viewsFolder, externalReferences, views + "Operations", "Operations", null);
-                    var viewStateEngineering = CreateViewState(viewsFolder, externalReferences, views + "Engineering", "Engineering", null);
+                    ViewState viewStateOperations = CreateViewState(viewsFolder, externalReferences, views + "Operations", "Operations", null);
+                    ViewState viewStateEngineering = CreateViewState(viewsFolder, externalReferences, views + "Engineering", "Engineering", null);
                     #endregion
 
                     #region Locales
                     ResetRandomGenerator(19);
-                    var localesFolder = CreateFolderState(root, "Locales", "Locales", null);
+                    FolderState localesFolder = CreateFolderState(root, "Locales", "Locales", null);
                     const string locales = "Locales_";
 
-                    var qnEnglishVariable = CreateBaseDataVariableState(localesFolder, locales + "QNEnglish", "QNEnglish", null, DataTypeIds.QualifiedName, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState qnEnglishVariable = CreateBaseDataVariableState(localesFolder, locales + "QNEnglish", "QNEnglish", null, DataTypeIds.QualifiedName, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     qnEnglishVariable.Description = new LocalizedText("en", "English");
                     qnEnglishVariable.Value = new QualifiedName("Hello World", NamespaceIndex);
                     variables.Add(qnEnglishVariable);
-                    var ltEnglishVariable = CreateBaseDataVariableState(localesFolder, locales + "LTEnglish", "LTEnglish", null, DataTypeIds.LocalizedText, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState ltEnglishVariable = CreateBaseDataVariableState(localesFolder, locales + "LTEnglish", "LTEnglish", null, DataTypeIds.LocalizedText, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     ltEnglishVariable.Description = new LocalizedText("en", "English");
                     ltEnglishVariable.Value = new LocalizedText("en", "Hello World");
                     variables.Add(ltEnglishVariable);
 
-                    var qnFrancaisVariable = CreateBaseDataVariableState(localesFolder, locales + "QNFrancais", "QNFrancais", null, DataTypeIds.QualifiedName, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState qnFrancaisVariable = CreateBaseDataVariableState(localesFolder, locales + "QNFrancais", "QNFrancais", null, DataTypeIds.QualifiedName, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     qnFrancaisVariable.Description = new LocalizedText("en", "Francais");
                     qnFrancaisVariable.Value = new QualifiedName("Salut tout le monde", NamespaceIndex);
                     variables.Add(qnFrancaisVariable);
-                    var ltFrancaisVariable = CreateBaseDataVariableState(localesFolder, locales + "LTFrancais", "LTFrancais", null, DataTypeIds.LocalizedText, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState ltFrancaisVariable = CreateBaseDataVariableState(localesFolder, locales + "LTFrancais", "LTFrancais", null, DataTypeIds.LocalizedText, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     ltFrancaisVariable.Description = new LocalizedText("en", "Francais");
                     ltFrancaisVariable.Value = new LocalizedText("fr", "Salut tout le monde");
                     variables.Add(ltFrancaisVariable);
 
-                    var qnDeutschVariable = CreateBaseDataVariableState(localesFolder, locales + "QNDeutsch", "QNDeutsch", null, DataTypeIds.QualifiedName, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState qnDeutschVariable = CreateBaseDataVariableState(localesFolder, locales + "QNDeutsch", "QNDeutsch", null, DataTypeIds.QualifiedName, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     qnDeutschVariable.Description = new LocalizedText("en", "Deutsch");
                     qnDeutschVariable.Value = new QualifiedName("Hallo Welt", NamespaceIndex);
                     variables.Add(qnDeutschVariable);
-                    var ltDeutschVariable = CreateBaseDataVariableState(localesFolder, locales + "LTDeutsch", "LTDeutsch", null, DataTypeIds.LocalizedText, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState ltDeutschVariable = CreateBaseDataVariableState(localesFolder, locales + "LTDeutsch", "LTDeutsch", null, DataTypeIds.LocalizedText, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     ltDeutschVariable.Description = new LocalizedText("en", "Deutsch");
                     ltDeutschVariable.Value = new LocalizedText("de", "Hallo Welt");
                     variables.Add(ltDeutschVariable);
 
-                    var qnEspanolVariable = CreateBaseDataVariableState(localesFolder, locales + "QNEspanol", "QNEspanol", null, DataTypeIds.QualifiedName, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState qnEspanolVariable = CreateBaseDataVariableState(localesFolder, locales + "QNEspanol", "QNEspanol", null, DataTypeIds.QualifiedName, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     qnEspanolVariable.Description = new LocalizedText("en", "Espanol");
                     qnEspanolVariable.Value = new QualifiedName("Hola mundo", NamespaceIndex);
                     variables.Add(qnEspanolVariable);
-                    var ltEspanolVariable = CreateBaseDataVariableState(localesFolder, locales + "LTEspanol", "LTEspanol", null, DataTypeIds.LocalizedText, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState ltEspanolVariable = CreateBaseDataVariableState(localesFolder, locales + "LTEspanol", "LTEspanol", null, DataTypeIds.LocalizedText, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     ltEspanolVariable.Description = new LocalizedText("en", "Espanol");
                     ltEspanolVariable.Value = new LocalizedText("es", "Hola mundo");
                     variables.Add(ltEspanolVariable);
 
-                    var qnJapaneseVariable = CreateBaseDataVariableState(localesFolder, locales + "QN日本の", "QN日本の", null, DataTypeIds.QualifiedName, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState qnJapaneseVariable = CreateBaseDataVariableState(localesFolder, locales + "QN日本の", "QN日本の", null, DataTypeIds.QualifiedName, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     qnJapaneseVariable.Description = new LocalizedText("en", "Japanese");
                     qnJapaneseVariable.Value = new QualifiedName("ハローワールド", NamespaceIndex);
                     variables.Add(qnJapaneseVariable);
-                    var ltJapaneseVariable = CreateBaseDataVariableState(localesFolder, locales + "LT日本の", "LT日本の", null, DataTypeIds.LocalizedText, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState ltJapaneseVariable = CreateBaseDataVariableState(localesFolder, locales + "LT日本の", "LT日本の", null, DataTypeIds.LocalizedText, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     ltJapaneseVariable.Description = new LocalizedText("en", "Japanese");
                     ltJapaneseVariable.Value = new LocalizedText("jp", "ハローワールド");
                     variables.Add(ltJapaneseVariable);
 
-                    var qnChineseVariable = CreateBaseDataVariableState(localesFolder, locales + "QN中國的", "QN中國的", null, DataTypeIds.QualifiedName, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState qnChineseVariable = CreateBaseDataVariableState(localesFolder, locales + "QN中國的", "QN中國的", null, DataTypeIds.QualifiedName, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     qnChineseVariable.Description = new LocalizedText("en", "Chinese");
                     qnChineseVariable.Value = new QualifiedName("世界您好", NamespaceIndex);
                     variables.Add(qnChineseVariable);
-                    var ltChineseVariable = CreateBaseDataVariableState(localesFolder, locales + "LT中國的", "LT中國的", null, DataTypeIds.LocalizedText, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState ltChineseVariable = CreateBaseDataVariableState(localesFolder, locales + "LT中國的", "LT中國的", null, DataTypeIds.LocalizedText, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     ltChineseVariable.Description = new LocalizedText("en", "Chinese");
                     ltChineseVariable.Value = new LocalizedText("ch", "世界您好");
                     variables.Add(ltChineseVariable);
 
-                    var qnRussianVariable = CreateBaseDataVariableState(localesFolder, locales + "QNрусский", "QNрусский", null, DataTypeIds.QualifiedName, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState qnRussianVariable = CreateBaseDataVariableState(localesFolder, locales + "QNрусский", "QNрусский", null, DataTypeIds.QualifiedName, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     qnRussianVariable.Description = new LocalizedText("en", "Russian");
                     qnRussianVariable.Value = new QualifiedName("LTрусский", NamespaceIndex);
                     variables.Add(qnRussianVariable);
-                    var ltRussianVariable = CreateBaseDataVariableState(localesFolder, locales + "LTрусский", "LTрусский", null, DataTypeIds.LocalizedText, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState ltRussianVariable = CreateBaseDataVariableState(localesFolder, locales + "LTрусский", "LTрусский", null, DataTypeIds.LocalizedText, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     ltRussianVariable.Description = new LocalizedText("en", "Russian");
                     ltRussianVariable.Value = new LocalizedText("ru", "LTрусский");
                     variables.Add(ltRussianVariable);
 
-                    var qnArabicVariable = CreateBaseDataVariableState(localesFolder, locales + "QNالعربية", "QNالعربية", null, DataTypeIds.QualifiedName, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState qnArabicVariable = CreateBaseDataVariableState(localesFolder, locales + "QNالعربية", "QNالعربية", null, DataTypeIds.QualifiedName, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     qnArabicVariable.Description = new LocalizedText("en", "Arabic");
                     qnArabicVariable.Value = new QualifiedName("مرحبا بالعال", NamespaceIndex);
                     variables.Add(qnArabicVariable);
-                    var ltArabicVariable = CreateBaseDataVariableState(localesFolder, locales + "LTالعربية", "LTالعربية", null, DataTypeIds.LocalizedText, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState ltArabicVariable = CreateBaseDataVariableState(localesFolder, locales + "LTالعربية", "LTالعربية", null, DataTypeIds.LocalizedText, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     ltArabicVariable.Description = new LocalizedText("en", "Arabic");
                     ltArabicVariable.Value = new LocalizedText("ae", "مرحبا بالعال");
                     variables.Add(ltArabicVariable);
 
-                    var qnKlingonVariable = CreateBaseDataVariableState(localesFolder, locales + "QNtlhIngan", "QNtlhIngan", null, DataTypeIds.QualifiedName, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState qnKlingonVariable = CreateBaseDataVariableState(localesFolder, locales + "QNtlhIngan", "QNtlhIngan", null, DataTypeIds.QualifiedName, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     qnKlingonVariable.Description = new LocalizedText("en", "Klingon");
                     qnKlingonVariable.Value = new QualifiedName("qo' vIvan", NamespaceIndex);
                     variables.Add(qnKlingonVariable);
-                    var ltKlingonVariable = CreateBaseDataVariableState(localesFolder, locales + "LTtlhIngan", "LTtlhIngan", null, DataTypeIds.LocalizedText, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState ltKlingonVariable = CreateBaseDataVariableState(localesFolder, locales + "LTtlhIngan", "LTtlhIngan", null, DataTypeIds.LocalizedText, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     ltKlingonVariable.Description = new LocalizedText("en", "Klingon");
                     ltKlingonVariable.Value = new LocalizedText("ko", "qo' vIvan");
                     variables.Add(ltKlingonVariable);
@@ -1042,113 +1042,113 @@ namespace SampleCompany.NodeManagers.Reference
 
                     #region Attributes
                     ResetRandomGenerator(20);
-                    var folderAttributes = CreateFolderState(root, "Attributes", "Attributes", null);
+                    FolderState folderAttributes = CreateFolderState(root, "Attributes", "Attributes", null);
 
                     #region AccessAll
-                    var folderAttributesAccessAll = CreateFolderState(folderAttributes, "Attributes_AccessAll", "AccessAll", null);
+                    FolderState folderAttributesAccessAll = CreateFolderState(folderAttributes, "Attributes_AccessAll", "AccessAll", null);
                     const string attributesAccessAll = "Attributes_AccessAll_";
 
-                    var accessLevelAccessAll = CreateBaseDataVariableState(folderAttributesAccessAll, attributesAccessAll + "AccessLevel", "AccessLevel", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState accessLevelAccessAll = CreateBaseDataVariableState(folderAttributesAccessAll, attributesAccessAll + "AccessLevel", "AccessLevel", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     accessLevelAccessAll.WriteMask = AttributeWriteMask.AccessLevel;
                     accessLevelAccessAll.UserWriteMask = AttributeWriteMask.AccessLevel;
                     variables.Add(accessLevelAccessAll);
 
-                    var arrayDimensionsAccessLevel = CreateBaseDataVariableState(folderAttributesAccessAll, attributesAccessAll + "ArrayDimensions", "ArrayDimensions", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState arrayDimensionsAccessLevel = CreateBaseDataVariableState(folderAttributesAccessAll, attributesAccessAll + "ArrayDimensions", "ArrayDimensions", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     arrayDimensionsAccessLevel.WriteMask = AttributeWriteMask.ArrayDimensions;
                     arrayDimensionsAccessLevel.UserWriteMask = AttributeWriteMask.ArrayDimensions;
                     variables.Add(arrayDimensionsAccessLevel);
 
-                    var browseNameAccessLevel = CreateBaseDataVariableState(folderAttributesAccessAll, attributesAccessAll + "BrowseName", "BrowseName", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState browseNameAccessLevel = CreateBaseDataVariableState(folderAttributesAccessAll, attributesAccessAll + "BrowseName", "BrowseName", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     browseNameAccessLevel.WriteMask = AttributeWriteMask.BrowseName;
                     browseNameAccessLevel.UserWriteMask = AttributeWriteMask.BrowseName;
                     variables.Add(browseNameAccessLevel);
 
-                    var containsNoLoopsAccessLevel = CreateBaseDataVariableState(folderAttributesAccessAll, attributesAccessAll + "ContainsNoLoops", "ContainsNoLoops", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState containsNoLoopsAccessLevel = CreateBaseDataVariableState(folderAttributesAccessAll, attributesAccessAll + "ContainsNoLoops", "ContainsNoLoops", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     containsNoLoopsAccessLevel.WriteMask = AttributeWriteMask.ContainsNoLoops;
                     containsNoLoopsAccessLevel.UserWriteMask = AttributeWriteMask.ContainsNoLoops;
                     variables.Add(containsNoLoopsAccessLevel);
 
-                    var dataTypeAccessLevel = CreateBaseDataVariableState(folderAttributesAccessAll, attributesAccessAll + "DataType", "DataType", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState dataTypeAccessLevel = CreateBaseDataVariableState(folderAttributesAccessAll, attributesAccessAll + "DataType", "DataType", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     dataTypeAccessLevel.WriteMask = AttributeWriteMask.DataType;
                     dataTypeAccessLevel.UserWriteMask = AttributeWriteMask.DataType;
                     variables.Add(dataTypeAccessLevel);
 
-                    var descriptionAccessLevel = CreateBaseDataVariableState(folderAttributesAccessAll, attributesAccessAll + "Description", "Description", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState descriptionAccessLevel = CreateBaseDataVariableState(folderAttributesAccessAll, attributesAccessAll + "Description", "Description", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     descriptionAccessLevel.WriteMask = AttributeWriteMask.Description;
                     descriptionAccessLevel.UserWriteMask = AttributeWriteMask.Description;
                     variables.Add(descriptionAccessLevel);
 
-                    var eventNotifierAccessLevel = CreateBaseDataVariableState(folderAttributesAccessAll, attributesAccessAll + "EventNotifier", "EventNotifier", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState eventNotifierAccessLevel = CreateBaseDataVariableState(folderAttributesAccessAll, attributesAccessAll + "EventNotifier", "EventNotifier", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     eventNotifierAccessLevel.WriteMask = AttributeWriteMask.EventNotifier;
                     eventNotifierAccessLevel.UserWriteMask = AttributeWriteMask.EventNotifier;
                     variables.Add(eventNotifierAccessLevel);
 
-                    var executableAccessLevel = CreateBaseDataVariableState(folderAttributesAccessAll, attributesAccessAll + "Executable", "Executable", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState executableAccessLevel = CreateBaseDataVariableState(folderAttributesAccessAll, attributesAccessAll + "Executable", "Executable", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     executableAccessLevel.WriteMask = AttributeWriteMask.Executable;
                     executableAccessLevel.UserWriteMask = AttributeWriteMask.Executable;
                     variables.Add(executableAccessLevel);
 
-                    var historizingAccessLevel = CreateBaseDataVariableState(folderAttributesAccessAll, attributesAccessAll + "Historizing", "Historizing", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState historizingAccessLevel = CreateBaseDataVariableState(folderAttributesAccessAll, attributesAccessAll + "Historizing", "Historizing", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     historizingAccessLevel.WriteMask = AttributeWriteMask.Historizing;
                     historizingAccessLevel.UserWriteMask = AttributeWriteMask.Historizing;
                     variables.Add(historizingAccessLevel);
 
-                    var inverseNameAccessLevel = CreateBaseDataVariableState(folderAttributesAccessAll, attributesAccessAll + "InverseName", "InverseName", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState inverseNameAccessLevel = CreateBaseDataVariableState(folderAttributesAccessAll, attributesAccessAll + "InverseName", "InverseName", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     inverseNameAccessLevel.WriteMask = AttributeWriteMask.InverseName;
                     inverseNameAccessLevel.UserWriteMask = AttributeWriteMask.InverseName;
                     variables.Add(inverseNameAccessLevel);
 
-                    var isAbstractAccessLevel = CreateBaseDataVariableState(folderAttributesAccessAll, attributesAccessAll + "IsAbstract", "IsAbstract", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState isAbstractAccessLevel = CreateBaseDataVariableState(folderAttributesAccessAll, attributesAccessAll + "IsAbstract", "IsAbstract", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     isAbstractAccessLevel.WriteMask = AttributeWriteMask.IsAbstract;
                     isAbstractAccessLevel.UserWriteMask = AttributeWriteMask.IsAbstract;
                     variables.Add(isAbstractAccessLevel);
 
-                    var minimumSamplingIntervalAccessLevel = CreateBaseDataVariableState(folderAttributesAccessAll, attributesAccessAll + "MinimumSamplingInterval", "MinimumSamplingInterval", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState minimumSamplingIntervalAccessLevel = CreateBaseDataVariableState(folderAttributesAccessAll, attributesAccessAll + "MinimumSamplingInterval", "MinimumSamplingInterval", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     minimumSamplingIntervalAccessLevel.WriteMask = AttributeWriteMask.MinimumSamplingInterval;
                     minimumSamplingIntervalAccessLevel.UserWriteMask = AttributeWriteMask.MinimumSamplingInterval;
                     variables.Add(minimumSamplingIntervalAccessLevel);
 
-                    var nodeClassIntervalAccessLevel = CreateBaseDataVariableState(folderAttributesAccessAll, attributesAccessAll + "NodeClass", "NodeClass", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState nodeClassIntervalAccessLevel = CreateBaseDataVariableState(folderAttributesAccessAll, attributesAccessAll + "NodeClass", "NodeClass", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     nodeClassIntervalAccessLevel.WriteMask = AttributeWriteMask.NodeClass;
                     nodeClassIntervalAccessLevel.UserWriteMask = AttributeWriteMask.NodeClass;
                     variables.Add(nodeClassIntervalAccessLevel);
 
-                    var nodeIdAccessLevel = CreateBaseDataVariableState(folderAttributesAccessAll, attributesAccessAll + "NodeId", "NodeId", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState nodeIdAccessLevel = CreateBaseDataVariableState(folderAttributesAccessAll, attributesAccessAll + "NodeId", "NodeId", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     nodeIdAccessLevel.WriteMask = AttributeWriteMask.NodeId;
                     nodeIdAccessLevel.UserWriteMask = AttributeWriteMask.NodeId;
                     variables.Add(nodeIdAccessLevel);
 
-                    var symmetricAccessLevel = CreateBaseDataVariableState(folderAttributesAccessAll, attributesAccessAll + "Symmetric", "Symmetric", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState symmetricAccessLevel = CreateBaseDataVariableState(folderAttributesAccessAll, attributesAccessAll + "Symmetric", "Symmetric", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     symmetricAccessLevel.WriteMask = AttributeWriteMask.Symmetric;
                     symmetricAccessLevel.UserWriteMask = AttributeWriteMask.Symmetric;
                     variables.Add(symmetricAccessLevel);
 
-                    var userAccessLevelAccessLevel = CreateBaseDataVariableState(folderAttributesAccessAll, attributesAccessAll + "UserAccessLevel", "UserAccessLevel", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState userAccessLevelAccessLevel = CreateBaseDataVariableState(folderAttributesAccessAll, attributesAccessAll + "UserAccessLevel", "UserAccessLevel", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     userAccessLevelAccessLevel.WriteMask = AttributeWriteMask.UserAccessLevel;
                     userAccessLevelAccessLevel.UserWriteMask = AttributeWriteMask.UserAccessLevel;
                     variables.Add(userAccessLevelAccessLevel);
 
-                    var userExecutableAccessLevel = CreateBaseDataVariableState(folderAttributesAccessAll, attributesAccessAll + "UserExecutable", "UserExecutable", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState userExecutableAccessLevel = CreateBaseDataVariableState(folderAttributesAccessAll, attributesAccessAll + "UserExecutable", "UserExecutable", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     userExecutableAccessLevel.WriteMask = AttributeWriteMask.UserExecutable;
                     userExecutableAccessLevel.UserWriteMask = AttributeWriteMask.UserExecutable;
                     variables.Add(userExecutableAccessLevel);
 
-                    var valueRankAccessLevel = CreateBaseDataVariableState(folderAttributesAccessAll, attributesAccessAll + "ValueRank", "ValueRank", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState valueRankAccessLevel = CreateBaseDataVariableState(folderAttributesAccessAll, attributesAccessAll + "ValueRank", "ValueRank", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     valueRankAccessLevel.WriteMask = AttributeWriteMask.ValueRank;
                     valueRankAccessLevel.UserWriteMask = AttributeWriteMask.ValueRank;
                     variables.Add(valueRankAccessLevel);
 
-                    var writeMaskAccessLevel = CreateBaseDataVariableState(folderAttributesAccessAll, attributesAccessAll + "WriteMask", "WriteMask", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState writeMaskAccessLevel = CreateBaseDataVariableState(folderAttributesAccessAll, attributesAccessAll + "WriteMask", "WriteMask", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     writeMaskAccessLevel.WriteMask = AttributeWriteMask.WriteMask;
                     writeMaskAccessLevel.UserWriteMask = AttributeWriteMask.WriteMask;
                     variables.Add(writeMaskAccessLevel);
 
-                    var valueForVariableTypeAccessLevel = CreateBaseDataVariableState(folderAttributesAccessAll, attributesAccessAll + "ValueForVariableType", "ValueForVariableType", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState valueForVariableTypeAccessLevel = CreateBaseDataVariableState(folderAttributesAccessAll, attributesAccessAll + "ValueForVariableType", "ValueForVariableType", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     valueForVariableTypeAccessLevel.WriteMask = AttributeWriteMask.ValueForVariableType;
                     valueForVariableTypeAccessLevel.UserWriteMask = AttributeWriteMask.ValueForVariableType;
                     variables.Add(valueForVariableTypeAccessLevel);
 
-                    var allAccessLevel = CreateBaseDataVariableState(folderAttributesAccessAll, attributesAccessAll + "All", "All", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState allAccessLevel = CreateBaseDataVariableState(folderAttributesAccessAll, attributesAccessAll + "All", "All", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     allAccessLevel.WriteMask = AttributeWriteMask.AccessLevel | AttributeWriteMask.ArrayDimensions | AttributeWriteMask.BrowseName | AttributeWriteMask.ContainsNoLoops | AttributeWriteMask.DataType |
                             AttributeWriteMask.Description | AttributeWriteMask.DisplayName | AttributeWriteMask.EventNotifier | AttributeWriteMask.Executable | AttributeWriteMask.Historizing | AttributeWriteMask.InverseName | AttributeWriteMask.IsAbstract |
                             AttributeWriteMask.MinimumSamplingInterval | AttributeWriteMask.NodeClass | AttributeWriteMask.NodeId | AttributeWriteMask.Symmetric | AttributeWriteMask.UserAccessLevel | AttributeWriteMask.UserExecutable |
@@ -1161,110 +1161,110 @@ namespace SampleCompany.NodeManagers.Reference
                     #endregion
 
                     #region AccessUser1
-                    var folderAttributesAccessUser1 = CreateFolderState(folderAttributes, "Attributes_AccessUser1", "AccessUser1", null);
+                    FolderState folderAttributesAccessUser1 = CreateFolderState(folderAttributes, "Attributes_AccessUser1", "AccessUser1", null);
                     const string attributesAccessUser1 = "Attributes_AccessUser1_";
 
-                    var accessLevelAccessUser1 = CreateBaseDataVariableState(folderAttributesAccessUser1, attributesAccessUser1 + "AccessLevel", "AccessLevel", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState accessLevelAccessUser1 = CreateBaseDataVariableState(folderAttributesAccessUser1, attributesAccessUser1 + "AccessLevel", "AccessLevel", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     accessLevelAccessUser1.WriteMask = AttributeWriteMask.AccessLevel;
                     accessLevelAccessUser1.UserWriteMask = AttributeWriteMask.AccessLevel;
                     variables.Add(accessLevelAccessUser1);
 
-                    var arrayDimensionsAccessUser1 = CreateBaseDataVariableState(folderAttributesAccessUser1, attributesAccessUser1 + "ArrayDimensions", "ArrayDimensions", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState arrayDimensionsAccessUser1 = CreateBaseDataVariableState(folderAttributesAccessUser1, attributesAccessUser1 + "ArrayDimensions", "ArrayDimensions", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     arrayDimensionsAccessUser1.WriteMask = AttributeWriteMask.ArrayDimensions;
                     arrayDimensionsAccessUser1.UserWriteMask = AttributeWriteMask.ArrayDimensions;
                     variables.Add(arrayDimensionsAccessUser1);
 
-                    var browseNameAccessUser1 = CreateBaseDataVariableState(folderAttributesAccessUser1, attributesAccessUser1 + "BrowseName", "BrowseName", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState browseNameAccessUser1 = CreateBaseDataVariableState(folderAttributesAccessUser1, attributesAccessUser1 + "BrowseName", "BrowseName", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     browseNameAccessUser1.WriteMask = AttributeWriteMask.BrowseName;
                     browseNameAccessUser1.UserWriteMask = AttributeWriteMask.BrowseName;
                     variables.Add(browseNameAccessUser1);
 
-                    var containsNoLoopsAccessUser1 = CreateBaseDataVariableState(folderAttributesAccessUser1, attributesAccessUser1 + "ContainsNoLoops", "ContainsNoLoops", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState containsNoLoopsAccessUser1 = CreateBaseDataVariableState(folderAttributesAccessUser1, attributesAccessUser1 + "ContainsNoLoops", "ContainsNoLoops", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     containsNoLoopsAccessUser1.WriteMask = AttributeWriteMask.ContainsNoLoops;
                     containsNoLoopsAccessUser1.UserWriteMask = AttributeWriteMask.ContainsNoLoops;
                     variables.Add(containsNoLoopsAccessUser1);
 
-                    var dataTypeAccessUser1 = CreateBaseDataVariableState(folderAttributesAccessUser1, attributesAccessUser1 + "DataType", "DataType", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState dataTypeAccessUser1 = CreateBaseDataVariableState(folderAttributesAccessUser1, attributesAccessUser1 + "DataType", "DataType", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     dataTypeAccessUser1.WriteMask = AttributeWriteMask.DataType;
                     dataTypeAccessUser1.UserWriteMask = AttributeWriteMask.DataType;
                     variables.Add(dataTypeAccessUser1);
 
-                    var descriptionAccessUser1 = CreateBaseDataVariableState(folderAttributesAccessUser1, attributesAccessUser1 + "Description", "Description", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState descriptionAccessUser1 = CreateBaseDataVariableState(folderAttributesAccessUser1, attributesAccessUser1 + "Description", "Description", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     descriptionAccessUser1.WriteMask = AttributeWriteMask.Description;
                     descriptionAccessUser1.UserWriteMask = AttributeWriteMask.Description;
                     variables.Add(descriptionAccessUser1);
 
-                    var eventNotifierAccessUser1 = CreateBaseDataVariableState(folderAttributesAccessUser1, attributesAccessUser1 + "EventNotifier", "EventNotifier", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState eventNotifierAccessUser1 = CreateBaseDataVariableState(folderAttributesAccessUser1, attributesAccessUser1 + "EventNotifier", "EventNotifier", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     eventNotifierAccessUser1.WriteMask = AttributeWriteMask.EventNotifier;
                     eventNotifierAccessUser1.UserWriteMask = AttributeWriteMask.EventNotifier;
                     variables.Add(eventNotifierAccessUser1);
 
-                    var executableAccessUser1 = CreateBaseDataVariableState(folderAttributesAccessUser1, attributesAccessUser1 + "Executable", "Executable", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState executableAccessUser1 = CreateBaseDataVariableState(folderAttributesAccessUser1, attributesAccessUser1 + "Executable", "Executable", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     executableAccessUser1.WriteMask = AttributeWriteMask.Executable;
                     executableAccessUser1.UserWriteMask = AttributeWriteMask.Executable;
                     variables.Add(executableAccessUser1);
 
-                    var historizingAccessUser1 = CreateBaseDataVariableState(folderAttributesAccessUser1, attributesAccessUser1 + "Historizing", "Historizing", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState historizingAccessUser1 = CreateBaseDataVariableState(folderAttributesAccessUser1, attributesAccessUser1 + "Historizing", "Historizing", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     historizingAccessUser1.WriteMask = AttributeWriteMask.Historizing;
                     historizingAccessUser1.UserWriteMask = AttributeWriteMask.Historizing;
                     variables.Add(historizingAccessUser1);
 
-                    var inverseNameAccessUser1 = CreateBaseDataVariableState(folderAttributesAccessUser1, attributesAccessUser1 + "InverseName", "InverseName", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState inverseNameAccessUser1 = CreateBaseDataVariableState(folderAttributesAccessUser1, attributesAccessUser1 + "InverseName", "InverseName", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     inverseNameAccessUser1.WriteMask = AttributeWriteMask.InverseName;
                     inverseNameAccessUser1.UserWriteMask = AttributeWriteMask.InverseName;
                     variables.Add(inverseNameAccessUser1);
 
-                    var isAbstractAccessUser1 = CreateBaseDataVariableState(folderAttributesAccessUser1, attributesAccessUser1 + "IsAbstract", "IsAbstract", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState isAbstractAccessUser1 = CreateBaseDataVariableState(folderAttributesAccessUser1, attributesAccessUser1 + "IsAbstract", "IsAbstract", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     isAbstractAccessUser1.WriteMask = AttributeWriteMask.IsAbstract;
                     isAbstractAccessUser1.UserWriteMask = AttributeWriteMask.IsAbstract;
                     variables.Add(isAbstractAccessUser1);
 
-                    var minimumSamplingIntervalAccessUser1 = CreateBaseDataVariableState(folderAttributesAccessUser1, attributesAccessUser1 + "MinimumSamplingInterval", "MinimumSamplingInterval", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState minimumSamplingIntervalAccessUser1 = CreateBaseDataVariableState(folderAttributesAccessUser1, attributesAccessUser1 + "MinimumSamplingInterval", "MinimumSamplingInterval", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     minimumSamplingIntervalAccessUser1.WriteMask = AttributeWriteMask.MinimumSamplingInterval;
                     minimumSamplingIntervalAccessUser1.UserWriteMask = AttributeWriteMask.MinimumSamplingInterval;
                     variables.Add(minimumSamplingIntervalAccessUser1);
 
-                    var nodeClassIntervalAccessUser1 = CreateBaseDataVariableState(folderAttributesAccessUser1, attributesAccessUser1 + "NodeClass", "NodeClass", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState nodeClassIntervalAccessUser1 = CreateBaseDataVariableState(folderAttributesAccessUser1, attributesAccessUser1 + "NodeClass", "NodeClass", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     nodeClassIntervalAccessUser1.WriteMask = AttributeWriteMask.NodeClass;
                     nodeClassIntervalAccessUser1.UserWriteMask = AttributeWriteMask.NodeClass;
                     variables.Add(nodeClassIntervalAccessUser1);
 
-                    var nodeIdAccessUser1 = CreateBaseDataVariableState(folderAttributesAccessUser1, attributesAccessUser1 + "NodeId", "NodeId", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState nodeIdAccessUser1 = CreateBaseDataVariableState(folderAttributesAccessUser1, attributesAccessUser1 + "NodeId", "NodeId", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     nodeIdAccessUser1.WriteMask = AttributeWriteMask.NodeId;
                     nodeIdAccessUser1.UserWriteMask = AttributeWriteMask.NodeId;
                     variables.Add(nodeIdAccessUser1);
 
-                    var symmetricAccessUser1 = CreateBaseDataVariableState(folderAttributesAccessUser1, attributesAccessUser1 + "Symmetric", "Symmetric", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState symmetricAccessUser1 = CreateBaseDataVariableState(folderAttributesAccessUser1, attributesAccessUser1 + "Symmetric", "Symmetric", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     symmetricAccessUser1.WriteMask = AttributeWriteMask.Symmetric;
                     symmetricAccessUser1.UserWriteMask = AttributeWriteMask.Symmetric;
                     variables.Add(symmetricAccessUser1);
 
-                    var userAccessUser1AccessUser1 = CreateBaseDataVariableState(folderAttributesAccessUser1, attributesAccessUser1 + "UserAccessUser1", "UserAccessUser1", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState userAccessUser1AccessUser1 = CreateBaseDataVariableState(folderAttributesAccessUser1, attributesAccessUser1 + "UserAccessUser1", "UserAccessUser1", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     userAccessUser1AccessUser1.WriteMask = AttributeWriteMask.UserAccessLevel;
                     userAccessUser1AccessUser1.UserWriteMask = AttributeWriteMask.UserAccessLevel;
                     variables.Add(userAccessUser1AccessUser1);
 
-                    var userExecutableAccessUser1 = CreateBaseDataVariableState(folderAttributesAccessUser1, attributesAccessUser1 + "UserExecutable", "UserExecutable", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState userExecutableAccessUser1 = CreateBaseDataVariableState(folderAttributesAccessUser1, attributesAccessUser1 + "UserExecutable", "UserExecutable", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     userExecutableAccessUser1.WriteMask = AttributeWriteMask.UserExecutable;
                     userExecutableAccessUser1.UserWriteMask = AttributeWriteMask.UserExecutable;
                     variables.Add(userExecutableAccessUser1);
 
-                    var valueRankAccessUser1 = CreateBaseDataVariableState(folderAttributesAccessUser1, attributesAccessUser1 + "ValueRank", "ValueRank", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState valueRankAccessUser1 = CreateBaseDataVariableState(folderAttributesAccessUser1, attributesAccessUser1 + "ValueRank", "ValueRank", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     valueRankAccessUser1.WriteMask = AttributeWriteMask.ValueRank;
                     valueRankAccessUser1.UserWriteMask = AttributeWriteMask.ValueRank;
                     variables.Add(valueRankAccessUser1);
 
-                    var writeMaskAccessUser1 = CreateBaseDataVariableState(folderAttributesAccessUser1, attributesAccessUser1 + "WriteMask", "WriteMask", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState writeMaskAccessUser1 = CreateBaseDataVariableState(folderAttributesAccessUser1, attributesAccessUser1 + "WriteMask", "WriteMask", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     writeMaskAccessUser1.WriteMask = AttributeWriteMask.WriteMask;
                     writeMaskAccessUser1.UserWriteMask = AttributeWriteMask.WriteMask;
                     variables.Add(writeMaskAccessUser1);
 
-                    var valueForVariableTypeAccessUser1 = CreateBaseDataVariableState(folderAttributesAccessUser1, attributesAccessUser1 + "ValueForVariableType", "ValueForVariableType", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState valueForVariableTypeAccessUser1 = CreateBaseDataVariableState(folderAttributesAccessUser1, attributesAccessUser1 + "ValueForVariableType", "ValueForVariableType", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     valueForVariableTypeAccessUser1.WriteMask = AttributeWriteMask.ValueForVariableType;
                     valueForVariableTypeAccessUser1.UserWriteMask = AttributeWriteMask.ValueForVariableType;
                     variables.Add(valueForVariableTypeAccessUser1);
 
-                    var allAccessUser1 = CreateBaseDataVariableState(folderAttributesAccessUser1, attributesAccessUser1 + "All", "All", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState allAccessUser1 = CreateBaseDataVariableState(folderAttributesAccessUser1, attributesAccessUser1 + "All", "All", null, DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     allAccessUser1.WriteMask = AttributeWriteMask.AccessLevel | AttributeWriteMask.ArrayDimensions | AttributeWriteMask.BrowseName | AttributeWriteMask.ContainsNoLoops | AttributeWriteMask.DataType |
                             AttributeWriteMask.Description | AttributeWriteMask.DisplayName | AttributeWriteMask.EventNotifier | AttributeWriteMask.Executable | AttributeWriteMask.Historizing | AttributeWriteMask.InverseName | AttributeWriteMask.IsAbstract |
                             AttributeWriteMask.MinimumSamplingInterval | AttributeWriteMask.NodeClass | AttributeWriteMask.NodeId | AttributeWriteMask.Symmetric | AttributeWriteMask.UserAccessLevel | AttributeWriteMask.UserExecutable |
@@ -1279,24 +1279,24 @@ namespace SampleCompany.NodeManagers.Reference
 
                     #region MyCompany
                     ResetRandomGenerator(21);
-                    var myCompanyFolder = CreateFolderState(root, "MyCompany", "MyCompany", null);
+                    FolderState myCompanyFolder = CreateFolderState(root, "MyCompany", "MyCompany", null);
                     const string myCompany = "MyCompany_";
 
-                    var myCompanyInstructions = CreateBaseDataVariableState(myCompanyFolder, myCompany + "Instructions", "Instructions", null, DataTypeIds.String, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState myCompanyInstructions = CreateBaseDataVariableState(myCompanyFolder, myCompany + "Instructions", "Instructions", null, DataTypeIds.String, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     myCompanyInstructions.Value = "A place for the vendor to describe their address-space.";
                     variables.Add(myCompanyInstructions);
                     #endregion
 
                     #region StandardServerTest
                     ResetRandomGenerator(1);
-                    var standardServerTestFolder = CreateFolderState(root, "StandardServerTest", "StandardServerTest", null);
+                    FolderState standardServerTestFolder = CreateFolderState(root, "StandardServerTest", "StandardServerTest", null);
                     const string standardServerTest = "StandardServerTest_";
-                    
-                    var standardServerTestInstructions = CreateBaseDataVariableState(standardServerTestFolder, "StandardServerTest_Instructions", "StandardServerTest_Instructions", null, DataTypeIds.String, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+
+                    BaseDataVariableState standardServerTestInstructions = CreateBaseDataVariableState(standardServerTestFolder, "StandardServerTest_Instructions", "StandardServerTest_Instructions", null, DataTypeIds.String, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     standardServerTestInstructions.Value = "Several variables to increase code coverage of all supported UaStandardServer methods.";
 
-                    var baseObjectState = CreateBaseObjectState(standardServerTestFolder, standardServerTest + "BaseObjectState1", "BaseObjectState1", null);
-                    var propertyState = CreatePropertyState(baseObjectState, standardServerTest + "PropertyState", "PropertyState", null, BuiltInType.Boolean, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseObjectState baseObjectState = CreateBaseObjectState(standardServerTestFolder, standardServerTest + "BaseObjectState1", "BaseObjectState1", null);
+                    PropertyState propertyState = CreatePropertyState(baseObjectState, standardServerTest + "PropertyState", "PropertyState", null, BuiltInType.Boolean, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
 
                     baseObjectState = CreateBaseObjectState(standardServerTestFolder, standardServerTest + "BaseObjectState2", "BaseObjectState2", null);
                     propertyState = CreatePropertyState(baseObjectState, standardServerTest + "PropertyState2", "PropertyState2", null, BuiltInType.Boolean, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, true);
@@ -1382,11 +1382,11 @@ namespace SampleCompany.NodeManagers.Reference
         /// </summary>
         private BaseDataVariableState CreateMeshVariable(NodeState parent, string path, string name, params NodeState[] peers)
         {
-            var variable = CreateBaseDataVariableState(parent, path, name, null, BuiltInType.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+            BaseDataVariableState variable = CreateBaseDataVariableState(parent, path, name, null, BuiltInType.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
 
             if (peers != null)
             {
-                foreach (var peer in peers)
+                foreach (NodeState peer in peers)
                 {
                     peer.AddReference(ReferenceTypes.HasCause, false, variable.NodeId);
                     variable.AddReference(ReferenceTypes.HasCause, true, peer.NodeId);
@@ -1408,10 +1408,17 @@ namespace SampleCompany.NodeManagers.Reference
         {
             var displayName = new LocalizedText("", name);
 
-            var builtInType = TypeInfo.GetBuiltInType(dataType, ServerData.TypeTree);
+            BuiltInType builtInType = TypeInfo.GetBuiltInType(dataType, ServerData.TypeTree);
 
             // Simulate a mV Voltmeter
+
+/* Unmerged change from project 'SampleCompany.NodeManagers (net48)'
+Before:
             var newRange = GetAnalogRange(builtInType);
+After:
+            Range newRange = GetAnalogRange(builtInType);
+*/
+            Opc.Ua.Range newRange = GetAnalogRange(builtInType);
             // Using anything but 120,-10 fails a few tests
             newRange.High = Math.Min(newRange.High, 120);
             newRange.Low = Math.Max(newRange.Low, -10);
@@ -1422,7 +1429,7 @@ namespace SampleCompany.NodeManagers.Reference
                 UnitId = 12890 // "2Z"
             };
 
-            var variable = CreateAnalogItemState(parent, browseName, displayName, description, dataType, valueRank, AccessLevels.CurrentReadOrWrite, initialValues, customRange, engineeringUnits, newRange);
+            AnalogItemState variable = CreateAnalogItemState(parent, browseName, displayName, description, dataType, valueRank, AccessLevels.CurrentReadOrWrite, initialValues, customRange, engineeringUnits, newRange);
 
             variable.OnWriteValue = OnWriteAnalog;
             variable.EURange.OnWriteValue = OnWriteAnalogRange;
@@ -1609,7 +1616,14 @@ namespace SampleCompany.NodeManagers.Reference
             }
 
             var parentTypeInfo = TypeInfo.Construct(parent.Value);
+
+/* Unmerged change from project 'SampleCompany.NodeManagers (net48)'
+Before:
             var parentRange = GetAnalogRange(parentTypeInfo.BuiltInType);
+After:
+            Range parentRange = GetAnalogRange(parentTypeInfo.BuiltInType);
+*/
+            Opc.Ua.Range parentRange = GetAnalogRange(parentTypeInfo.BuiltInType);
             if (parentRange.High < newRange.High ||
                 parentRange.Low > newRange.Low)
             {
@@ -1629,7 +1643,7 @@ namespace SampleCompany.NodeManagers.Reference
         private BaseDataVariableState[] CreateVariables(NodeState parent, string path, string name, string description, NodeId dataType, int valueRank, UInt16 numVariables)
         {
             // first, create a new Parent folder for this data-type
-            var newParentFolder = CreateFolderState(parent, path, name, null);
+            FolderState newParentFolder = CreateFolderState(parent, path, name, null);
 
             var itemsCreated = new List<BaseDataVariableState>();
             // now to create the remaining NUMBERED items
@@ -1655,7 +1669,7 @@ namespace SampleCompany.NodeManagers.Reference
         /// </summary>
         private BaseDataVariableState CreateDynamicVariable(NodeState parent, string path, string name, string description, NodeId dataType, int valueRank, byte accessLevel = AccessLevels.CurrentReadOrWrite)
         {
-            var variable = CreateBaseDataVariableState(parent, path, name, description, dataType, valueRank, accessLevel, null);
+            BaseDataVariableState variable = CreateBaseDataVariableState(parent, path, name, description, dataType, valueRank, accessLevel, null);
             dynamicNodes_.Add(variable);
             return variable;
         }
@@ -1669,7 +1683,7 @@ namespace SampleCompany.NodeManagers.Reference
         private BaseDataVariableState[] CreateDynamicVariables(NodeState parent, string path, string name, string description, NodeId dataType, int valueRank, uint numVariables)
         {
             // first, create a new Parent folder for this data-type
-            var newParentFolder = CreateFolderState(parent, path, name, null);
+            FolderState newParentFolder = CreateFolderState(parent, path, name, null);
 
             var itemsCreated = new List<BaseDataVariableState>();
             // now to create the remaining NUMBERED items
@@ -1874,8 +1888,8 @@ namespace SampleCompany.NodeManagers.Reference
             {
                 lock (Lock)
                 {
-                    var timeStamp = DateTime.UtcNow;
-                    foreach (var variable in dynamicNodes_)
+                    DateTime timeStamp = DateTime.UtcNow;
+                    foreach (BaseDataVariableState variable in dynamicNodes_)
                     {
                         variable.Value = GetNewValue(variable);
                         variable.Timestamp = timeStamp;
@@ -1913,7 +1927,7 @@ namespace SampleCompany.NodeManagers.Reference
                     return null;
                 }
 
-                if (!PredefinedNodes.TryGetValue(nodeId, out var node))
+                if (!PredefinedNodes.TryGetValue(nodeId, out NodeState node))
                 {
                     return null;
                 }

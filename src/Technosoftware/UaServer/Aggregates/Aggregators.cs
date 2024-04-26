@@ -44,15 +44,15 @@ namespace Technosoftware.UaServer.Aggregates
         {
             public NodeId AggregateId { get; set; }
             public QualifiedName AggregateName { get; set; }
-            public Type Calculator { get; set; } 
+            public Type Calculator { get; set; }
         }
 
         /// <summary>
         /// Mapping for all of the standard aggregates.
         /// </summary>
-        private static FactoryMapping[] factoryMappings_ = new FactoryMapping[]
+        private static readonly FactoryMapping[] factoryMappings_ = new FactoryMapping[]
         {
-            new FactoryMapping() { AggregateId = ObjectIds.AggregateFunction_Interpolative, AggregateName = BrowseNames.AggregateFunction_Interpolative, Calculator = typeof(AggregateCalculator) },        
+            new FactoryMapping() { AggregateId = ObjectIds.AggregateFunction_Interpolative, AggregateName = BrowseNames.AggregateFunction_Interpolative, Calculator = typeof(AggregateCalculator) },
             new FactoryMapping() { AggregateId = ObjectIds.AggregateFunction_Average, AggregateName = BrowseNames.AggregateFunction_Average, Calculator = typeof(AverageAggregateCalculator) },
             new FactoryMapping() { AggregateId = ObjectIds.AggregateFunction_TimeAverage, AggregateName = BrowseNames.AggregateFunction_TimeAverage, Calculator = typeof(AverageAggregateCalculator) },
             new FactoryMapping() { AggregateId = ObjectIds.AggregateFunction_TimeAverage2, AggregateName = BrowseNames.AggregateFunction_TimeAverage2, Calculator = typeof(AverageAggregateCalculator) },
@@ -137,7 +137,7 @@ namespace Technosoftware.UaServer.Aggregates
             DateTime endTime,
             double processingInterval,
             bool stepped,
-            AggregateConfiguration configuration) 
+            AggregateConfiguration configuration)
         {
             for (var ii = 0; ii < factoryMappings_.Length; ii++)
             {
@@ -145,11 +145,11 @@ namespace Technosoftware.UaServer.Aggregates
                 {
                     return (IUaAggregateCalculator)Activator.CreateInstance(
                         factoryMappings_[ii].Calculator,
-                        aggregateId, 
-                        startTime, 
-                        endTime, 
-                        processingInterval, 
-                        stepped, 
+                        aggregateId,
+                        startTime,
+                        endTime,
+                        processingInterval,
+                        stepped,
                         configuration);
                 }
             }

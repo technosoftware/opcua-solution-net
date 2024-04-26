@@ -3830,7 +3830,7 @@ namespace Technosoftware.UaClient
             while (await keepAliveTimer.WaitForNextTickAsync().ConfigureAwait(false))
             {
                 OnSendKeepAlive(nodesToRead);
-        }
+            }
 
             Utils.LogTrace("Session {0}: KeepAlive PeriodicTimer exit.", SessionId);
         }

@@ -20,6 +20,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
+using Assert = NUnit.Framework.Legacy.ClassicAssert;
 
 using Opc.Ua;
 
@@ -296,7 +297,7 @@ namespace Technosoftware.UaClient.Tests
         [Test, Order(200)]
         public async Task LoadSubscriptionAsync()
         {
-            if (!File.Exists(subscriptionTestXml_)) Assert.Ignore("Save file {0} does not exist yet", subscriptionTestXml_);
+            if (!File.Exists(subscriptionTestXml_)) Assert.Ignore($"Save file {subscriptionTestXml_} does not exist yet");
 
             // load
             var subscriptions = Session.Load(subscriptionTestXml_, false, new[] { typeof(TestableSubscription) });
@@ -337,7 +338,7 @@ namespace Technosoftware.UaClient.Tests
         }
 
         [Theory, Order(300)]
-        [Timeout(30_000)]
+        [CancelAfter(30_000)]
         /// <remarks>
         /// This test doesn't deterministically prove sequential publishing,
         /// but rather relies on a subscription not being able to handle the message load.
@@ -689,7 +690,7 @@ namespace Technosoftware.UaClient.Tests
         }
 
         [Test, Order(400)]
-        [Timeout(30_000)]
+        [CancelAfter(30_000)]
         public async Task PublishRequestCount()
         {
             var subscriptionList = new List<Subscription>();

@@ -40,7 +40,7 @@ namespace Technosoftware.UaServer.NodeManager
         /// </summary>
         public ResourceManager(IUaServerData server, ApplicationConfiguration configuration)
         {
-            if (server == null) throw new ArgumentNullException(nameof(server));    
+            if (server == null) throw new ArgumentNullException(nameof(server));
             if (configuration == null) throw new ArgumentNullException(nameof(configuration));
 
             server_ = server;
@@ -93,7 +93,7 @@ namespace Technosoftware.UaServer.NodeManager
             }
 
             // translate localized text.
-            var translatedText = result.LocalizedText;
+            LocalizedText translatedText = result.LocalizedText;
 
             if (LocalizedText.IsNullOrEmpty(result.LocalizedText))
             {
@@ -102,7 +102,7 @@ namespace Technosoftware.UaServer.NodeManager
 
                 if (result.LocalizedText != null && result.LocalizedText.TranslationInfo != null)
                 {
-                    var info = result.LocalizedText.TranslationInfo;
+                    TranslationInfo info = result.LocalizedText.TranslationInfo;
 
                     if (info != null && info.Args != null && info.Args.Length > 0)
                     {
@@ -197,7 +197,7 @@ namespace Technosoftware.UaServer.NodeManager
 
             lock (lock_)
             {
-                var table = GetTable(culture.Name);
+                TranslationTable table = GetTable(culture.Name);
                 table.Translations[key] = text;
             }
         }
@@ -205,7 +205,7 @@ namespace Technosoftware.UaServer.NodeManager
         /// <summary>
         /// Adds the translations to the resource manager.
         /// </summary>
-        public void Add(string locale, IDictionary<string,string> translations)
+        public void Add(string locale, IDictionary<string, string> translations)
         {
             if (locale == null) throw new ArgumentNullException(nameof(locale));
             if (translations == null) throw new ArgumentNullException(nameof(translations));
@@ -219,9 +219,9 @@ namespace Technosoftware.UaServer.NodeManager
 
             lock (lock_)
             {
-                var table = GetTable(culture.Name);
+                TranslationTable table = GetTable(culture.Name);
 
-                foreach (var translation in translations)
+                foreach (KeyValuePair<string, string> translation in translations)
                 {
                     table.Translations[translation.Key] = translation.Value;
                 }
@@ -241,7 +241,7 @@ namespace Technosoftware.UaServer.NodeManager
 
                 if (statusCodeMapping_ == null)
                 {
-                    statusCodeMapping_ = new Dictionary<uint,TranslationInfo>();
+                    statusCodeMapping_ = new Dictionary<uint, TranslationInfo>();
                 }
 
                 if (String.IsNullOrEmpty(locale) || locale == "en-US")
@@ -282,9 +282,9 @@ namespace Technosoftware.UaServer.NodeManager
         /// </summary>
         public void LoadDefaultText()
         {
-            var fields = typeof(StatusCodes).GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+            FieldInfo[] fields = typeof(StatusCodes).GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
 
-            foreach (var field in fields)
+            foreach (FieldInfo field in fields)
             {
                 var id = field.GetValue(typeof(StatusCodes)) as uint?;
 
@@ -332,7 +332,7 @@ namespace Technosoftware.UaServer.NodeManager
 
             // find the best translation.
             var translatedText = info.Text;
-            var culture = CultureInfo.InvariantCulture;
+            CultureInfo culture = CultureInfo.InvariantCulture;
 
             lock (lock_)
             {
@@ -403,7 +403,7 @@ namespace Technosoftware.UaServer.NodeManager
                 // search for table.
                 for (var ii = 0; ii < translationTables_.Count; ii++)
                 {
-                    var translationTable = translationTables_[ii];
+                    TranslationTable translationTable = translationTables_[ii];
 
                     if (translationTable.Locale.Name == locale)
                     {
@@ -452,7 +452,7 @@ namespace Technosoftware.UaServer.NodeManager
 
                 for (var ii = 0; ii < translationTables_.Count; ii++)
                 {
-                    var translationTable = translationTables_[ii];
+                    TranslationTable translationTable = translationTables_[ii];
 
                     // all done if exact match found.
                     if (translationTable.Locale.Name == preferredLocales[jj])
@@ -482,10 +482,10 @@ namespace Technosoftware.UaServer.NodeManager
                 {
                     return translatedText;
                 }
-           }
+            }
 
-           // no translations available.
-           return null;
+            // no translations available.
+            return null;
         }
 
         /// <summary>
@@ -554,8 +554,8 @@ namespace Technosoftware.UaServer.NodeManager
         #region Private Fields
         private readonly object lock_ = new object();
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1823:AvoidUnusedPrivateFields")]
-        private IUaServerData server_;
-        private List<TranslationTable> translationTables_;
+        private readonly IUaServerData server_;
+        private readonly List<TranslationTable> translationTables_;
         private Dictionary<uint, TranslationInfo> statusCodeMapping_;
         private Dictionary<XmlQualifiedName, TranslationInfo> symbolicIdMapping_;
         #endregion

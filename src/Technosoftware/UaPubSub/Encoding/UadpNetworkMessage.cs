@@ -872,7 +872,7 @@ namespace Technosoftware.UaPubSub.Encoding
                 {
                     dataSetMessages = new List<UaDataSetMessage>();
                     // check if DataSets are decoded into the existing dataSetMessages
-                    foreach (var dataSetMessage in uaDataSetMessages_)
+                    foreach (UaDataSetMessage dataSetMessage in uaDataSetMessages_)
                     {
                         if (dataSetMessage.DataSet != null)
                         {

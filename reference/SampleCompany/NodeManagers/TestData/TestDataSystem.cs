@@ -839,7 +839,7 @@ namespace SampleCompany.NodeManagers.TestData
         }
 
         public VectorWithOptionalFields GetRandomVectorWithOptionalFields()
-            {
+        {
             VectorWithOptionalFieldsFields encodingMask = VectorWithOptionalFieldsFields.None;
             if (generator_.GetRandomBoolean()) encodingMask |= VectorWithOptionalFieldsFields.X;
             if (generator_.GetRandomBoolean()) encodingMask |= VectorWithOptionalFieldsFields.Y;
@@ -850,7 +850,7 @@ namespace SampleCompany.NodeManagers.TestData
                 Y = (double)generator_.GetRandom(BuiltInType.Double),
                 Z = (double)generator_.GetRandom(BuiltInType.Double),
             };
-            }
+        }
 
         public MultipleVectors GetRandomMultipleVectors()
         {
@@ -1044,10 +1044,10 @@ namespace SampleCompany.NodeManagers.TestData
                                 StatusCode = StatusCodes.Good,
                                 Timestamp = DateTime.UtcNow
                             };
-                        samples.Enqueue(sample);
+                            samples.Enqueue(sample);
+                        }
                     }
                 }
-            }
             }
 
             while (samples.Count > 0)
@@ -1061,7 +1061,7 @@ namespace SampleCompany.NodeManagers.TestData
                     sample.Timestamp);
             }
 
-            foreach (var generateValue in generateValues)
+            foreach (BaseVariableState generateValue in generateValues)
             {
                 callback_.OnGenerateValues(generateValue);
             }

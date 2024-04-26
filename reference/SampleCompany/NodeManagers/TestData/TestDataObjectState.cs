@@ -61,7 +61,7 @@ namespace SampleCompany.NodeManagers.TestData
 
                 var children = new List<BaseInstanceState>();
                 variable.GetChildren(context, children);
-                foreach (var child in children)
+                foreach (BaseInstanceState child in children)
                 {
                     if (child is BaseVariableState variableChild)
                     {
@@ -256,6 +256,6 @@ namespace SampleCompany.NodeManagers.TestData
                 return new ServiceResult(e);
             }
         }
-#endregion
+        #endregion
     }
 }

@@ -46,7 +46,7 @@ namespace Technosoftware.UaServer.Aggregates
             double processingInterval,
             bool stepped,
             AggregateConfiguration configuration)
-        : 
+        :
             base(aggregateId, startTime, endTime, processingInterval, stepped, configuration)
         {
             SetPartialBit = aggregateId != Opc.Ua.ObjectIds.AggregateFunction_Average;
@@ -103,7 +103,7 @@ namespace Technosoftware.UaServer.Aggregates
         protected DataValue ComputeAverage(TimeSlice slice)
         {
             // get the values in the slice.
-            var values = GetValues(slice);
+            List<DataValue> values = GetValues(slice);
 
             // check for empty slice.
             if (values == null || values.Count == 0)
@@ -139,7 +139,7 @@ namespace Technosoftware.UaServer.Aggregates
             }
 
             // select the result.
-            var result = total/count;
+            var result = total / count;
 
             // set the timestamp and status.
             var value = new DataValue();
@@ -177,7 +177,7 @@ namespace Technosoftware.UaServer.Aggregates
             }
 
             // get the regions.
-            var regions = GetRegionsInValueSet(values, !useSimpleBounds, Stepped);
+            List<SubRegion> regions = GetRegionsInValueSet(values, !useSimpleBounds, Stepped);
 
             double total = 0;
             double totalDuration = 0;
@@ -185,7 +185,7 @@ namespace Technosoftware.UaServer.Aggregates
 
             for (var ii = 0; ii < regions.Count; ii++)
             {
-                var duration = regions[ii].Duration/1000.0;
+                var duration = regions[ii].Duration / 1000.0;
 
                 if (StatusCode.IsNotBad(regions[ii].StatusCode))
                 {
@@ -210,7 +210,7 @@ namespace Technosoftware.UaServer.Aggregates
 
             switch (valueType)
             {
-                case 1: { result = total/totalDuration; break; }
+                case 1: { result = total / totalDuration; break; }
                 case 2: { result = total; break; }
             }
 

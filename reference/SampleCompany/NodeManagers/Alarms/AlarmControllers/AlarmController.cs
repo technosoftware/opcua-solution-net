@@ -53,7 +53,7 @@ namespace SampleCompany.NodeManagers.Alarms
 
             validLastMaxValue_ = false;
 
-            nextTime_ = 
+            nextTime_ =
             stopTime_ = DateTime.Now;
             stopTime_ = stopTime_.AddSeconds(seconds == 0 ? DefaultCycleTime : seconds);
 

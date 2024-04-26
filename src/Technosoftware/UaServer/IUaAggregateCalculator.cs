@@ -36,7 +36,7 @@ namespace Technosoftware.UaServer
         /// Pushes the next raw value into the stream.
         /// </summary>
         /// <param name="value">The data value to append to the stream.</param>
-        /// <returns>True if successful, false if the source timestamp has been superceeded by values already in the stream.</returns>
+        /// <returns>True if successful, false if the source timestamp has been superseded by values already in the stream.</returns>
         bool QueueRawValue(DataValue value);
 
         /// <summary>

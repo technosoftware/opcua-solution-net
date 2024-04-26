@@ -136,7 +136,7 @@ namespace Technosoftware.UaPubSub
 
                 Stop();
                 // free managed resources
-                foreach (var connection in uaPubSubConnections_)
+                foreach (IUaPubSubConnection connection in uaPubSubConnections_)
                 {
                     connection.Dispose();
                 }
@@ -253,7 +253,7 @@ namespace Technosoftware.UaPubSub
         public void Start()
         {
             Utils.Trace("UaPubSubApplication is starting.");
-            foreach (var connection in uaPubSubConnections_)
+            foreach (IUaPubSubConnection connection in uaPubSubConnections_)
             {
                 connection.Start();
             }
@@ -266,7 +266,7 @@ namespace Technosoftware.UaPubSub
         public void Stop()
         {
             Utils.Trace("UaPubSubApplication is stopping.");
-            foreach (var connection in uaPubSubConnections_)
+            foreach (IUaPubSubConnection connection in uaPubSubConnections_)
             {
                 connection.Stop();
             }
@@ -414,7 +414,7 @@ namespace Technosoftware.UaPubSub
         private void UaPubSubConfigurator_ConnectionRemoved(object sender, ConnectionEventArgs e)
         {
             IUaPubSubConnection removedUaPubSubConnection = null;
-            foreach (var connection in uaPubSubConnections_)
+            foreach (IUaPubSubConnection connection in uaPubSubConnections_)
             {
                 if (connection.PubSubConnectionConfiguration.Equals(e.PubSubConnectionDataType))
                 {

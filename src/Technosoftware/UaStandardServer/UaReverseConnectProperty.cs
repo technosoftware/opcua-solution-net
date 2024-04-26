@@ -11,17 +11,7 @@
 
 #region Using Directives
 using Opc.Ua;
-using Opc.Ua.Test;
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Reflection;
-using System.Threading;
-using Technosoftware.UaServer.NodeManager;
-using Technosoftware.UaServer.Server;
-using Technosoftware.UaServer.Sessions;
-using Technosoftware.UaServer.Subscriptions;
 #endregion
 
 namespace Technosoftware.UaStandardServer
@@ -56,41 +46,41 @@ namespace Technosoftware.UaStandardServer
         /// <summary>
         /// The Url of the reverse connect client.
         /// </summary>
-        public readonly Uri ClientUrl;
+        public Uri ClientUrl { get; private set; }
 
         /// <summary>
         /// The timeout to use for a reverse connect attempt.
         /// </summary>
-        public readonly int Timeout;
+        public int Timeout { get; private set; }
 
         /// <summary>
         /// If this is an application configuration entry.
         /// </summary>
-        public readonly bool ConfigEntry;
+        public bool ConfigEntry { get; private set; }
 
         /// <summary>
         /// The service result of the last connection attempt.
         /// </summary>
-        public ServiceResult ServiceResult;
-
-        /// <summary>
-        /// The last state of the reverse connection.
-        /// </summary>
-        public UaReverseConnectState LastState = UaReverseConnectState.Closed;
+        public ServiceResult ServiceResult { get; set; }
 
         /// <summary>
         /// The maximum number of sessions allowed to the client.
         /// </summary>
-        public int MaxSessionCount;
+        public int MaxSessionCount { get; set; }
 
         /// <summary>
         /// If the connection is enabled.
         /// </summary>
-        public bool Enabled;
+        public bool Enabled { get; set; }
 
         /// <summary>
         /// The time when the connection was rejected.
         /// </summary>
-        public DateTime RejectTime;
+        public DateTime RejectTime { get; set; }
+
+        /// <summary>
+        /// The last state of the reverse connection.
+        /// </summary>
+        public UaReverseConnectState LastState { get; set; } = UaReverseConnectState.Closed;
     }
 }

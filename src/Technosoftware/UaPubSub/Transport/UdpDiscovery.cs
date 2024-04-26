@@ -93,7 +93,7 @@ namespace Technosoftware.UaPubSub.Transport
             {
                 if (discoveryUdpClients_ != null && discoveryUdpClients_.Count > 0)
                 {
-                    foreach (var udpClient in discoveryUdpClients_)
+                    foreach (UdpClient udpClient in discoveryUdpClients_)
                     {
                         udpClient.Close();
                         udpClient.Dispose();

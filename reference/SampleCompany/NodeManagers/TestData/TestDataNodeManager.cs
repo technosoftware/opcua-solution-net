@@ -146,7 +146,7 @@ namespace SampleCompany.NodeManagers.TestData
         {
             // We know the model name to load but because this project is compiled for different environments we don't know
             // the assembly it is in. Therefore we search for it:
-            var assembly = this.GetType().GetTypeInfo().Assembly;
+            Assembly assembly = this.GetType().GetTypeInfo().Assembly;
             var names = assembly.GetManifestResourceNames();
             var resourcePath = String.Empty;
 
@@ -222,8 +222,8 @@ namespace SampleCompany.NodeManagers.TestData
                     new NodeId(Objects.Data_Dynamic_Scalar, typeNamespaceIndex_),
                     typeof(ScalarValueObjectState));
 
-                if (scalarValues != null) 
-                { 
+                if (scalarValues != null)
+                {
                     scalarValues.Int32Value.Historizing = true;
                     scalarValues.Int32Value.AccessLevel = (byte)(scalarValues.Int32Value.AccessLevel | AccessLevels.HistoryRead);
                     system_.EnableHistoryArchiving(scalarValues.Int32Value);
@@ -231,27 +231,27 @@ namespace SampleCompany.NodeManagers.TestData
 
                 // Initialize Root Variable for structures with variables
                 {
-                    var variable = FindTypeState<ScalarStructureVariableState>(Variables.Data_Static_Structure_ScalarStructure);
+                    ScalarStructureVariableState variable = FindTypeState<ScalarStructureVariableState>(Variables.Data_Static_Structure_ScalarStructure);
                     dataStaticStructureScalarStructure_ = new ScalarStructureVariableValue(variable, system_.GetRandomScalarStructureDataType(), null);
                 }
                 {
-                    var variable = FindTypeState<ScalarStructureVariableState>(Variables.Data_Dynamic_Structure_ScalarStructure);
+                    ScalarStructureVariableState variable = FindTypeState<ScalarStructureVariableState>(Variables.Data_Dynamic_Structure_ScalarStructure);
                     dataDynamicStructureScalarStructure_ = new ScalarStructureVariableValue(variable, system_.GetRandomScalarStructureDataType(), null);
                 }
                 {
-                    var variable = FindTypeState<VectorVariableState>(Variables.Data_Static_Structure_VectorStructure);
+                    VectorVariableState variable = FindTypeState<VectorVariableState>(Variables.Data_Static_Structure_VectorStructure);
                     dataStaticStructureVectorStructure_ = new VectorVariableValue(variable, system_.GetRandomVector(), null);
                 }
                 {
-                    var variable = FindTypeState<VectorVariableState>(Variables.Data_Dynamic_Structure_VectorStructure);
+                    VectorVariableState variable = FindTypeState<VectorVariableState>(Variables.Data_Dynamic_Structure_VectorStructure);
                     dataDynamicStructureVectorStructure_ = new VectorVariableValue(variable, system_.GetRandomVector(), null);
                 }
                 {
-                    var variable = FindTypeState<VectorVariableState>(Variables.Data_Static_Scalar_VectorValue);
+                    VectorVariableState variable = FindTypeState<VectorVariableState>(Variables.Data_Static_Scalar_VectorValue);
                     dataStaticVectorScalarValue_ = new VectorVariableValue(variable, system_.GetRandomVector(), null);
                 }
                 {
-                    var variable = FindTypeState<VectorVariableState>(Variables.Data_Dynamic_Scalar_VectorValue);
+                    VectorVariableState variable = FindTypeState<VectorVariableState>(Variables.Data_Dynamic_Scalar_VectorValue);
                     dataDynamicVectorScalarValue_ = new VectorVariableValue(variable, system_.GetRandomVector(), null);
                 }
             }
@@ -482,7 +482,7 @@ namespace SampleCompany.NodeManagers.TestData
         /// </summary>
         protected virtual void SaveDataReader(UaServerOperationContext context, HistoryDataReader reader)
         {
-            if (context == null ||  context.Session == null)
+            if (context == null || context.Session == null)
             {
                 return;
             }

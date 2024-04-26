@@ -50,7 +50,7 @@ namespace Technosoftware.UaServer
             this.Node = node;
         }
         #endregion
-        
+
         #region Public Interface
         /// <summary>
         /// The NodeId provided by the client.

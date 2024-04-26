@@ -669,7 +669,7 @@ namespace Technosoftware.UaPubSub.Encoding
             try
             {
                 // 01 RawData Field Encoding 
-                var variant = field.Value.WrappedValue;
+                Variant variant = field.Value.WrappedValue;
 
                 if (variant.TypeInfo == null || variant.TypeInfo.BuiltInType == BuiltInType.Null)
                 {

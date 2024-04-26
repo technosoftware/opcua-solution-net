@@ -111,7 +111,7 @@ namespace Technosoftware.UaServer.Aggregates
         /// Queues a raw value for processing.
         /// </summary>
         /// <param name="value">The data value to process.</param>
-        /// <returns>True if successful, false if the timestamp has been superceeded by values already in the stream.</returns>
+        /// <returns>True if successful, false if the timestamp has been superseded by values already in the stream.</returns>
         public bool QueueRawValue(DataValue value)
         {
             // ignore bad data.
@@ -194,8 +194,8 @@ namespace Technosoftware.UaServer.Aggregates
             }
 
             // check if the slice extends beyond the range of available data.
-            var earlyTime = CurrentSlice.StartTime;
-            var lateTime = CurrentSlice.EndTime;
+            DateTime earlyTime = CurrentSlice.StartTime;
+            DateTime lateTime = CurrentSlice.EndTime;
 
             if (CompareTimestamps(lateTime, values_.First) < 0 || CompareTimestamps(earlyTime, values_.Last) > 0)
             {
@@ -205,7 +205,7 @@ namespace Technosoftware.UaServer.Aggregates
             Utils.LogTrace("Computing Aggregate {0:HH:mm:ss.fff}", CurrentSlice.StartTime);
 
             // compute the value.
-            var value = ComputeValue(CurrentSlice);
+            DataValue value = ComputeValue(CurrentSlice);
 
             // check if overlapping the start of data.
             if (SetPartialBit)
@@ -235,11 +235,11 @@ namespace Technosoftware.UaServer.Aggregates
             {
                 if (CurrentSlice.LateBound != null)
                 {
-                    var ii = CurrentSlice.LateBound.Next;
+                    LinkedListNode<DataValue> ii = CurrentSlice.LateBound.Next;
 
                     while (ii != null)
                     {
-                        var next = ii.Next;
+                        LinkedListNode<DataValue> next = ii.Next;
                         values_.Remove(ii);
                         ii = next;
                     }
@@ -249,7 +249,7 @@ namespace Technosoftware.UaServer.Aggregates
             {
                 if (CurrentSlice.EarlyBound != null)
                 {
-                    var ii = CurrentSlice.EarlyBound.Previous;
+                    LinkedListNode<DataValue> ii = CurrentSlice.EarlyBound.Previous;
 
                     if (CurrentSlice.SecondEarlyBound != null)
                     {
@@ -258,7 +258,7 @@ namespace Technosoftware.UaServer.Aggregates
 
                     while (ii != null)
                     {
-                        var next = ii.Previous;
+                        LinkedListNode<DataValue> next = ii.Previous;
                         values_.Remove(ii);
                         ii = next;
                     }
@@ -416,7 +416,7 @@ namespace Technosoftware.UaServer.Aggregates
         {
             if (value2 == null)
             {
-                return (value1 == null)?0:+1;
+                return (value1 == null) ? 0 : +1;
             }
 
             return CompareTimestamps(value1, value2.Value);
@@ -432,7 +432,7 @@ namespace Technosoftware.UaServer.Aggregates
         {
             if (value1 == null)
             {
-                return (value2 == null)?0:-1;
+                return (value2 == null) ? 0 : -1;
             }
 
             if (value2 == null)
@@ -627,7 +627,7 @@ namespace Technosoftware.UaServer.Aggregates
             }
 
             // restart processing from where it left off.
-            var start = values_.First;
+            LinkedListNode<DataValue> start = values_.First;
 
             if (!TimeFlowsBackward && slice.LastProcessedValue != null)
             {
@@ -641,7 +641,7 @@ namespace Technosoftware.UaServer.Aggregates
             }
 
             // initialize slice from value list.
-            for (var ii = start; ii != null; ii = ii.Next)
+            for (LinkedListNode<DataValue> ii = start; ii != null; ii = ii.Next)
             {
                 if (TimeFlowsBackward)
                 {
@@ -944,7 +944,7 @@ namespace Technosoftware.UaServer.Aggregates
                 // revert to stepped if no end bound.
                 if (StatusCode.IsBad(lateBound.StatusCode))
                 {
-                    var dataValue2 = SteppedInterpolate(timestamp, earlyBound);
+                    DataValue dataValue2 = SteppedInterpolate(timestamp, earlyBound);
 
                     if (StatusCode.IsNotBad(dataValue2.StatusCode))
                     {
@@ -1011,7 +1011,7 @@ namespace Technosoftware.UaServer.Aggregates
         protected DataValue GetSimpleBound(DateTime timestamp, TimeSlice slice)
         {
             // choose the start point 
-            var start = slice.EarlyBound;
+            LinkedListNode<DataValue> start = slice.EarlyBound;
 
             if (start == null)
             {
@@ -1019,9 +1019,9 @@ namespace Technosoftware.UaServer.Aggregates
             }
 
             // look for a raw value at or immediately before the timestamp.
-            var startBound = start;
+            LinkedListNode<DataValue> startBound = start;
 
-            for (var ii = start; ii != null; ii = ii.Next)
+            for (LinkedListNode<DataValue> ii = start; ii != null; ii = ii.Next)
             {
                 // check for an exact match.
                 if (CompareTimestamps(timestamp, ii) == 0)
@@ -1054,7 +1054,7 @@ namespace Technosoftware.UaServer.Aggregates
 
             // look for an end bound.
             var revertToStepped = false;
-            var endBound = startBound.Next;
+            LinkedListNode<DataValue> endBound = startBound.Next;
 
             if (!Stepped)
             {
@@ -1078,7 +1078,7 @@ namespace Technosoftware.UaServer.Aggregates
             }
 
             // do stepped interpolation for all other cases.
-            var value = SteppedInterpolate(timestamp, startBound.Value);
+            DataValue value = SteppedInterpolate(timestamp, startBound.Value);
 
             // need to make it uncertain if interpolation was required but not used.
             if (StatusCode.IsGood(value.StatusCode) && revertToStepped)
@@ -1104,7 +1104,7 @@ namespace Technosoftware.UaServer.Aggregates
             var values = new List<DataValue>();
 
             // add the start point.
-            var startBound = GetSimpleBound(slice.StartTime, slice);
+            DataValue startBound = GetSimpleBound(slice.StartTime, slice);
 
             if (startBound != null)
             {
@@ -1112,7 +1112,7 @@ namespace Technosoftware.UaServer.Aggregates
             }
 
             // initialize slice from value list.
-            for (var ii = slice.Begin; ii != null; ii = ii.Next)
+            for (LinkedListNode<DataValue> ii = slice.Begin; ii != null; ii = ii.Next)
             {
                 if (CompareTimestamps(slice.EndTime, ii) <= 0)
                 {
@@ -1126,7 +1126,7 @@ namespace Technosoftware.UaServer.Aggregates
             }
 
             // add the end point.
-            var endBound = GetSimpleBound(slice.EndTime, slice);
+            DataValue endBound = GetSimpleBound(slice.EndTime, slice);
 
             if (endBound != null)
             {
@@ -1150,7 +1150,7 @@ namespace Technosoftware.UaServer.Aggregates
             var values = new List<DataValue>();
 
             // initialize slice from value list.
-            for (var ii = slice.Begin; ii != null; ii = ii.Next)
+            for (LinkedListNode<DataValue> ii = slice.Begin; ii != null; ii = ii.Next)
             {
                 if (TimeFlowsBackward)
                 {
@@ -1195,7 +1195,7 @@ namespace Technosoftware.UaServer.Aggregates
             var values = new List<DataValue>();
 
             // add the start point.
-            var startBound = Interpolate(slice.StartTime, slice);
+            DataValue startBound = Interpolate(slice.StartTime, slice);
 
             if (startBound != null)
             {
@@ -1203,7 +1203,7 @@ namespace Technosoftware.UaServer.Aggregates
             }
 
             // initialize slice from value list.
-            for (var ii = slice.Begin; ii != null; ii = ii.Next)
+            for (LinkedListNode<DataValue> ii = slice.Begin; ii != null; ii = ii.Next)
             {
                 if (CompareTimestamps(slice.EndTime, ii) <= 0)
                 {
@@ -1217,7 +1217,7 @@ namespace Technosoftware.UaServer.Aggregates
             }
 
             // add the end point.
-            var endBound = Interpolate(slice.EndTime, slice);
+            DataValue endBound = Interpolate(slice.EndTime, slice);
 
             if (endBound != null)
             {
@@ -1280,8 +1280,8 @@ namespace Technosoftware.UaServer.Aggregates
             for (var ii = 0; ii < values.Count; ii++)
             {
                 double currentValue = 0;
-                var currentTime = values[ii].SourceTimestamp;
-                var currentStatus = values[ii].StatusCode;
+                DateTime currentTime = values[ii].SourceTimestamp;
+                StatusCode currentStatus = values[ii].StatusCode;
 
                 // convert to doubles to facilitate numeric calculations.
                 if (StatusCode.IsNotBad(currentStatus))
@@ -1454,7 +1454,7 @@ namespace Technosoftware.UaServer.Aggregates
         protected StatusCode GetTimeBasedStatusCode(TimeSlice slice, List<DataValue> values, StatusCode defaultCode)
         {
             // get the regions in the slice.
-            var regions = GetRegionsInValueSet(values, false, Stepped);
+            List<SubRegion> regions = GetRegionsInValueSet(values, false, Stepped);
 
             if (regions == null || regions.Count == 0)
             {
@@ -1480,7 +1480,7 @@ namespace Technosoftware.UaServer.Aggregates
             double goodDuration = 0;
             double totalDuration = 0;
 
-            foreach (var region in regions)
+            foreach (SubRegion region in regions)
             {
                 totalDuration += region.Duration;
 

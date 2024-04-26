@@ -17,6 +17,7 @@ using System.Text;
 using System.Xml;
 
 using NUnit.Framework;
+using Assert = NUnit.Framework.Legacy.ClassicAssert;
 
 using Opc.Ua;
 using Opc.Ua.Export;

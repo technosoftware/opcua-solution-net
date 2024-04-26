@@ -147,7 +147,7 @@ namespace Technosoftware.UaPubSub
             lock (lock_)
             {
                 isRunning_ = true;
-                foreach (var publisher in publishers_)
+                foreach (IUaPublisher publisher in publishers_)
                 {
                     publisher.Start();
                 }
@@ -163,7 +163,7 @@ namespace Technosoftware.UaPubSub
             lock (lock_)
             {
                 isRunning_ = false;
-                foreach (var publisher in publishers_)
+                foreach (IUaPublisher publisher in publishers_)
                 {
                     publisher.Stop();
                 }
@@ -193,7 +193,7 @@ namespace Technosoftware.UaPubSub
                 return false;
             }
 
-            foreach (var writer in writerGroupConfiguration.DataSetWriters)
+            foreach (DataSetWriterDataType writer in writerGroupConfiguration.DataSetWriters)
             {
                 if (writer.Enabled)
                 {
@@ -234,11 +234,11 @@ namespace Technosoftware.UaPubSub
             {
                 return readersList;
             }
-            foreach (var readerGroup in pubSubConnectionDataType_.ReaderGroups)
+            foreach (ReaderGroupDataType readerGroup in pubSubConnectionDataType_.ReaderGroups)
             {
                 if (Application.UaPubSubConfigurator.FindStateForObject(readerGroup) == PubSubState.Operational)
                 {
-                    foreach (var reader in readerGroup.DataSetReaders)
+                    foreach (DataSetReaderDataType reader in readerGroup.DataSetReaders)
                     {
                         // check if the reader is properly configured to receive data
                         if (Application.UaPubSubConfigurator.FindStateForObject(reader) == PubSubState.Operational)
@@ -274,8 +274,8 @@ namespace Technosoftware.UaPubSub
             if (networkMessage.IsMetaDataMessage)
             {
                 // update configuration of the corresponding reader objects found in this connection configuration
-                var allReaders = GetAllDataSetReaders();
-                foreach (var reader in allReaders)
+                List<DataSetReaderDataType> allReaders = GetAllDataSetReaders();
+                foreach (DataSetReaderDataType reader in allReaders)
                 {
                     var raiseChangedEvent = false;
 
@@ -373,7 +373,7 @@ namespace Technosoftware.UaPubSub
                     }
                     else if (uadpNetworkMessage.UADPDiscoveryType == UADPNetworkMessageDiscoveryType.PublisherEndpoint &&
                         uadpNetworkMessage.UADPNetworkMessageType == UADPNetworkMessageType.DiscoveryResponse)
-            {
+                    {
                         PublisherEndpointsEventArgs publisherEndpointsEventArgs = new PublisherEndpointsEventArgs() {
                             PublisherEndpoints = uadpNetworkMessage.PublisherEndpoints,
                             Source = source,
@@ -399,9 +399,9 @@ namespace Technosoftware.UaPubSub
         protected List<DataSetReaderDataType> GetAllDataSetReaders()
         {
             var readersList = new List<DataSetReaderDataType>();
-            foreach (var readerGroup in pubSubConnectionDataType_.ReaderGroups)
+            foreach (ReaderGroupDataType readerGroup in pubSubConnectionDataType_.ReaderGroups)
             {
-                foreach (var reader in readerGroup.DataSetReaders)
+                foreach (DataSetReaderDataType reader in readerGroup.DataSetReaders)
                 {
                     readersList.Add(reader);
                 }
@@ -416,9 +416,9 @@ namespace Technosoftware.UaPubSub
         {
             var writerList = new List<DataSetWriterDataType>();
 
-            foreach (var writerGroup in pubSubConnectionDataType_.WriterGroups)
+            foreach (WriterGroupDataType writerGroup in pubSubConnectionDataType_.WriterGroups)
             {
-                foreach (var writer in writerGroup.DataSetWriters)
+                foreach (DataSetWriterDataType writer in writerGroup.DataSetWriters)
                 {
                     writerList.Add(writer);
                 }
@@ -470,7 +470,7 @@ namespace Technosoftware.UaPubSub
         protected double GetWriterGroupsMaxKeepAlive()
         {
             double maxKeepAlive = 0;
-            foreach (var writerGroup in pubSubConnectionDataType_.WriterGroups)
+            foreach (WriterGroupDataType writerGroup in pubSubConnectionDataType_.WriterGroups)
             {
                 if (maxKeepAlive < writerGroup.KeepAliveTime)
                 {

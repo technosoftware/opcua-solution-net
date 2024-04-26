@@ -16,7 +16,7 @@
 #region Using Directives
 #endregion
 
-namespace Technosoftware.UaServer 
+namespace Technosoftware.UaServer
 {
     /// <summary>
     /// The current publishing state for a subscription.

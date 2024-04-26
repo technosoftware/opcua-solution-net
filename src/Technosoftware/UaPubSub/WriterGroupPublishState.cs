@@ -57,7 +57,7 @@ namespace Technosoftware.UaPubSub
         {
             lock (dataSetStates_)
             {
-                var state = GetState(writer);
+                DataSetState state = GetState(writer);
                 sequenceNumber = state.MessageCount + 1;
 
                 if (state.MessageCount % writer.KeyFrameCount != 0)
@@ -83,9 +83,9 @@ namespace Technosoftware.UaPubSub
 
             lock (dataSetStates_)
             {
-                var state = GetState(writer);
+                DataSetState state = GetState(writer);
 
-                var version = state.ConfigurationVersion;
+                ConfigurationVersionDataType version = state.ConfigurationVersion;
                 // no matter what the TransportSettings.MetaDataUpdateTime is the ConfigurationVersion is checked
                 if (version == null)
                 {
@@ -117,9 +117,9 @@ namespace Technosoftware.UaPubSub
         {
             lock (dataSetStates_)
             {
-                var state = GetState(writer);
+                DataSetState state = GetState(writer);
 
-                var lastDataSet = state.LastDataSet;
+                DataSet lastDataSet = state.LastDataSet;
 
                 if (lastDataSet == null)
                 {
@@ -131,8 +131,8 @@ namespace Technosoftware.UaPubSub
 
                 for (var ii = 0; ii < dataset.Fields.Length && ii < lastDataSet.Fields.Length; ii++)
                 {
-                    var field1 = dataset.Fields[ii];
-                    var field2 = lastDataSet.Fields[ii];
+                    Field field1 = dataset.Fields[ii];
+                    Field field2 = lastDataSet.Fields[ii];
 
                     if (field1 == null || field2 == null)
                     {
@@ -173,7 +173,7 @@ namespace Technosoftware.UaPubSub
         {
             lock (dataSetStates_)
             {
-                var state = GetState(writer);
+                DataSetState state = GetState(writer);
                 state.MessageCount++;
 
                 if (writer.KeyFrameCount > 1)
@@ -190,7 +190,7 @@ namespace Technosoftware.UaPubSub
 
                     for (var ii = 0; ii < dataset.Fields.Length && ii < state.LastDataSet.Fields.Length; ii++)
                     {
-                        var field = dataset.Fields[ii];
+                        Field field = dataset.Fields[ii];
 
                         if (field != null)
                         {

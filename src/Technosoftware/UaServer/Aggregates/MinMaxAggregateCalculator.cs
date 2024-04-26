@@ -46,7 +46,7 @@ namespace Technosoftware.UaServer.Aggregates
             double processingInterval,
             bool stepped,
             AggregateConfiguration configuration)
-        : 
+        :
             base(aggregateId, startTime, endTime, processingInterval, stepped, configuration)
         {
             SetPartialBit = true;
@@ -128,7 +128,7 @@ namespace Technosoftware.UaServer.Aggregates
         protected DataValue ComputeMinMax(TimeSlice slice, int valueType, bool returnActualTime)
         {
             // get the values in the slice.
-            var values = GetValues(slice);
+            List<DataValue> values = GetValues(slice);
 
             // check for empty slice.
             if (values == null || values.Count == 0)
@@ -141,8 +141,8 @@ namespace Technosoftware.UaServer.Aggregates
             var maximumGoodValue = Double.MinValue;
             var maximumUncertainValue = Double.MinValue;
 
-            var minimumGoodTimestamp = DateTime.MinValue;
-            var maximumGoodTimestamp = DateTime.MinValue;
+            DateTime minimumGoodTimestamp = DateTime.MinValue;
+            DateTime maximumGoodTimestamp = DateTime.MinValue;
 
             TypeInfo minimumOriginalType = null;
             TypeInfo maximumOriginalType = null;
@@ -155,8 +155,8 @@ namespace Technosoftware.UaServer.Aggregates
             for (var ii = 0; ii < values.Count; ii++)
             {
                 double currentValue = 0;
-                var currentTime = values[ii].SourceTimestamp;
-                var currentStatus = values[ii].StatusCode;
+                DateTime currentTime = values[ii].SourceTimestamp;
+                StatusCode currentStatus = values[ii].StatusCode;
 
                 // ignore bad values.
                 if (!IsGood(values[ii]))
@@ -243,7 +243,7 @@ namespace Technosoftware.UaServer.Aggregates
             // determine the calculated value to return.
             object processedValue = null;
             TypeInfo processedType = null;
-            var processedTimestamp = DateTime.MinValue;
+            DateTime processedTimestamp = DateTime.MinValue;
             var uncertainValueExists = false;
             var duplicatesExist = false;
 
@@ -319,7 +319,7 @@ namespace Technosoftware.UaServer.Aggregates
         protected DataValue ComputeMinMax2(TimeSlice slice, int valueType, bool returnActualTime)
         {
             // get the values in the slice.
-            var values = GetValuesWithSimpleBounds(slice);
+            List<DataValue> values = GetValuesWithSimpleBounds(slice);
 
             // check for empty slice.
             if (values == null || values.Count == 0)
@@ -330,8 +330,8 @@ namespace Technosoftware.UaServer.Aggregates
             var minimumGoodValue = Double.MaxValue;
             var maximumGoodValue = Double.MinValue;
 
-            var minimumGoodTimestamp = DateTime.MinValue;
-            var maximumGoodTimestamp = DateTime.MinValue;
+            DateTime minimumGoodTimestamp = DateTime.MinValue;
+            DateTime maximumGoodTimestamp = DateTime.MinValue;
 
             StatusCode minimumGoodStatusCode = StatusCodes.Good;
             StatusCode maximumGoodStatusCode = StatusCodes.Good;
@@ -346,8 +346,8 @@ namespace Technosoftware.UaServer.Aggregates
             for (var ii = 0; ii < values.Count; ii++)
             {
                 double currentValue = 0;
-                var currentTime = values[ii].SourceTimestamp;
-                var currentStatus = values[ii].StatusCode;
+                DateTime currentTime = values[ii].SourceTimestamp;
+                StatusCode currentStatus = values[ii].StatusCode;
 
                 // ignore bad values (as determined by the TreatUncertainAsBad parameter).
                 if (!IsGood(values[ii]))
@@ -424,7 +424,7 @@ namespace Technosoftware.UaServer.Aggregates
             // determine the calculated value to return.
             object processedValue = null;
             TypeInfo processedType = null;
-            var processedTimestamp = DateTime.MinValue;
+            DateTime processedTimestamp = DateTime.MinValue;
             StatusCode processedStatusCode = StatusCodes.Good;
             var duplicatesExist = false;
 
@@ -453,7 +453,7 @@ namespace Technosoftware.UaServer.Aggregates
             }
 
             // set the status code.
-            var statusCode = processedStatusCode;
+            StatusCode statusCode = processedStatusCode;
 
             // set calculated if not returning actual time and value is not at the start time.
             if (!returnActualTime && processedTimestamp != slice.StartTime && (statusCode.AggregateBits & AggregateBits.Interpolated) == 0)

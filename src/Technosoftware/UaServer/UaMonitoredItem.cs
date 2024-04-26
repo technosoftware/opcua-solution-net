@@ -96,26 +96,26 @@ namespace Technosoftware.UaServer
             NodeManager = nodeManager;
             ManagerHandle = mangerHandle;
             SubscriptionId = subscriptionId;
-            id_ = id;
-            nodeId_ = itemToMonitor.NodeId;
-            attributeId_ = itemToMonitor.AttributeId;
+            Id = id;
+            NodeId = itemToMonitor.NodeId;
+            AttributeId = itemToMonitor.AttributeId;
             indexRange_ = itemToMonitor.IndexRange;
             parsedIndexRange_ = itemToMonitor.ParsedIndexRange;
-            encoding_ = itemToMonitor.DataEncoding;
-            diagnosticsMasks_ = diagnosticsMasks;
+            DataEncoding = itemToMonitor.DataEncoding;
+            DiagnosticsMasks = diagnosticsMasks;
             timestampsToReturn_ = timestampsToReturn;
-            monitoringMode_ = monitoringMode;
-            clientHandle_ = clientHandle;
-            originalFilter_ = originalFilter;
+            MonitoringMode = monitoringMode;
+            ClientHandle = clientHandle;
+            Filter = originalFilter;
             filterToUse_ = filterToUse;
             range_ = 0;
             samplingInterval_ = samplingInterval;
-            queueSize_ = queueSize;
+            QueueSize = queueSize;
             discardOldest_ = discardOldest;
             sourceSamplingInterval_ = (int)sourceSamplingInterval;
             calculator_ = null;
             nextSamplingTime_ = HiResClock.TickCount64;
-            alwaysReportUpdates_ = false;
+            AlwaysReportUpdates = false;
 
             MonitoredItemType = UaMonitoredItemTypeMask.DataChange;
 
@@ -150,13 +150,13 @@ namespace Technosoftware.UaServer
 
             // report change to item state.
             UaServerUtils.ReportCreateMonitoredItem(
-                nodeId_,
-                id_,
+                NodeId,
+                Id,
                 samplingInterval_,
-                queueSize_,
+                QueueSize,
                 discardOldest_,
                 filterToUse_,
-                monitoringMode_);
+                MonitoringMode);
 
             InitializeQueue();
         }
@@ -170,18 +170,18 @@ namespace Technosoftware.UaServer
             NodeManager = null;
             ManagerHandle = null;
             SubscriptionId = 0;
-            id_ = 0;
-            nodeId_ = null;
-            attributeId_ = 0;
+            Id = 0;
+            NodeId = null;
+            AttributeId = 0;
             indexRange_ = null;
             parsedIndexRange_ = NumericRange.Empty;
-            encoding_ = null;
-            clientHandle_ = 0;
-            monitoringMode_ = MonitoringMode.Disabled;
+            DataEncoding = null;
+            ClientHandle = 0;
+            MonitoringMode = MonitoringMode.Disabled;
             samplingInterval_ = 0;
-            queueSize_ = 0;
+            QueueSize = 0;
             discardOldest_ = true;
-            originalFilter_ = null;
+            Filter = null;
             lastValue_ = null;
             lastError_ = null;
             events_ = null;
@@ -238,21 +238,21 @@ namespace Technosoftware.UaServer
                 // check if not ready to publish in case it doesn't ResendData
                 if (!readyToPublish_)
                 {
-                    UaServerUtils.EventLog.MonitoredItemReady(id_, "FALSE");
+                    UaServerUtils.EventLog.MonitoredItemReady(Id, "FALSE");
                     return false;
                 }
 
                 // check if it has been triggered.
-                if (monitoringMode_ != MonitoringMode.Disabled && triggered_)
+                if (MonitoringMode != MonitoringMode.Disabled && triggered_)
                 {
-                    UaServerUtils.EventLog.MonitoredItemReady(id_, "TRIGGERED");
+                    UaServerUtils.EventLog.MonitoredItemReady(Id, "TRIGGERED");
                     return true;
                 }
 
                 // check if monitoring was turned off.
-                if (monitoringMode_ != MonitoringMode.Reporting)
+                if (MonitoringMode != MonitoringMode.Reporting)
                 {
-                    UaServerUtils.EventLog.MonitoredItemReady(id_, "FALSE");
+                    UaServerUtils.EventLog.MonitoredItemReady(Id, "FALSE");
                     return false;
                 }
 
@@ -263,11 +263,11 @@ namespace Technosoftware.UaServer
 
                     if (nextSamplingTime_ > now)
                     {
-                        UaServerUtils.EventLog.MonitoredItemReady(id_, Utils.Format("FALSE {0}ms", nextSamplingTime_ - now));
+                        UaServerUtils.EventLog.MonitoredItemReady(Id, Utils.Format("FALSE {0}ms", nextSamplingTime_ - now));
                         return false;
                     }
                 }
-                UaServerUtils.EventLog.MonitoredItemReady(id_, "NORMAL");
+                UaServerUtils.EventLog.MonitoredItemReady(Id, "NORMAL");
                 return true;
             }
         }
@@ -282,7 +282,7 @@ namespace Technosoftware.UaServer
                 lock (lock_)
                 {
                     // only allow to trigger if sampling or reporting.
-                    if (monitoringMode_ == MonitoringMode.Disabled)
+                    if (MonitoringMode == MonitoringMode.Disabled)
                     {
                         return false;
                     }
@@ -317,7 +317,7 @@ namespace Technosoftware.UaServer
         {
             lock (lock_)
             {
-                if (monitoringMode_ == MonitoringMode.Reporting &&
+                if (MonitoringMode == MonitoringMode.Reporting &&
                     (MonitoredItemType & UaMonitoredItemTypeMask.DataChange) != 0)
                 {
                     resendData_ = true;
@@ -334,7 +334,7 @@ namespace Technosoftware.UaServer
             {
                 if (readyToPublish_)
                 {
-                    Utils.LogTrace(Utils.TraceMasks.OperationDetail, "SetTriggered[{0}]", id_);
+                    Utils.LogTrace(Utils.TraceMasks.OperationDetail, "SetTriggered[{0}]", Id);
                     triggered_ = true;
                     return true;
                 }
@@ -368,17 +368,17 @@ namespace Technosoftware.UaServer
         /// <summary>
         /// The filter used by the monitored item.
         /// </summary>
-        public MonitoringFilter Filter => originalFilter_;
+        public MonitoringFilter Filter { get; private set; }
 
         /// <summary>
         /// The event filter used by the monitored item.
         /// </summary>
-        public EventFilter EventFilter => originalFilter_ as EventFilter;
+        public EventFilter EventFilter => Filter as EventFilter;
 
         /// <summary>
         /// The data change filter used by the monitored item.
         /// </summary>
-        public DataChangeFilter DataChangeFilter => originalFilter_ as DataChangeFilter;
+        public DataChangeFilter DataChangeFilter => Filter as DataChangeFilter;
 
         /// <summary>
         /// The session that owns the monitored item.
@@ -397,27 +397,27 @@ namespace Technosoftware.UaServer
         /// <summary>
         /// The identifier for the item that is unique within the server.
         /// </summary>
-        public uint Id => id_;
+        public uint Id { get; private set; }
 
         /// <summary>
         /// The identifier for the client handle assigned to the monitored item.
         /// </summary>
-        public uint ClientHandle => clientHandle_;
+        public uint ClientHandle { get; private set; }
 
         /// <summary>
         /// The node id being monitored.
         /// </summary>
-        public NodeId NodeId => nodeId_;
+        public NodeId NodeId { get; private set; }
 
         /// <summary>
         /// The attribute being monitored.
         /// </summary>
-        public uint AttributeId => attributeId_;
+        public uint AttributeId { get; private set; }
 
         /// <summary>
         /// The current monitoring mode for the item
         /// </summary>
-        public MonitoringMode MonitoringMode => monitoringMode_;
+        public MonitoringMode MonitoringMode { get; private set; }
 
         /// <summary>
         /// The sampling interval for the item.
@@ -441,7 +441,7 @@ namespace Technosoftware.UaServer
         /// <summary>
         /// The queue size for the item.
         /// </summary>
-        public uint QueueSize => queueSize_;
+        public uint QueueSize { get; private set; }
 
         /// <summary>
         /// Gets number of elements actually contained in value queue.
@@ -470,7 +470,7 @@ namespace Technosoftware.UaServer
         /// <summary>
         /// The diagnostics masks to use when collecting notifications for the item.
         /// </summary>
-        public DiagnosticsMasks DiagnosticsMasks => diagnosticsMasks_;
+        public DiagnosticsMasks DiagnosticsMasks { get; private set; }
 
         /// <summary>
         /// The index range requested by the monitored item.
@@ -480,16 +480,12 @@ namespace Technosoftware.UaServer
         /// <summary>
         /// The data encoding requested by the monitored item.
         /// </summary>
-        public QualifiedName DataEncoding => encoding_;
+        public QualifiedName DataEncoding { get; private set; }
 
         /// <summary>
         /// Whether the monitored item should report a value without checking if it was changed.
         /// </summary>
-        public bool AlwaysReportUpdates
-        {
-            get => alwaysReportUpdates_;
-            set => alwaysReportUpdates_ = value;
-        }
+        public bool AlwaysReportUpdates { get; set; }
 
         /// <summary>
         /// Returns a description of the item being monitored. 
@@ -498,13 +494,12 @@ namespace Technosoftware.UaServer
         {
             lock (lock_)
             {
-                var valueId = new ReadValueId
-                {
-                    NodeId = nodeId_,
-                    AttributeId = attributeId_,
+                var valueId = new ReadValueId {
+                    NodeId = NodeId,
+                    AttributeId = AttributeId,
                     IndexRange = indexRange_,
                     ParsedIndexRange = parsedIndexRange_,
-                    DataEncoding = encoding_,
+                    DataEncoding = DataEncoding,
                     Handle = ManagerHandle
                 };
 
@@ -540,11 +535,10 @@ namespace Technosoftware.UaServer
         {
             lock (lock_)
             {
-                result = new MonitoredItemCreateResult
-                {
-                    MonitoredItemId = id_,
+                result = new MonitoredItemCreateResult {
+                    MonitoredItemId = Id,
                     RevisedSamplingInterval = samplingInterval_,
-                    RevisedQueueSize = queueSize_,
+                    RevisedQueueSize = QueueSize,
                     StatusCode = StatusCodes.Good
                 };
 
@@ -565,10 +559,9 @@ namespace Technosoftware.UaServer
         {
             lock (lock_)
             {
-                result = new MonitoredItemModifyResult
-                {
+                result = new MonitoredItemModifyResult {
                     RevisedSamplingInterval = samplingInterval_,
-                    RevisedQueueSize = queueSize_,
+                    RevisedQueueSize = QueueSize,
                     StatusCode = StatusCodes.Good
                 };
 
@@ -598,12 +591,12 @@ namespace Technosoftware.UaServer
         {
             lock (lock_)
             {
-                diagnosticsMasks_ = diagnosticsMasks;
+                DiagnosticsMasks = diagnosticsMasks;
                 timestampsToReturn_ = timestampsToReturn;
-                clientHandle_ = clientHandle;
+                ClientHandle = clientHandle;
                 discardOldest_ = discardOldest;
 
-                originalFilter_ = originalFilter;
+                Filter = originalFilter;
                 filterToUse_ = filterToUse;
 
                 if (range != null)
@@ -612,7 +605,7 @@ namespace Technosoftware.UaServer
                 }
 
                 SetSamplingInterval(samplingInterval);
-                queueSize_ = queueSize;
+                QueueSize = queueSize;
 
                 // check if aggregate filter has been updated.
                 var aggregateFilter = filterToUse as ServerAggregateFilter;
@@ -642,13 +635,13 @@ namespace Technosoftware.UaServer
 
                 // report change to item state.
                 UaServerUtils.ReportModifyMonitoredItem(
-                    nodeId_,
-                    id_,
+                    NodeId,
+                    Id,
                     samplingInterval_,
-                    queueSize_,
+                    QueueSize,
                     discardOldest_,
                     filterToUse_,
-                    monitoringMode_);
+                    MonitoringMode);
 
                 InitializeQueue();
 
@@ -715,14 +708,14 @@ namespace Technosoftware.UaServer
         {
             lock (lock_)
             {
-                var previousMode = monitoringMode_;
+                MonitoringMode previousMode = MonitoringMode;
 
                 if (previousMode == monitoringMode)
                 {
                     return previousMode;
                 }
 
-                Utils.LogTrace("MONITORING MODE[{0}] {1} -> {2}", id_, monitoringMode_, monitoringMode);
+                Utils.LogTrace("MONITORING MODE[{0}] {1} -> {2}", Id, MonitoringMode, monitoringMode);
 
                 if (previousMode == MonitoringMode.Disabled)
                 {
@@ -731,7 +724,7 @@ namespace Technosoftware.UaServer
                     lastValue_ = null;
                 }
 
-                monitoringMode_ = monitoringMode;
+                MonitoringMode = monitoringMode;
 
                 if (monitoringMode == MonitoringMode.Disabled)
                 {
@@ -742,13 +735,13 @@ namespace Technosoftware.UaServer
 
                 // report change to item state.
                 UaServerUtils.ReportModifyMonitoredItem(
-                    nodeId_,
-                    id_,
+                    NodeId,
+                    Id,
                     samplingInterval_,
-                    queueSize_,
+                    QueueSize,
                     discardOldest_,
                     filterToUse_,
-                    monitoringMode_);
+                    MonitoringMode);
 
                 InitializeQueue();
 
@@ -778,7 +771,7 @@ namespace Technosoftware.UaServer
                 }
 
                 // check monitoring mode.
-                if (monitoringMode_ == MonitoringMode.Disabled)
+                if (MonitoringMode == MonitoringMode.Disabled)
                 {
                     return;
                 }
@@ -786,10 +779,9 @@ namespace Technosoftware.UaServer
                 // make a shallow copy of the value.
                 if (value != null)
                 {
-                    Utils.LogTrace(Utils.TraceMasks.OperationDetail, "RECEIVED VALUE[{0}] Value={1}", this.id_, value.WrappedValue);
+                    Utils.LogTrace(Utils.TraceMasks.OperationDetail, "RECEIVED VALUE[{0}] Value={1}", this.Id, value.WrappedValue);
 
-                    var copy = new DataValue
-                    {
+                    var copy = new DataValue {
                         WrappedValue = value.WrappedValue,
                         StatusCode = value.StatusCode,
                         SourceTimestamp = value.SourceTimestamp,
@@ -813,8 +805,7 @@ namespace Technosoftware.UaServer
                 {
                     if (value == null)
                     {
-                        value = new DataValue
-                        {
+                        value = new DataValue {
                             StatusCode = error.StatusCode,
                             SourceTimestamp = DateTime.UtcNow,
                             ServerTimestamp = DateTime.UtcNow
@@ -833,10 +824,10 @@ namespace Technosoftware.UaServer
                 {
                     if (!calculator_.QueueRawValue(value))
                     {
-                        Utils.LogTrace("Value received out of order: {1}, ServerHandle={0}", id_, value.SourceTimestamp.ToLocalTime().ToString("HH:mm:ss.fff", CultureInfo.InvariantCulture));
+                        Utils.LogTrace("Value received out of order: {1}, ServerHandle={0}", Id, value.SourceTimestamp.ToLocalTime().ToString("HH:mm:ss.fff", CultureInfo.InvariantCulture));
                     }
 
-                    var processedValue = calculator_.GetProcessedValue(false);
+                    DataValue processedValue = calculator_.GetProcessedValue(false);
 
                     while (processedValue != null)
                     {
@@ -848,16 +839,16 @@ namespace Technosoftware.UaServer
                 }
 
                 // apply filter to incoming item.
-                if (!alwaysReportUpdates_ && !ignoreFilters)
+                if (!AlwaysReportUpdates && !ignoreFilters)
                 {
                     if (!ApplyFilter(value, error))
                     {
-                        UaServerUtils.ReportFilteredValue(nodeId_, id_, value);
+                        UaServerUtils.ReportFilteredValue(NodeId, Id, value);
                         return;
                     }
                 }
 
-                UaServerUtils.ReportQueuedValue(nodeId_, id_, value);
+                UaServerUtils.ReportQueuedValue(NodeId, Id, value);
 
                 // add the value to the queue.
                 AddValueToQueue(value, error);
@@ -897,7 +888,7 @@ namespace Technosoftware.UaServer
         /// </summary>
         private void AddValueToQueue(DataValue value, ServiceResult error)
         {
-            if (queueSize_ > 1)
+            if (QueueSize > 1)
             {
                 queue_.QueueValue(value, error);
             }
@@ -911,13 +902,13 @@ namespace Technosoftware.UaServer
             lastValue_ = value;
             lastError_ = error;
             readyToPublish_ = true;
-            UaServerUtils.EventLog.QueueValue(id_, lastValue_.WrappedValue, lastValue_.StatusCode);
+            UaServerUtils.EventLog.QueueValue(Id, lastValue_.WrappedValue, lastValue_.StatusCode);
         }
 
         /// <summary>
         /// Whether the item is monitoring all events produced by the server.
         /// </summary>
-        public bool MonitoringAllEvents => this.nodeId_ == ObjectIds.Server;
+        public bool MonitoringAllEvents => this.NodeId == ObjectIds.Server;
 
         /// <summary>
         /// Fetches the event fields from the event.
@@ -925,9 +916,9 @@ namespace Technosoftware.UaServer
         private EventFieldList GetEventFields(FilterContext context, EventFilter filter, IFilterTarget instance)
         {
             // fetch the event fields.
-            var fields = new EventFieldList { ClientHandle = clientHandle_, Handle = instance };
+            var fields = new EventFieldList { ClientHandle = ClientHandle, Handle = instance };
 
-            foreach (var clause in filter.SelectClauses)
+            foreach (SimpleAttributeOperand clause in filter.SelectClauses)
             {
                 // get the value of the attribute (apply localization).
                 var value = instance.GetAttributeValue(
@@ -992,7 +983,7 @@ namespace Technosoftware.UaServer
                 }
 
                 // check for duplicate instances being reported via multiple paths.
-                foreach (var eventField in events_)
+                foreach (EventFieldList eventField in events_)
                 {
                     if (eventField is EventFieldList processedEvent)
                     {
@@ -1004,7 +995,7 @@ namespace Technosoftware.UaServer
                 }
 
                 // check for space in the queue.
-                if (events_.Count >= queueSize_)
+                if (events_.Count >= QueueSize)
                 {
                     if (!discardOldest_)
                     {
@@ -1034,7 +1025,7 @@ namespace Technosoftware.UaServer
                 }
 
                 // fetch the event fields.
-                var fields = GetEventFields(context, filter, instance);
+                EventFieldList fields = GetEventFields(context, filter, instance);
                 QueueEvent(fields);
             }
         }
@@ -1047,7 +1038,7 @@ namespace Technosoftware.UaServer
             lock (lock_)
             {
                 // make space in the queue.
-                if (events_.Count >= queueSize_)
+                if (events_.Count >= QueueSize)
                 {
                     overflow_ = true;
 
@@ -1242,7 +1233,7 @@ namespace Technosoftware.UaServer
                     {
                         if (calculator_.HasEndTimePassed(DateTime.UtcNow))
                         {
-                            var processedValue = calculator_.GetProcessedValue(false);
+                            DataValue processedValue = calculator_.GetProcessedValue(false);
 
                             while (processedValue != null)
                             {
@@ -1348,7 +1339,7 @@ namespace Technosoftware.UaServer
             }
 
             // copy data value.
-            var item = new MonitoredItemNotification { ClientHandle = clientHandle_, Value = value };
+            var item = new MonitoredItemNotification { ClientHandle = ClientHandle, Value = value };
 
 
             // apply timestamp filter.
@@ -1362,13 +1353,13 @@ namespace Technosoftware.UaServer
                 item.Value.SourceTimestamp = DateTime.MinValue;
             }
 
-            UaServerUtils.ReportPublishValue(nodeId_, id_, item.Value);
+            UaServerUtils.ReportPublishValue(NodeId, Id, item.Value);
             notifications.Enqueue(item);
 
             // update diagnostic info.
             DiagnosticInfo diagnosticInfo = null;
 
-            if ((diagnosticsMasks_ & DiagnosticsMasks.OperationAll) != 0)
+            if ((DiagnosticsMasks & DiagnosticsMasks.OperationAll) != 0)
             {
                 diagnosticInfo = UaServerUtils.CreateDiagnosticInfo(server_, context, error);
             }
@@ -1409,7 +1400,7 @@ namespace Technosoftware.UaServer
             {
                 lock (lock_)
                 {
-                    if (monitoringMode_ == MonitoringMode.Disabled)
+                    if (MonitoringMode == MonitoringMode.Disabled)
                     {
                         return Int32.MaxValue;
                     }
@@ -1467,8 +1458,8 @@ namespace Technosoftware.UaServer
 
             // select default data change filters.
             var deadband = 0.0;
-            var deadbandType = DeadbandType.None;
-            var trigger = DataChangeTrigger.StatusValue;
+            DeadbandType deadbandType = DeadbandType.None;
+            DataChangeTrigger trigger = DataChangeTrigger.StatusValue;
 
             // apply filter.
             if (filter != null)
@@ -1704,83 +1695,83 @@ namespace Technosoftware.UaServer
         /// </summary>
         protected void InitializeQueue()
         {
-            switch (monitoringMode_)
+            switch (MonitoringMode)
             {
                 default:
                 case MonitoringMode.Disabled:
-                    {
-                        queue_ = null;
-                        events_ = null;
-                        break;
-                    }
+                {
+                    queue_ = null;
+                    events_ = null;
+                    break;
+                }
 
                 case MonitoringMode.Reporting:
                 case MonitoringMode.Sampling:
+                {
+                    // check if queuing is disabled.
+                    if (QueueSize == 0)
                     {
-                        // check if queuing is disabled.
-                        if (queueSize_ == 0)
-                        {
-                            if (MonitoredItemType == UaMonitoredItemTypeMask.DataChange)
-                            {
-                                queueSize_ = 1;
-                            }
-
-                            if ((MonitoredItemType & UaMonitoredItemTypeMask.Events) != 0)
-                            {
-                                queueSize_ = 1000;
-                            }
-                        }
-
-                        // create data queue.
                         if (MonitoredItemType == UaMonitoredItemTypeMask.DataChange)
                         {
-                            if (queueSize_ <= 1)
-                            {
-                                queue_ = null;
-                                break; // queueing is disabled
-                            }
-
-                            var queueLastValue = false;
-
-                            if (queue_ == null)
-                            {
-                                queue_ = new MonitoredItemQueue(id_, QueueOverflowHandler);
-                                queueLastValue = true;
-                            }
-
-                            queue_.SetQueueSize(queueSize_, discardOldest_, diagnosticsMasks_);
-                            queue_.SetSamplingInterval(samplingInterval_);
-
-                            if (queueLastValue && lastValue_ != null)
-                            {
-                                queue_.QueueValue(lastValue_, lastError_);
-                            }
+                            QueueSize = 1;
                         }
-                        else // create event queue.
+
+                        if ((MonitoredItemType & UaMonitoredItemTypeMask.Events) != 0)
                         {
-                            if (events_ == null)
-                            {
-                                events_ = new List<EventFieldList>();
-                            }
+                            QueueSize = 1000;
+                        }
+                    }
 
-                            // check if existing queue entries must be discarded;
-                            if (events_.Count > queueSize_)
-                            {
-                                var queueSize = (int)queueSize_;
-
-                                if (discardOldest_)
-                                {
-                                    events_.RemoveRange(0, events_.Count - queueSize);
-                                }
-                                else
-                                {
-                                    events_.RemoveRange(queueSize, events_.Count - queueSize);
-                                }
-                            }
+                    // create data queue.
+                    if (MonitoredItemType == UaMonitoredItemTypeMask.DataChange)
+                    {
+                        if (QueueSize <= 1)
+                        {
+                            queue_ = null;
+                            break; // queueing is disabled
                         }
 
-                        break;
+                        var queueLastValue = false;
+
+                        if (queue_ == null)
+                        {
+                            queue_ = new MonitoredItemQueue(Id, QueueOverflowHandler);
+                            queueLastValue = true;
+                        }
+
+                        queue_.SetQueueSize(QueueSize, discardOldest_, DiagnosticsMasks);
+                        queue_.SetSamplingInterval(samplingInterval_);
+
+                        if (queueLastValue && lastValue_ != null)
+                        {
+                            queue_.QueueValue(lastValue_, lastError_);
+                        }
                     }
+                    else // create event queue.
+                    {
+                        if (events_ == null)
+                        {
+                            events_ = new List<EventFieldList>();
+                        }
+
+                        // check if existing queue entries must be discarded;
+                        if (events_.Count > QueueSize)
+                        {
+                            var queueSize = (int)QueueSize;
+
+                            if (discardOldest_)
+                            {
+                                events_.RemoveRange(0, events_.Count - queueSize);
+                            }
+                            else
+                            {
+                                events_.RemoveRange(queueSize, events_.Count - queueSize);
+                            }
+                        }
+                    }
+
+                    break;
+                }
             }
         }
 
@@ -1794,27 +1785,16 @@ namespace Technosoftware.UaServer
         #endregion
 
         #region Private Members
-        private object lock_ = new object();
+        private readonly object lock_ = new object();
         private IUaServerData server_;
-        private uint id_;
-        private NodeId nodeId_;
-        private uint attributeId_;
         private string indexRange_;
         private NumericRange parsedIndexRange_;
-        private QualifiedName encoding_;
-        private DiagnosticsMasks diagnosticsMasks_;
         private TimestampsToReturn timestampsToReturn_;
-        private uint clientHandle_;
-        private MonitoringMode monitoringMode_;
-        private MonitoringFilter originalFilter_;
         private MonitoringFilter filterToUse_;
         private double range_;
         private double samplingInterval_;
-        private uint queueSize_;
         private bool discardOldest_;
         private int sourceSamplingInterval_;
-        private bool alwaysReportUpdates_;
-
         private DataValue lastValue_;
         private ServiceResult lastError_;
         private long nextSamplingTime_;

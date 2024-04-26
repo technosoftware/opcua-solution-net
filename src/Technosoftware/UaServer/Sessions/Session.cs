@@ -54,20 +54,20 @@ namespace Technosoftware.UaServer.Sessions
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling")]
         public Session(
             UaServerOperationContext context,
-            IUaServerData            server,
-            X509Certificate2         serverCertificate,
-            NodeId                   authenticationToken,
-            byte[]                   clientNonce,
-            byte[]                   serverNonce,
-            string                   sessionName,
-            ApplicationDescription   clientDescription,
-            string                   endpointUrl,
-            X509Certificate2         clientCertificate,
-            double                   sessionTimeout,
-            uint                     maxResponseMessageSize,
-            double                   maxRequestAge,
-            int                      maxBrowseContinuationPoints,
-            int                      maxHistoryContinuationPoints)
+            IUaServerData server,
+            X509Certificate2 serverCertificate,
+            NodeId authenticationToken,
+            byte[] clientNonce,
+            byte[] serverNonce,
+            string sessionName,
+            ApplicationDescription clientDescription,
+            string endpointUrl,
+            X509Certificate2 clientCertificate,
+            double sessionTimeout,
+            uint maxResponseMessageSize,
+            double maxRequestAge,
+            int maxBrowseContinuationPoints,
+            int maxHistoryContinuationPoints)
         {
             if (context == null) throw new ArgumentNullException(nameof(context));
             if (server == null) throw new ArgumentNullException(nameof(server));
@@ -78,26 +78,25 @@ namespace Technosoftware.UaServer.Sessions
                 throw new ServiceResultException(StatusCodes.BadSecureChannelIdInvalid);
             }
 
-            server_                       = server;
-            authenticationToken_          = authenticationToken;
-            ClientNonce                  = clientNonce;
-            serverNonce_                  = serverNonce;
-            sessionName_                  = sessionName;
-            serverCertificate_            = serverCertificate;
-            ClientCertificate            = clientCertificate;
-            secureChannelId_              = context.ChannelContext.SecureChannelId;
-            maxResponseMessageSize_       = maxResponseMessageSize;
-            maxRequestAge_                = maxRequestAge;
-            maxBrowseContinuationPoints_  = maxBrowseContinuationPoints;
+            server_ = server;
+            authenticationToken_ = authenticationToken;
+            ClientNonce = clientNonce;
+            serverNonce_ = serverNonce;
+            sessionName_ = sessionName;
+            serverCertificate_ = serverCertificate;
+            ClientCertificate = clientCertificate;
+            SecureChannelId = context.ChannelContext.SecureChannelId;
+            maxResponseMessageSize_ = maxResponseMessageSize;
+            maxRequestAge_ = maxRequestAge;
+            maxBrowseContinuationPoints_ = maxBrowseContinuationPoints;
             maxHistoryContinuationPoints_ = maxHistoryContinuationPoints;
-            endpoint_                     = context.ChannelContext.EndpointDescription;
+            EndpointDescription = context.ChannelContext.EndpointDescription;
 
             // use anonymous the default identity.
             Identity = new UserIdentity();
 
             // initialize diagnostics.
-            SessionDiagnostics = new SessionDiagnosticsDataType
-            {
+            SessionDiagnostics = new SessionDiagnosticsDataType {
                 SessionId = null,
                 SessionName = sessionName,
                 ClientDescription = clientDescription,
@@ -143,22 +142,21 @@ namespace Technosoftware.UaServer.Sessions
             };
 
             // initialize security diagnostics.
-            securityDiagnostics_ = new SessionSecurityDiagnosticsDataType
-            {
+            securityDiagnostics_ = new SessionSecurityDiagnosticsDataType {
                 SessionId = Id,
                 ClientUserIdOfSession = Identity.DisplayName,
                 AuthenticationMechanism = Identity.TokenType.ToString(),
                 Encoding = context.ChannelContext.MessageEncoding.ToString(),
-                ClientUserIdHistory = new StringCollection {Identity.DisplayName}
+                ClientUserIdHistory = new StringCollection { Identity.DisplayName }
             };
 
-            var description = context.ChannelContext.EndpointDescription;
-            
+            EndpointDescription description = context.ChannelContext.EndpointDescription;
+
             if (description != null)
             {
                 securityDiagnostics_.TransportProtocol = new Uri(description.EndpointUrl).Scheme;
-                securityDiagnostics_.SecurityMode      = endpoint_.SecurityMode;
-                securityDiagnostics_.SecurityPolicyUri = endpoint_.SecurityPolicyUri;
+                securityDiagnostics_.SecurityMode = EndpointDescription.SecurityMode;
+                securityDiagnostics_.SecurityPolicyUri = EndpointDescription.SecurityPolicyUri;
             }
 
             if (clientCertificate != null)
@@ -166,7 +164,7 @@ namespace Technosoftware.UaServer.Sessions
                 securityDiagnostics_.ClientCertificate = clientCertificate.RawData;
             }
 
-            var systemContext = server_.DefaultSystemContext.Copy(context);
+            UaServerContext systemContext = server_.DefaultSystemContext.Copy(context);
 
             // create diagnostics object.
             Id = server.DiagnosticsNodeManager.CreateSessionDiagnostics(
@@ -204,10 +202,10 @@ namespace Technosoftware.UaServer.Sessions
                     browseContinuationPoints = continuationPoints_;
                     continuationPoints_ = null;
                 }
-                                
+
                 if (browseContinuationPoints != null)
                 {
-                    foreach (var browseContinuationPoint in browseContinuationPoints)
+                    foreach (UaContinuationPoint browseContinuationPoint in browseContinuationPoints)
                     {
                         Utils.SilentDispose(browseContinuationPoint);
                     }
@@ -220,10 +218,10 @@ namespace Technosoftware.UaServer.Sessions
                     historyContinuationPoints = historyContinuationPoints_;
                     historyContinuationPoints_ = null;
                 }
-                
+
                 if (historyContinuationPoints != null)
                 {
-                    foreach (var historyContinuationPoint in historyContinuationPoints)
+                    foreach (HistoryContinuationPoint historyContinuationPoint in historyContinuationPoints)
                     {
                         Utils.SilentDispose(historyContinuationPoint.Value);
                     }
@@ -277,7 +275,7 @@ namespace Technosoftware.UaServer.Sessions
         /// <summary>
         /// The client Nonce associated with the session.
         /// </summary>
-        public byte [] ClientNonce { get; }
+        public byte[] ClientNonce { get; }
 
         /// <summary>
         /// The application instance certificate associated with the client.
@@ -317,24 +315,12 @@ namespace Technosoftware.UaServer.Sessions
         /// <summary>
         /// Returns the session's endpoint
         /// </summary>
-        public EndpointDescription EndpointDescription
-        {
-            get
-            {
-                return endpoint_;
-            }
-        }
+        public EndpointDescription EndpointDescription { get; }
 
         /// <summary>
         /// Returns the session's SecureChannelId
         /// </summary>
-        public string SecureChannelId
-        {
-            get
-            {
-                return secureChannelId_;
-            }
-        }
+        public string SecureChannelId { get; private set; }
 
         /// <summary>
         /// Validates the request.
@@ -346,7 +332,7 @@ namespace Technosoftware.UaServer.Sessions
             lock (lock_)
             {
                 // get the request context for the current thread.
-                var context = SecureChannelContext.Current;
+                SecureChannelContext context = SecureChannelContext.Current;
 
                 if (context == null || !IsSecureChannelValid(context.SecureChannelId))
                 {
@@ -377,7 +363,7 @@ namespace Technosoftware.UaServer.Sessions
             const uint additionalInfoDiagnosticsMask = (uint)(DiagnosticsMasks.ServiceAdditionalInfo | DiagnosticsMasks.OperationAdditionalInfo);
             if ((requestHeader.ReturnDiagnostics & additionalInfoDiagnosticsMask) != 0)
             {
-                var currentRoleIds = EffectiveIdentity?.GrantedRoleIds;
+                NodeIdCollection currentRoleIds = EffectiveIdentity?.GrantedRoleIds;
                 if ((currentRoleIds?.Contains(ObjectIds.WellKnownRole_SecurityAdmin)) == true ||
                     (currentRoleIds?.Contains(ObjectIds.WellKnownRole_ConfigureAdmin)) == true)
                 {
@@ -393,7 +379,7 @@ namespace Technosoftware.UaServer.Sessions
         {
             lock (lock_)
             {
-                return (secureChannelId_ == secureChannelId);
+                return (SecureChannelId == secureChannelId);
             }
         }
 
@@ -430,15 +416,15 @@ namespace Technosoftware.UaServer.Sessions
         /// Activates the session and binds it to the current secure channel.
         /// </summary>
         public void ValidateBeforeActivate(
-            UaServerOperationContext  context,
-            SignatureData             clientSignature,
+            UaServerOperationContext context,
+            SignatureData clientSignature,
             List<SoftwareCertificate> clientSoftwareCertificates,
-            ExtensionObject           userIdentityToken,
-            SignatureData             userTokenSignature,
-            StringCollection          localeIds,
-            byte[]                    serverNonce,
-            out UserIdentityToken     identityToken,
-            out UserTokenPolicy       userTokenPolicy)
+            ExtensionObject userIdentityToken,
+            SignatureData userTokenSignature,
+            StringCollection localeIds,
+            byte[] serverNonce,
+            out UserIdentityToken identityToken,
+            out UserTokenPolicy userTokenPolicy)
         {
             lock (lock_)
             {
@@ -449,9 +435,9 @@ namespace Technosoftware.UaServer.Sessions
                 }
 
                 // verify that the same security policy has been used.
-                var endpoint = context.ChannelContext.EndpointDescription;
+                EndpointDescription endpoint = context.ChannelContext.EndpointDescription;
 
-                if (endpoint.SecurityPolicyUri != endpoint_.SecurityPolicyUri || endpoint.SecurityMode != endpoint_.SecurityMode)
+                if (endpoint.SecurityPolicyUri != EndpointDescription.SecurityPolicyUri || endpoint.SecurityMode != EndpointDescription.SecurityMode)
                 {
                     throw new ServiceResultException(StatusCodes.BadSecurityPolicyRejected);
                 }
@@ -459,18 +445,18 @@ namespace Technosoftware.UaServer.Sessions
                 // verify the client signature.
                 if (ClientCertificate != null)
                 {
-                    if (endpoint_.SecurityPolicyUri != SecurityPolicies.None && clientSignature != null && clientSignature.Signature == null)
+                    if (EndpointDescription.SecurityPolicyUri != SecurityPolicies.None && clientSignature != null && clientSignature.Signature == null)
                     {
                         throw new ServiceResultException(StatusCodes.BadApplicationSignatureInvalid);
                     }
 
                     var dataToSign = Utils.Append(serverCertificate_.RawData, serverNonce_);
 
-                    if (!SecurityPolicies.Verify(ClientCertificate, endpoint_.SecurityPolicyUri, dataToSign, clientSignature))
+                    if (!SecurityPolicies.Verify(ClientCertificate, EndpointDescription.SecurityPolicyUri, dataToSign, clientSignature))
                     {
                         // verify for certificate chain in endpoint.
                         // validate the signature with complete chain if the check with leaf certificate failed.
-                        var serverCertificateChain = Utils.ParseCertificateChainBlob(endpoint_.ServerCertificate);
+                        X509Certificate2Collection serverCertificateChain = Utils.ParseCertificateChainBlob(EndpointDescription.ServerCertificate);
 
                         if (serverCertificateChain.Count > 1)
                         {
@@ -484,7 +470,7 @@ namespace Technosoftware.UaServer.Sessions
                             var serverCertificateChainData = serverCertificateChainList.ToArray();
                             dataToSign = Utils.Append(serverCertificateChainData, serverNonce_);
 
-                            if (!SecurityPolicies.Verify(ClientCertificate, endpoint_.SecurityPolicyUri, dataToSign, clientSignature))
+                            if (!SecurityPolicies.Verify(ClientCertificate, EndpointDescription.SecurityPolicyUri, dataToSign, clientSignature))
                             {
                                 throw new ServiceResultException(StatusCodes.BadApplicationSignatureInvalid);
                             }
@@ -499,7 +485,7 @@ namespace Technosoftware.UaServer.Sessions
                 if (!IsActivated)
                 {
                     // must active the session on the channel that was used to create it.
-                    if (secureChannelId_ != context.ChannelContext.SecureChannelId)
+                    if (SecureChannelId != context.ChannelContext.SecureChannelId)
                     {
                         throw new ServiceResultException(StatusCodes.BadSecureChannelIdInvalid);
                     }
@@ -524,13 +510,13 @@ namespace Technosoftware.UaServer.Sessions
         /// Activates the session and binds it to the current secure channel.
         /// </summary>
         public bool Activate(
-            UaServerOperationContext          context,
+            UaServerOperationContext context,
             List<SoftwareCertificate> clientSoftwareCertificates,
-            UserIdentityToken         identityToken,
-            IUserIdentity             identity,
-            IUserIdentity             effectiveIdentity,
-            StringCollection          localeIds,
-            byte[]                    serverNonce)
+            UserIdentityToken identityToken,
+            IUserIdentity identity,
+            IUserIdentity effectiveIdentity,
+            StringCollection localeIds,
+            byte[] serverNonce)
         {
             lock (lock_)
             {
@@ -546,7 +532,7 @@ namespace Technosoftware.UaServer.Sessions
                 }
 
                 // update local ids.
-                if (UpdateLocaleIds( localeIds ))
+                if (UpdateLocaleIds(localeIds))
                 {
                     changed = true;
                 }
@@ -564,9 +550,9 @@ namespace Technosoftware.UaServer.Sessions
                 else
                 {
                     // bind to the new secure channel.
-                    secureChannelId_ = context.ChannelContext.SecureChannelId;      
+                    SecureChannelId = context.ChannelContext.SecureChannelId;
 
-                    TraceState("RE-ACTIVATION");  
+                    TraceState("RE-ACTIVATION");
                 }
 
                 // update server nonce.
@@ -577,7 +563,7 @@ namespace Technosoftware.UaServer.Sessions
 
                 if (clientSoftwareCertificates != null)
                 {
-                    foreach (var softwareCertificate in clientSoftwareCertificates)
+                    foreach (SoftwareCertificate softwareCertificate in clientSoftwareCertificates)
                     {
                         var item = new SignedSoftwareCertificate();
                         item.CertificateData = softwareCertificate.SignedCertificate.RawData;
@@ -628,7 +614,7 @@ namespace Technosoftware.UaServer.Sessions
                 // remove the first continuation point if too many points.
                 while (continuationPoints_.Count > maxBrowseContinuationPoints_)
                 {
-                    var cp = continuationPoints_[0];
+                    UaContinuationPoint cp = continuationPoints_[0];
                     continuationPoints_.RemoveAt(0);
                     Utils.SilentDispose(cp);
                 }
@@ -664,7 +650,7 @@ namespace Technosoftware.UaServer.Sessions
                 {
                     if (continuationPoints_[ii].Id == id)
                     {
-                        var cp = continuationPoints_[ii];
+                        UaContinuationPoint cp = continuationPoints_[ii];
                         continuationPoints_.RemoveAt(ii);
                         return cp;
                     }
@@ -697,7 +683,7 @@ namespace Technosoftware.UaServer.Sessions
                 // remove existing continuation point if space needed.
                 while (historyContinuationPoints_.Count >= maxHistoryContinuationPoints_)
                 {
-                    var oldCP = historyContinuationPoints_[0];
+                    HistoryContinuationPoint oldCP = historyContinuationPoints_[0];
                     historyContinuationPoints_.RemoveAt(0);
                     Utils.SilentDispose(oldCP.Value);
                 }
@@ -736,7 +722,7 @@ namespace Technosoftware.UaServer.Sessions
 
                 for (var ii = 0; ii < historyContinuationPoints_.Count; ii++)
                 {
-                    var cp = historyContinuationPoints_[ii];
+                    HistoryContinuationPoint cp = historyContinuationPoints_[ii];
 
                     if (cp.Id == id)
                     {
@@ -767,7 +753,7 @@ namespace Technosoftware.UaServer.Sessions
         internal void TraceState(string context)
         {
             UaServerUtils.EventLog.SessionState(context, Id.ToString(), sessionName_,
-                secureChannelId_, Identity?.DisplayName ?? "(none)");
+                SecureChannelId, Identity?.DisplayName ?? "(none)");
         }
 
         /// <summary>
@@ -817,16 +803,16 @@ namespace Technosoftware.UaServer.Sessions
                 identityToken.Body.GetType() == typeof(Opc.Ua.AnonymousIdentityToken))
             {
                 // check if an anonymous login is permitted.
-                if (endpoint_.UserIdentityTokens != null && endpoint_.UserIdentityTokens.Count > 0)
+                if (EndpointDescription.UserIdentityTokens != null && EndpointDescription.UserIdentityTokens.Count > 0)
                 {
                     var found = false;
 
-                    for (var ii = 0; ii < endpoint_.UserIdentityTokens.Count; ii++)
+                    for (var ii = 0; ii < EndpointDescription.UserIdentityTokens.Count; ii++)
                     {
-                        if (endpoint_.UserIdentityTokens[ii].TokenType == UserTokenType.Anonymous)
+                        if (EndpointDescription.UserIdentityTokens[ii].TokenType == UserTokenType.Anonymous)
                         {
                             found = true;
-                            policy = endpoint_.UserIdentityTokens[ii];
+                            policy = EndpointDescription.UserIdentityTokens[ii];
                             break;
                         }
                     }
@@ -856,7 +842,7 @@ namespace Technosoftware.UaServer.Sessions
                         throw ServiceResultException.Create(StatusCodes.BadUserAccessDenied, "Invalid user identity token provided.");
                     }
 
-                    policy = endpoint_.FindUserTokenPolicy(newToken.PolicyId);
+                    policy = EndpointDescription.FindUserTokenPolicy(newToken.PolicyId);
                     if (policy == null)
                     {
                         throw ServiceResultException.Create(StatusCodes.BadUserAccessDenied, "User token policy not supported.", "Technosoftware.UaServer.Session.ValidateUserIdentityToken");
@@ -891,7 +877,7 @@ namespace Technosoftware.UaServer.Sessions
             }
 
             // find the user token policy.
-            policy = endpoint_.FindUserTokenPolicy(token.PolicyId);
+            policy = EndpointDescription.FindUserTokenPolicy(token.PolicyId);
 
             if (policy == null)
             {
@@ -902,7 +888,7 @@ namespace Technosoftware.UaServer.Sessions
             {
                 if (policy.IssuedTokenType == Profiles.JwtUserToken)
                 {
-                    issuedToken.IssuedTokenType = IssuedTokenType.JWT; 
+                    issuedToken.IssuedTokenType = IssuedTokenType.JWT;
                 }
             }
 
@@ -911,15 +897,15 @@ namespace Technosoftware.UaServer.Sessions
 
             if (string.IsNullOrEmpty(securityPolicyUri))
             {
-                securityPolicyUri = endpoint_.SecurityPolicyUri;
+                securityPolicyUri = EndpointDescription.SecurityPolicyUri;
             }
 
-            if (ServerBase.RequireEncryption(endpoint_))
+            if (ServerBase.RequireEncryption(EndpointDescription))
             {
                 // decrypt the token.
                 if (serverCertificate_ == null)
                 {
-                    serverCertificate_ = CertificateFactory.Create(endpoint_.ServerCertificate, true);
+                    serverCertificate_ = CertificateFactory.Create(EndpointDescription.ServerCertificate, true);
 
                     // check for valid certificate.
                     if (serverCertificate_ == null)
@@ -951,13 +937,13 @@ namespace Technosoftware.UaServer.Sessions
                     {
                         // verify for certificate chain in endpoint.
                         // validate the signature with complete chain if the check with leaf certificate failed.
-                        var serverCertificateChain = Utils.ParseCertificateChainBlob(endpoint_.ServerCertificate);
+                        X509Certificate2Collection serverCertificateChain = Utils.ParseCertificateChainBlob(EndpointDescription.ServerCertificate);
 
                         if (serverCertificateChain.Count > 1)
                         {
                             var serverCertificateChainList = new List<byte>();
 
-                            foreach (var serverCertificate in serverCertificateChain)
+                            foreach (X509Certificate2 serverCertificate in serverCertificateChain)
                             {
                                 serverCertificateChainList.AddRange(serverCertificate.RawData);
                             }
@@ -988,8 +974,8 @@ namespace Technosoftware.UaServer.Sessions
         /// <returns>true if the new identity is different from the old identity.</returns>
         private bool UpdateUserIdentity(
             UserIdentityToken identityToken,
-            IUserIdentity     identity,
-            IUserIdentity     effectiveIdentity)
+            IUserIdentity identity,
+            IUserIdentity effectiveIdentity)
         {
             if (identityToken == null) throw new ArgumentNullException(nameof(identityToken));
 
@@ -1010,7 +996,7 @@ namespace Technosoftware.UaServer.Sessions
                 // update diagnostics.
                 lock (DiagnosticsLock)
                 {
-                    securityDiagnostics_.ClientUserIdOfSession   = identity.DisplayName;
+                    securityDiagnostics_.ClientUserIdOfSession = identity.DisplayName;
                     securityDiagnostics_.AuthenticationMechanism = identity.TokenType.ToString();
 
                     securityDiagnostics_.ClientUserIdHistory.Add(identity.DisplayName);
@@ -1049,34 +1035,34 @@ namespace Technosoftware.UaServer.Sessions
 
                 switch (requestType)
                 {
-		            case RequestType.Read:                          { counter = SessionDiagnostics.ReadCount; break; }
-		            case RequestType.HistoryRead:                   { counter = SessionDiagnostics.HistoryReadCount; break; }
-		            case RequestType.Write:                         { counter = SessionDiagnostics.WriteCount; break; }
-		            case RequestType.HistoryUpdate:                 { counter = SessionDiagnostics.HistoryUpdateCount; break; }
-		            case RequestType.Call:                          { counter = SessionDiagnostics.CallCount; break; }
-		            case RequestType.CreateMonitoredItems:          { counter = SessionDiagnostics.CreateMonitoredItemsCount; break; }
-		            case RequestType.ModifyMonitoredItems:          { counter = SessionDiagnostics.ModifyMonitoredItemsCount; break; }
-		            case RequestType.SetMonitoringMode:             { counter = SessionDiagnostics.SetMonitoringModeCount; break; }
-		            case RequestType.SetTriggering:                 { counter = SessionDiagnostics.SetTriggeringCount; break; }
-		            case RequestType.DeleteMonitoredItems:          { counter = SessionDiagnostics.DeleteMonitoredItemsCount; break; }
-		            case RequestType.CreateSubscription:            { counter = SessionDiagnostics.CreateSubscriptionCount; break; }
-		            case RequestType.ModifySubscription:            { counter = SessionDiagnostics.ModifySubscriptionCount; break; }
-		            case RequestType.SetPublishingMode:             { counter = SessionDiagnostics.SetPublishingModeCount; break; }
-		            case RequestType.Publish:                       { counter = SessionDiagnostics.PublishCount; break; }
-		            case RequestType.Republish:                     { counter = SessionDiagnostics.RepublishCount; break; }
-		            case RequestType.TransferSubscriptions:         { counter = SessionDiagnostics.TransferSubscriptionsCount; break; }
-		            case RequestType.DeleteSubscriptions:           { counter = SessionDiagnostics.DeleteSubscriptionsCount; break; }
-		            case RequestType.AddNodes:                      { counter = SessionDiagnostics.AddNodesCount; break; }
-		            case RequestType.AddReferences:                 { counter = SessionDiagnostics.AddReferencesCount; break; }
-		            case RequestType.DeleteNodes:                   { counter = SessionDiagnostics.DeleteNodesCount; break; }
-		            case RequestType.DeleteReferences:              { counter = SessionDiagnostics.DeleteReferencesCount; break; }
-		            case RequestType.Browse:                        { counter = SessionDiagnostics.BrowseCount; break; }
-		            case RequestType.BrowseNext:                    { counter = SessionDiagnostics.BrowseNextCount; break; }
-		            case RequestType.TranslateBrowsePathsToNodeIds: { counter = SessionDiagnostics.TranslateBrowsePathsToNodeIdsCount; break; }
-		            case RequestType.QueryFirst:                    { counter = SessionDiagnostics.QueryFirstCount; break; }
-		            case RequestType.QueryNext:                     { counter = SessionDiagnostics.QueryNextCount; break; }
-		            case RequestType.RegisterNodes:                 { counter = SessionDiagnostics.RegisterNodesCount; break; }
-		            case RequestType.UnregisterNodes:               { counter = SessionDiagnostics.UnregisterNodesCount; break; }
+                    case RequestType.Read: { counter = SessionDiagnostics.ReadCount; break; }
+                    case RequestType.HistoryRead: { counter = SessionDiagnostics.HistoryReadCount; break; }
+                    case RequestType.Write: { counter = SessionDiagnostics.WriteCount; break; }
+                    case RequestType.HistoryUpdate: { counter = SessionDiagnostics.HistoryUpdateCount; break; }
+                    case RequestType.Call: { counter = SessionDiagnostics.CallCount; break; }
+                    case RequestType.CreateMonitoredItems: { counter = SessionDiagnostics.CreateMonitoredItemsCount; break; }
+                    case RequestType.ModifyMonitoredItems: { counter = SessionDiagnostics.ModifyMonitoredItemsCount; break; }
+                    case RequestType.SetMonitoringMode: { counter = SessionDiagnostics.SetMonitoringModeCount; break; }
+                    case RequestType.SetTriggering: { counter = SessionDiagnostics.SetTriggeringCount; break; }
+                    case RequestType.DeleteMonitoredItems: { counter = SessionDiagnostics.DeleteMonitoredItemsCount; break; }
+                    case RequestType.CreateSubscription: { counter = SessionDiagnostics.CreateSubscriptionCount; break; }
+                    case RequestType.ModifySubscription: { counter = SessionDiagnostics.ModifySubscriptionCount; break; }
+                    case RequestType.SetPublishingMode: { counter = SessionDiagnostics.SetPublishingModeCount; break; }
+                    case RequestType.Publish: { counter = SessionDiagnostics.PublishCount; break; }
+                    case RequestType.Republish: { counter = SessionDiagnostics.RepublishCount; break; }
+                    case RequestType.TransferSubscriptions: { counter = SessionDiagnostics.TransferSubscriptionsCount; break; }
+                    case RequestType.DeleteSubscriptions: { counter = SessionDiagnostics.DeleteSubscriptionsCount; break; }
+                    case RequestType.AddNodes: { counter = SessionDiagnostics.AddNodesCount; break; }
+                    case RequestType.AddReferences: { counter = SessionDiagnostics.AddReferencesCount; break; }
+                    case RequestType.DeleteNodes: { counter = SessionDiagnostics.DeleteNodesCount; break; }
+                    case RequestType.DeleteReferences: { counter = SessionDiagnostics.DeleteReferencesCount; break; }
+                    case RequestType.Browse: { counter = SessionDiagnostics.BrowseCount; break; }
+                    case RequestType.BrowseNext: { counter = SessionDiagnostics.BrowseNextCount; break; }
+                    case RequestType.TranslateBrowsePathsToNodeIds: { counter = SessionDiagnostics.TranslateBrowsePathsToNodeIdsCount; break; }
+                    case RequestType.QueryFirst: { counter = SessionDiagnostics.QueryFirstCount; break; }
+                    case RequestType.QueryNext: { counter = SessionDiagnostics.QueryNextCount; break; }
+                    case RequestType.RegisterNodes: { counter = SessionDiagnostics.RegisterNodesCount; break; }
+                    case RequestType.UnregisterNodes: { counter = SessionDiagnostics.UnregisterNodesCount; break; }
                 }
 
                 if (counter != null)
@@ -1096,25 +1082,23 @@ namespace Technosoftware.UaServer.Sessions
         private readonly object lock_ = new object();
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1823:AvoidUnusedPrivateFields")]
-        private NodeId authenticationToken_;
-        private IUaServerData server_;
+        private readonly NodeId authenticationToken_;
+        private readonly IUaServerData server_;
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1823:AvoidUnusedPrivateFields")]
         private List<SoftwareCertificate> softwareCertificates_;
 
         private byte[] serverNonce_;
-        private string sessionName_;
-        private string secureChannelId_;
-        private EndpointDescription endpoint_;
+        private readonly string sessionName_;
         private X509Certificate2 serverCertificate_;
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1823:AvoidUnusedPrivateFields")]
-        private uint maxResponseMessageSize_;
-        private double maxRequestAge_;
-        private int maxBrowseContinuationPoints_;
-        private int maxHistoryContinuationPoints_;
+        private readonly uint maxResponseMessageSize_;
+        private readonly double maxRequestAge_;
+        private readonly int maxBrowseContinuationPoints_;
+        private readonly int maxHistoryContinuationPoints_;
 
-        private SessionSecurityDiagnosticsDataType securityDiagnostics_;
+        private readonly SessionSecurityDiagnosticsDataType securityDiagnostics_;
         private List<UaContinuationPoint> continuationPoints_;
         private List<HistoryContinuationPoint> historyContinuationPoints_;
         #endregion

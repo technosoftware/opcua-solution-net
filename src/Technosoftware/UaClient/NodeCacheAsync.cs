@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Opc.Ua.Redaction;
 
 using Opc.Ua;
 #endregion
@@ -68,7 +69,7 @@ namespace Technosoftware.UaClient
             }
             catch (Exception e)
             {
-                Utils.LogError("Could not fetch node from server: NodeId={0}, Reason='{1}'.", nodeId, e.Message);
+                Utils.LogError("Could not fetch node from server: NodeId={0}, Reason='{1}'.", nodeId, Redact.Create(e));
                 // nodes_[nodeId] = null;
                 return null;
             }
@@ -251,7 +252,7 @@ namespace Technosoftware.UaClient
             }
             catch (Exception e)
             {
-                Utils.LogError("Could not fetch references for valid node with NodeId = {0}. Error = {1}", nodeId, e.Message);
+                Utils.LogError("Could not fetch references for valid node with NodeId = {0}. Error = {1}", nodeId, Redact.Create(e));
             }
 
             InternalWriteLockedAttach(source);

@@ -143,7 +143,7 @@ namespace SampleCompany.NodeManagers.MemoryBuffer
         {
             // We know the model name to load but because this project is compiled for different environments we don't know
             // the assembly it is in. Therefore we search for it:
-            var assembly = this.GetType().GetTypeInfo().Assembly;
+            Assembly assembly = this.GetType().GetTypeInfo().Assembly;
             var names = assembly.GetManifestResourceNames();
             var resourcePath = String.Empty;
 

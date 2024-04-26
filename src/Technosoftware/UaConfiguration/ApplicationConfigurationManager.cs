@@ -313,7 +313,7 @@ namespace Technosoftware.UaConfiguration
         {
             if (addPolicy)
             {
-                var policies = ApplicationConfiguration.ServerConfiguration.SecurityPolicies;
+                ServerSecurityPolicyCollection policies = ApplicationConfiguration.ServerConfiguration.SecurityPolicies;
                 InternalAddPolicy(policies, MessageSecurityMode.None, SecurityPolicies.None);
             }
             return this;
@@ -521,6 +521,13 @@ namespace Technosoftware.UaConfiguration
         public IUaApplicationConfigurationServerOptions SetMaxSessionCount(int maxSessionCount)
         {
             ApplicationConfiguration.ServerConfiguration.MaxSessionCount = maxSessionCount;
+            return this;
+        }
+
+        /// <inheritdoc/>
+        public IUaApplicationConfigurationServerOptions SetMaxChannelCount(int maxChannelCount)
+        {
+            ApplicationConfiguration.ServerConfiguration.MaxChannelCount = maxChannelCount;
             return this;
         }
 
@@ -957,7 +964,7 @@ namespace Technosoftware.UaConfiguration
 
             foreach (MessageSecurityMode securityMode in typeof(MessageSecurityMode).GetEnumValues())
             {
-                var policies = ApplicationConfiguration.ServerConfiguration.SecurityPolicies;
+                ServerSecurityPolicyCollection policies = ApplicationConfiguration.ServerConfiguration.SecurityPolicies;
                 if (policyNone && securityMode == MessageSecurityMode.None)
                 {
                     InternalAddPolicy(policies, MessageSecurityMode.None, SecurityPolicies.None);

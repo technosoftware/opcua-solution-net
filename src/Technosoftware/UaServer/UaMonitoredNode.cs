@@ -182,7 +182,7 @@ namespace Technosoftware.UaServer
 
                 for (var ii = 0; ii < EventMonitoredItems.Count; ii++)
                 {
-                    var monitoredItem = EventMonitoredItems[ii];
+                    IUaEventMonitoredItem monitoredItem = EventMonitoredItems[ii];
                     // enqueue event for role permission validation
                     eventMonitoredItems.Add(monitoredItem);
                 }
@@ -190,7 +190,7 @@ namespace Technosoftware.UaServer
 
             for (var ii = 0; ii < eventMonitoredItems.Count; ii++)
             {
-                var monitoredItem = eventMonitoredItems[ii];
+                IUaEventMonitoredItem monitoredItem = eventMonitoredItems[ii];
 
                 #region  Filter out audit events in case the Server_Auditing values is false or the channel is not encrypted
 
@@ -247,7 +247,7 @@ namespace Technosoftware.UaServer
 
                 for (var ii = 0; ii < DataChangeMonitoredItems.Count; ii++)
                 {
-                    var monitoredItem = DataChangeMonitoredItems[ii];
+                    UaMonitoredItem monitoredItem = DataChangeMonitoredItems[ii];
 
                     if (monitoredItem.AttributeId == Attributes.Value && (changes & NodeStateChangeMasks.Value) != 0)
                     {
@@ -279,7 +279,7 @@ namespace Technosoftware.UaServer
             value.SourceTimestamp = DateTime.MinValue;
             value.StatusCode = StatusCodes.Good;
 
-            var error = node.ReadAttribute(
+            ServiceResult error = node.ReadAttribute(
                 context,
                 monitoredItem.AttributeId,
                 monitoredItem.IndexRange,

@@ -46,7 +46,7 @@ namespace Technosoftware.UaServer.Aggregates
             double processingInterval,
             bool stepped,
             AggregateConfiguration configuration)
-        : 
+        :
             base(aggregateId, startTime, endTime, processingInterval, stepped, configuration)
         {
             SetPartialBit = true;
@@ -108,7 +108,7 @@ namespace Technosoftware.UaServer.Aggregates
         protected DataValue ComputeDurationGoodBad(TimeSlice slice, bool isBad, bool usePercent)
         {
             // get the values in the slice.
-            var values = GetValuesWithSimpleBounds(slice);
+            List<DataValue> values = GetValuesWithSimpleBounds(slice);
 
             // check for empty slice.
             if (values == null || values.Count == 0)
@@ -117,7 +117,7 @@ namespace Technosoftware.UaServer.Aggregates
             }
 
             // get the regions.
-            var regions = GetRegionsInValueSet(values, false, true);
+            List<SubRegion> regions = GetRegionsInValueSet(values, false, true);
 
             double duration = 0;
             double total = 0;
@@ -151,7 +151,7 @@ namespace Technosoftware.UaServer.Aggregates
             var value = new DataValue();
             value.WrappedValue = new Variant(duration, TypeInfo.Scalars.Double);
             value.SourceTimestamp = GetTimestamp(slice);
-            value.ServerTimestamp = GetTimestamp(slice);            
+            value.ServerTimestamp = GetTimestamp(slice);
             value.StatusCode = value.StatusCode.SetAggregateBits(AggregateBits.Calculated);
 
             // return result.
@@ -165,7 +165,7 @@ namespace Technosoftware.UaServer.Aggregates
         {
             // get the values in the slice.
             List<DataValue> values;
-            
+
             if (!includeBounds)
             {
                 values = GetValues(slice);
@@ -182,7 +182,7 @@ namespace Technosoftware.UaServer.Aggregates
             }
 
             // get the regions.
-            var regions = GetRegionsInValueSet(values, false, true);
+            List<SubRegion> regions = GetRegionsInValueSet(values, false, true);
 
             StatusCode worstQuality = StatusCodes.Good;
             var badQualityCount = 0;
@@ -190,7 +190,7 @@ namespace Technosoftware.UaServer.Aggregates
 
             for (var ii = 0; ii < values.Count; ii++)
             {
-                var quality = values[ii].StatusCode;
+                StatusCode quality = values[ii].StatusCode;
 
                 if (StatusCode.IsBad(quality))
                 {
