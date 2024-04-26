@@ -77,7 +77,6 @@ namespace Technosoftware.UaServer.Configuration
         public NodeIdCollection GrantedRoleIds
         {
             get => userIdentity_.GrantedRoleIds;
-            set => userIdentity_.GrantedRoleIds = value;
         }
 
         /// <summary>

@@ -16,7 +16,6 @@
 #region Using Directives
 using System;
 using System.Collections.Generic;
-using System.Data;
 
 using Opc.Ua;
 #endregion
@@ -50,7 +49,7 @@ namespace Technosoftware.UaServer
             public MonitoringMode MonitoringMode;
         }
 
-        private static Queue<Event> events_ = new Queue<Event>();
+        private static readonly Queue<Event> events_ = new Queue<Event>();
         private static bool eventsEnabled_;
 
         /// <summary>
@@ -89,8 +88,7 @@ namespace Technosoftware.UaServer
 
             lock (events_)
             {
-                var e = new Event
-                {
+                var e = new Event {
                     EventType = EventType.WriteValue,
                     NodeId = nodeId,
                     ServerHandle = 0,
@@ -102,7 +100,7 @@ namespace Technosoftware.UaServer
 
                 if (StatusCode.IsBad(error))
                 {
-                    e.Value = new DataValue(error) {WrappedValue = value.WrappedValue};
+                    e.Value = new DataValue(error) { WrappedValue = value.WrappedValue };
                 }
 
                 events_.Enqueue(e);
@@ -121,8 +119,7 @@ namespace Technosoftware.UaServer
 
             lock (events_)
             {
-                var e = new Event
-                {
+                var e = new Event {
                     EventType = EventType.QueueValue,
                     NodeId = nodeId,
                     ServerHandle = serverHandle,
@@ -147,8 +144,7 @@ namespace Technosoftware.UaServer
 
             lock (events_)
             {
-                var e = new Event
-                {
+                var e = new Event {
                     EventType = EventType.FilterValue,
                     NodeId = nodeId,
                     ServerHandle = serverHandle,
@@ -173,8 +169,7 @@ namespace Technosoftware.UaServer
 
             lock (events_)
             {
-                var e = new Event
-                {
+                var e = new Event {
                     EventType = EventType.DiscardValue,
                     NodeId = nodeId,
                     ServerHandle = serverHandle,
@@ -199,8 +194,7 @@ namespace Technosoftware.UaServer
 
             lock (events_)
             {
-                var e = new Event
-                {
+                var e = new Event {
                     EventType = EventType.PublishValue,
                     NodeId = nodeId,
                     ServerHandle = serverHandle,
@@ -232,15 +226,13 @@ namespace Technosoftware.UaServer
 
             lock (events_)
             {
-                var e = new Event
-                {
+                var e = new Event {
                     EventType = EventType.CreateItem,
                     NodeId = nodeId,
                     ServerHandle = serverHandle,
                     Timestamp = HiResClock.UtcNow,
                     Value = null,
-                    Parameters = new MonitoringParameters
-                    {
+                    Parameters = new MonitoringParameters {
                         SamplingInterval = samplingInterval,
                         QueueSize = queueSize,
                         DiscardOldest = discardOldest,
@@ -271,15 +263,13 @@ namespace Technosoftware.UaServer
 
             lock (events_)
             {
-                var e = new Event
-                {
+                var e = new Event {
                     EventType = EventType.ModifyItem,
                     NodeId = nodeId,
                     ServerHandle = serverHandle,
                     Timestamp = HiResClock.UtcNow,
                     Value = null,
-                    Parameters = new MonitoringParameters
-                    {
+                    Parameters = new MonitoringParameters {
                         SamplingInterval = samplingInterval,
                         QueueSize = queueSize,
                         DiscardOldest = discardOldest,
@@ -386,7 +376,7 @@ namespace Technosoftware.UaServer
             // create diagnostics.
             var results = new DiagnosticInfoCollection(errors.Count);
 
-            foreach (var error in errors)
+            foreach (ServiceResult error in errors)
             {
                 if (ServiceResult.IsBad(error))
                 {
@@ -414,7 +404,7 @@ namespace Technosoftware.UaServer
             var noErrors = true;
             var results = new StatusCodeCollection(errors.Count);
 
-            foreach (var error in errors)
+            foreach (ServiceResult error in errors)
             {
                 if (ServiceResult.IsBad(error))
                 {
@@ -453,7 +443,7 @@ namespace Technosoftware.UaServer
                 return null;
             }
 
-            var translatedError = error;
+            ServiceResult translatedError = error;
 
             if ((context.DiagnosticsMask & DiagnosticsMasks.LocalizedText) != 0)
             {

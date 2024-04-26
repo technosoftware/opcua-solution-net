@@ -15,6 +15,7 @@ using System.Linq;
 using System.Threading;
 
 using NUnit.Framework;
+using Assert = NUnit.Framework.Legacy.ClassicAssert;
 
 using Opc.Ua;
 #endregion

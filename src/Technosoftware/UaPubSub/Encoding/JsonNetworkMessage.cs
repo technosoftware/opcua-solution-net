@@ -224,7 +224,7 @@ namespace Technosoftware.UaPubSub.Encoding
                     {
                         // If the NetworkMessageHeader bit of the NetworkMessageContentMask is not set,
                         // the NetworkMessage is the contents of the Messages field (e.g. a JSON array of DataSetMessages).
-                        foreach (var message in DataSetMessages)
+                        foreach (UaDataSetMessage message in DataSetMessages)
                         {
                             if (message is JsonDataSetMessage jsonDataSetMessage)
                             {
@@ -346,7 +346,7 @@ namespace Technosoftware.UaPubSub.Encoding
                 else
                 {
                     encoder.PushArray(FieldMessages);
-                    foreach (var message in DataSetMessages)
+                    foreach (UaDataSetMessage message in DataSetMessages)
                     {
                         if (message is JsonDataSetMessage jsonDataSetMessage)
                         {

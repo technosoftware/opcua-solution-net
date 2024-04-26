@@ -2292,7 +2292,7 @@ namespace SampleCompany.NodeManagers.SampleNodeManager
                 eventTypeId = baseEventState.EventType?.Value;
                 sourceNodeId = baseEventState.SourceNode?.Value;
             }
-            
+
             var operationContext = new UaServerOperationContext(monitoredItem);
 
             // validate the event type id permissions as specified

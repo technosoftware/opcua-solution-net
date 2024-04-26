@@ -11,7 +11,9 @@
 
 #region Using Directives
 using System.Threading.Tasks;
+
 using NUnit.Framework;
+using Assert = NUnit.Framework.Legacy.ClassicAssert;
 
 using Opc.Ua;
 #endregion

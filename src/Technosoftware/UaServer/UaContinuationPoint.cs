@@ -174,7 +174,7 @@ namespace Technosoftware.UaServer
         {
             get { return (ResultMask & BrowseResultMask.TypeDefinition) != 0; }
         }
-        
+
         /// <summary>
         /// False if it is not necessary to read the attributes a target node.
         /// </summary>

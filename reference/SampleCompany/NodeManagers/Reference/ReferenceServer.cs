@@ -61,7 +61,7 @@ namespace SampleCompany.NodeManagers.Reference
             // create the custom node manager.
             nodeManagers.Add(new ReferenceServerNodeManager(server, configuration));
 
-            foreach (var nodeManagerFactory in NodeManagerFactories)
+            foreach (IUaNodeManagerFactory nodeManagerFactory in NodeManagerFactories)
             {
                 nodeManagers.Add(nodeManagerFactory.Create(server, configuration));
             }
@@ -162,7 +162,7 @@ namespace SampleCompany.NodeManagers.Reference
         /// </remarks>
         public override UserTokenPolicyCollection GetUserTokenPolicies(ApplicationConfiguration configuration, EndpointDescription description)
         {
-            var policies = base.GetUserTokenPolicies(configuration, description);
+            UserTokenPolicyCollection policies = base.GetUserTokenPolicies(configuration, description);
 
             // sample how to modify default user token policies
             if (description.SecurityPolicyUri == SecurityPolicies.Aes256_Sha256_RsaPss &&
@@ -190,7 +190,7 @@ namespace SampleCompany.NodeManagers.Reference
         /// </summary>
         private void CreateUserIdentityValidators(ApplicationConfiguration configuration)
         {
-            foreach (var policy in configuration.ServerConfiguration.UserTokenPolicies)
+            foreach (UserTokenPolicy policy in configuration.ServerConfiguration.UserTokenPolicies)
             {
                 // create a validator for a certificate token policy.
                 if (policy.TokenType == UserTokenType.Certificate)

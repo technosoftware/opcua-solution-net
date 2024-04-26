@@ -46,7 +46,7 @@ namespace Technosoftware.UaServer.Aggregates
             double processingInterval,
             bool stepped,
             AggregateConfiguration configuration)
-        : 
+        :
             base(aggregateId, startTime, endTime, processingInterval, stepped, configuration)
         {
             SetPartialBit = true;
@@ -108,7 +108,7 @@ namespace Technosoftware.UaServer.Aggregates
         protected DataValue ComputeStartEnd(TimeSlice slice, bool returnEnd)
         {
             // get the values in the slice.
-            var values = GetValues(slice);
+            List<DataValue> values = GetValues(slice);
 
             // check for empty slice.
             if (values == null || values.Count == 0)
@@ -135,7 +135,7 @@ namespace Technosoftware.UaServer.Aggregates
         protected DataValue ComputeDelta(TimeSlice slice)
         {
             // get the values in the slice.
-            var values = GetValues(slice);
+            List<DataValue> values = GetValues(slice);
 
             // check for empty slice.
             if (values == null || values.Count == 0)
@@ -179,7 +179,7 @@ namespace Technosoftware.UaServer.Aggregates
             {
                 end = values[ii];
 
-                if (IsGood(end))    
+                if (IsGood(end))
                 {
                     try
                     {
@@ -203,7 +203,7 @@ namespace Technosoftware.UaServer.Aggregates
             {
                 return GetNoDataValue(slice);
             }
-            
+
             var value = new DataValue();
             value.SourceTimestamp = GetTimestamp(slice);
             value.ServerTimestamp = GetTimestamp(slice);
@@ -213,9 +213,9 @@ namespace Technosoftware.UaServer.Aggregates
             {
                 value.StatusCode = StatusCodes.UncertainDataSubNormal;
             }
-            
+
             value.StatusCode = value.StatusCode.SetAggregateBits(AggregateBits.Calculated);
-            
+
             // calculate delta.
             var delta = endValue - startValue;
 
@@ -239,7 +239,7 @@ namespace Technosoftware.UaServer.Aggregates
         protected DataValue ComputeStartEnd2(TimeSlice slice, bool returnEnd)
         {
             // get the values in the slice.
-            var values = GetValuesWithSimpleBounds(slice);
+            List<DataValue> values = GetValuesWithSimpleBounds(slice);
 
             // check for empty slice.
             if (values == null || values.Count == 0)
@@ -286,7 +286,7 @@ namespace Technosoftware.UaServer.Aggregates
         protected DataValue ComputeDelta2(TimeSlice slice)
         {
             // get the values in the slice.
-            var values = GetValuesWithSimpleBounds(slice);
+            List<DataValue> values = GetValuesWithSimpleBounds(slice);
 
             // check for empty slice.
             if (values == null || values.Count == 0)
@@ -294,8 +294,8 @@ namespace Technosoftware.UaServer.Aggregates
                 return GetNoDataValue(slice);
             }
 
-            var start = values[0];
-            var end = values[values.Count-1];
+            DataValue start = values[0];
+            DataValue end = values[values.Count - 1];
 
             // check for bad bounds.
             if (!IsGood(start) || !IsGood(end))

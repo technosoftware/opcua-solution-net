@@ -91,7 +91,7 @@ namespace Technosoftware.UaServer.NodeManager
                     sampledItems_.Clear();
                 }
 
-                foreach (var samplingGroup in samplingGroups)
+                foreach (SamplingGroup samplingGroup in samplingGroups)
                 {
                     Utils.SilentDispose(samplingGroup);
                 }
@@ -113,7 +113,7 @@ namespace Technosoftware.UaServer.NodeManager
             lock (lock_)
             {
                 // stop sampling groups.
-                foreach (var samplingGroup in samplingGroups_)
+                foreach (SamplingGroup samplingGroup in samplingGroups_)
                 {
                     samplingGroup.Shutdown();
                 }
@@ -185,7 +185,7 @@ namespace Technosoftware.UaServer.NodeManager
             }
 
             // create monitored item.
-            var monitoredItem = CreateMonitoredItem(
+            UaMonitoredItem monitoredItem = CreateMonitoredItem(
                 server_,
                 nodeManager_,
                 managerHandle,
@@ -328,7 +328,7 @@ namespace Technosoftware.UaServer.NodeManager
             }
 
             // modify the item attributes.
-            var error = monitoredItem.ModifyAttributes(
+            ServiceResult error = monitoredItem.ModifyAttributes(
                 context.DiagnosticsMask,
                 timestampsToReturn,
                 itemToModify.RequestedParameters.ClientHandle,
@@ -371,7 +371,7 @@ namespace Technosoftware.UaServer.NodeManager
                 }
 
                 // find a suitable sampling group.
-                foreach (var samplingGroup in samplingGroups_)
+                foreach (SamplingGroup samplingGroup in samplingGroups_)
                 {
                     if (samplingGroup.StartMonitoring(context, monitoredItem))
                     {
@@ -465,7 +465,7 @@ namespace Technosoftware.UaServer.NodeManager
                 var unusedGroups = new List<SamplingGroup>();
 
                 // apply changes to groups.
-                foreach (var samplingGroup in samplingGroups_)
+                foreach (SamplingGroup samplingGroup in samplingGroups_)
                 {
                     if (samplingGroup.ApplyChanges())
                     {
@@ -474,7 +474,7 @@ namespace Technosoftware.UaServer.NodeManager
                 }
 
                 // remove unused groups.
-                foreach (var samplingGroup in unusedGroups)
+                foreach (SamplingGroup samplingGroup in unusedGroups)
                 {
                     samplingGroup.Shutdown();
                     samplingGroups_.Remove(samplingGroup);
@@ -485,12 +485,12 @@ namespace Technosoftware.UaServer.NodeManager
 
         #region Private Fields
         private readonly object lock_ = new object();
-        private IUaServerData server_;
-        private IUaBaseNodeManager nodeManager_;
-        private List<SamplingGroup> samplingGroups_;
-        private Dictionary<IUaSampledDataChangeMonitoredItem, SamplingGroup> sampledItems_;
-        private List<SamplingRateGroup> samplingRates_;
-        private uint maxQueueSize_;
+        private readonly IUaServerData server_;
+        private readonly IUaBaseNodeManager nodeManager_;
+        private readonly List<SamplingGroup> samplingGroups_;
+        private readonly Dictionary<IUaSampledDataChangeMonitoredItem, SamplingGroup> sampledItems_;
+        private readonly List<SamplingRateGroup> samplingRates_;
+        private readonly uint maxQueueSize_;
 
         /// <summary>
         /// The default sampling rates.

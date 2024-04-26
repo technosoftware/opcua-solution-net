@@ -44,20 +44,18 @@ namespace SampleCompany.NodeManagers
                 {
                     methodsToCall.Add(
                         // Start the Alarms with infinite runtime
-                        new CallMethodRequest
-                        {
+                        new CallMethodRequest {
                             MethodId = new NodeId("Alarms.Start", (ushort)index),
                             ObjectId = new NodeId("Alarms", (ushort)index),
                             InputArguments = new VariantCollection() { new Variant((UInt32)UInt32.MaxValue) }
                         });
-                    var requestHeader = new RequestHeader()
-                    {
+                    var requestHeader = new RequestHeader() {
                         Timestamp = DateTime.UtcNow,
                         TimeoutHint = 10000
                     };
                     var context = new UaServerOperationContext(requestHeader, RequestType.Call);
                     server.CurrentInstance.NodeManager.Call(context, methodsToCall, out CallMethodResultCollection results, out DiagnosticInfoCollection diagnosticInfos);
-                    foreach (var result in results)
+                    foreach (CallMethodResult result in results)
                     {
                         if (ServiceResult.IsBad(result.StatusCode))
                         {
@@ -80,7 +78,7 @@ namespace SampleCompany.NodeManagers
         /// </summary>
         public static void AddDefaultNodeManagers(UaGenericServer server)
         {
-            foreach (var nodeManagerFactory in NodeManagerFactories)
+            foreach (IUaNodeManagerFactory nodeManagerFactory in NodeManagerFactories)
             {
                 server.AddNodeManager(nodeManagerFactory);
             }
@@ -106,7 +104,7 @@ namespace SampleCompany.NodeManagers
         /// </summary>
         private static IUaNodeManagerFactory IsINodeManagerFactoryType(Type type)
         {
-            var nodeManagerTypeInfo = type.GetTypeInfo();
+            System.Reflection.TypeInfo nodeManagerTypeInfo = type.GetTypeInfo();
             if (nodeManagerTypeInfo.IsAbstract ||
                 !typeof(IUaNodeManagerFactory).IsAssignableFrom(type))
             {
@@ -121,8 +119,8 @@ namespace SampleCompany.NodeManagers
         /// <returns></returns>
         private static IList<IUaNodeManagerFactory> GetNodeManagerFactories()
         {
-            var assembly = typeof(NodeManagerUtils).Assembly;
-            var nodeManagerFactories = assembly.GetExportedTypes().Select(type => IsINodeManagerFactoryType(type)).Where(type => type != null);
+            Assembly assembly = typeof(NodeManagerUtils).Assembly;
+            IEnumerable<IUaNodeManagerFactory> nodeManagerFactories = assembly.GetExportedTypes().Select(type => IsINodeManagerFactoryType(type)).Where(type => type != null);
             return nodeManagerFactories.ToList();
         }
 

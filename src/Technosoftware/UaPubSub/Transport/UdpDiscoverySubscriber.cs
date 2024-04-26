@@ -54,7 +54,7 @@ namespace Technosoftware.UaPubSub.Transport
         #endregion
 
         #region Start/Stop Method Overides
-        
+
         /// <summary>
         /// Implementation of StartAsync for the subscriber Discovery
         /// </summary>
@@ -90,7 +90,7 @@ namespace Technosoftware.UaPubSub.Transport
             {
                 if (!metadataWriterIdsToSend_.Contains(writerId))
                 {
-                    metadataWriterIdsToSend_.Add(writerId);                    
+                    metadataWriterIdsToSend_.Add(writerId);
                 }
             }
         }
@@ -171,7 +171,7 @@ namespace Technosoftware.UaPubSub.Transport
             byte[] bytes = discoveryRequestPublisherEndpoints.Encode(MessageContext);
 
             // send the PublisherEndpoints DiscoveryRequest message to all open UdpClients
-            foreach (var udpClient in discoveryUdpClients_)
+            foreach (UdpClient udpClient in discoveryUdpClients_)
             {
                 try
                 {
@@ -217,7 +217,7 @@ namespace Technosoftware.UaPubSub.Transport
             byte[] bytes = discoveryRequestMetaDataMessage.Encode(MessageContext);
 
             // send the DataSetMetaData DiscoveryRequest message to all open UDPClient 
-            foreach (var udpClient in discoveryUdpClients_)
+            foreach (UdpClient udpClient in discoveryUdpClients_)
             {
                 try
                 {

@@ -31,7 +31,7 @@ namespace Technosoftware.UaServer
         /// <summary>
         /// The identifier for the item that is unique within the server.
         /// </summary>
-        uint Id { get; } 
+        uint Id { get; }
 
         /// <summary>
         /// Called when a monitored item is ready to publish.

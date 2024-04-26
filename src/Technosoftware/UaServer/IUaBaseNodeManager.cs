@@ -51,7 +51,7 @@ namespace Technosoftware.UaServer
         /// by other node managers. In these cases, the node managers only manage one half of those references. The
         /// other half of the reference should be returned to the MasterNodeManager.
         /// </remarks>
-        void CreateAddressSpace(IDictionary<NodeId,IList<IReference>> externalReferences);
+        void CreateAddressSpace(IDictionary<NodeId, IList<IReference>> externalReferences);
 
         /// <summary>
         /// Deletes the address by releasing all resources and disconnecting from any underlying system.
@@ -96,7 +96,7 @@ namespace Technosoftware.UaServer
         /// </remarks>
         UaNodeMetadata GetNodeMetadata(
             UaServerOperationContext context,
-            object           targetHandle,
+            object targetHandle,
             BrowseResultMask resultMask);
 
         /// <summary>
@@ -116,8 +116,8 @@ namespace Technosoftware.UaServer
         /// <exception cref="ArgumentNullException">Thrown if the context, continuationPoint or references parameters are null.</exception>
         /// <exception cref="ServiceResultException">Thrown if an error occurs during processing.</exception>
         void Browse(
-            UaServerOperationContext            context,
-            ref UaContinuationPoint       continuationPoint,
+            UaServerOperationContext context,
+            ref UaContinuationPoint continuationPoint,
             IList<ReferenceDescription> references);
 
         /// <summary>
@@ -137,11 +137,11 @@ namespace Technosoftware.UaServer
         /// </remarks>
         /// <exception cref="ArgumentNullException">Thrown if the sourceHandle, relativePath or targetIds parameters are null.</exception>
         void TranslateBrowsePath(
-            UaServerOperationContext      context,
-            object                sourceHandle,
-            RelativePathElement   relativePath,
+            UaServerOperationContext context,
+            object sourceHandle,
+            RelativePathElement relativePath,
             IList<ExpandedNodeId> targetIds,
-            IList<NodeId>         unresolvedTargetIds);
+            IList<NodeId> unresolvedTargetIds);
 
         /// <summary>
         /// Reads the attribute values for a set of nodes.
@@ -161,23 +161,23 @@ namespace Technosoftware.UaServer
         /// The node manager must set the Processed flag for any ReadValueId that it processes.
         /// </remarks>
         void Read(
-            UaServerOperationContext     context,
-            double               maxAge,
-            IList<ReadValueId>   nodesToRead,
-            IList<DataValue>     values,
+            UaServerOperationContext context,
+            double maxAge,
+            IList<ReadValueId> nodesToRead,
+            IList<DataValue> values,
             IList<ServiceResult> errors);
 
         /// <summary>
         /// Reads the history of a set of items.
         /// </summary>
         void HistoryRead(
-            UaServerOperationContext          context,
-            HistoryReadDetails        details,
-            TimestampsToReturn        timestampsToReturn,
-            bool                      releaseContinuationPoints,
+            UaServerOperationContext context,
+            HistoryReadDetails details,
+            TimestampsToReturn timestampsToReturn,
+            bool releaseContinuationPoints,
             IList<HistoryReadValueId> nodesToRead,
-            IList<HistoryReadResult>  results,
-            IList<ServiceResult>      errors);
+            IList<HistoryReadResult> results,
+            IList<ServiceResult> errors);
 
         /// <summary>
         /// Writes a set of values.
@@ -187,28 +187,28 @@ namespace Technosoftware.UaServer
         /// must set the Processed flag in the WriteValue structure.
         /// </remarks>
         void Write(
-            UaServerOperationContext     context,
-            IList<WriteValue>    nodesToWrite,
+            UaServerOperationContext context,
+            IList<WriteValue> nodesToWrite,
             IList<ServiceResult> errors);
 
         /// <summary>
         /// Updates the history for a set of nodes.
         /// </summary>
         void HistoryUpdate(
-            UaServerOperationContext            context,
-            Type                        detailsType,
+            UaServerOperationContext context,
+            Type detailsType,
             IList<HistoryUpdateDetails> nodesToUpdate,
-            IList<HistoryUpdateResult>  results,
-            IList<ServiceResult>        errors);
+            IList<HistoryUpdateResult> results,
+            IList<ServiceResult> errors);
 
         /// <summary>
         /// Calls a method defined on a object.
         /// </summary>
         void Call(
-            UaServerOperationContext         context,
+            UaServerOperationContext context,
             IList<CallMethodRequest> methodsToCall,
-            IList<CallMethodResult>  results,
-            IList<ServiceResult>     errors);
+            IList<CallMethodResult> results,
+            IList<ServiceResult> errors);
 
         /// <summary>
         /// Tells the NodeManager to report events from the specified notifier.
@@ -218,11 +218,11 @@ namespace Technosoftware.UaServer
         /// context for that UaMonitoredItem changes (i.e. UserIdentity and/or Locales).
         /// </remarks>
         ServiceResult SubscribeToEvents(
-            UaServerOperationContext    context,
-            object              sourceId,
-            uint                subscriptionId,
+            UaServerOperationContext context,
+            object sourceId,
+            uint subscriptionId,
             IUaEventMonitoredItem monitoredItem,
-            bool                unsubscribe);
+            bool unsubscribe);
 
         /// <summary>
         /// Tells the NodeManager to report events all events from all sources.
@@ -232,51 +232,51 @@ namespace Technosoftware.UaServer
         /// context for that UaMonitoredItem changes (i.e. UserIdentity and/or Locales).
         /// </remarks>
         ServiceResult SubscribeToAllEvents(
-            UaServerOperationContext   context,
-            uint                subscriptionId,
+            UaServerOperationContext context,
+            uint subscriptionId,
             IUaEventMonitoredItem monitoredItem,
-            bool                unsubscribe);
+            bool unsubscribe);
 
         /// <summary>
         /// Tells the NodeManager to refresh any conditions.
         /// </summary>
         ServiceResult ConditionRefresh(
-            UaServerOperationContext           context,
+            UaServerOperationContext context,
             IList<IUaEventMonitoredItem> monitoredItems);
 
         /// <summary>
         /// Creates a set of monitored items.
         /// </summary>
         void CreateMonitoredItems(
-            UaServerOperationContext                  context,
-            uint                              subscriptionId,
-            double                            publishingInterval,
-            TimestampsToReturn                timestampsToReturn,
+            UaServerOperationContext context,
+            uint subscriptionId,
+            double publishingInterval,
+            TimestampsToReturn timestampsToReturn,
             IList<MonitoredItemCreateRequest> itemsToCreate,
-            IList<ServiceResult>              errors,
-            IList<MonitoringFilterResult>     filterErrors,
-            IList<IUaMonitoredItem>             monitoredItems,
-            ref long                          globalIdCounter);
+            IList<ServiceResult> errors,
+            IList<MonitoringFilterResult> filterErrors,
+            IList<IUaMonitoredItem> monitoredItems,
+            ref long globalIdCounter);
 
         /// <summary>
         /// Modifies a set of monitored items.
         /// </summary>
         void ModifyMonitoredItems(
-            UaServerOperationContext                  context,
-            TimestampsToReturn                timestampsToReturn,
-            IList<IUaMonitoredItem>             monitoredItems,
+            UaServerOperationContext context,
+            TimestampsToReturn timestampsToReturn,
+            IList<IUaMonitoredItem> monitoredItems,
             IList<MonitoredItemModifyRequest> itemsToModify,
-            IList<ServiceResult>              errors,
-            IList<MonitoringFilterResult>     filterErrors);
+            IList<ServiceResult> errors,
+            IList<MonitoringFilterResult> filterErrors);
 
         /// <summary>
         /// Deletes a set of monitored items.
         /// </summary>
         void DeleteMonitoredItems(
-            UaServerOperationContext      context,
+            UaServerOperationContext context,
             IList<IUaMonitoredItem> monitoredItems,
-            IList<bool>           processedItems,
-            IList<ServiceResult>  errors);
+            IList<bool> processedItems,
+            IList<ServiceResult> errors);
 
         /// <summary>
         /// Transfers a set of monitored items.
@@ -295,10 +295,10 @@ namespace Technosoftware.UaServer
         /// Changes the monitoring mode for a set of monitored items.
         /// </summary>
         void SetMonitoringMode(
-            UaServerOperationContext      context,
-            MonitoringMode        monitoringMode,
+            UaServerOperationContext context,
+            MonitoringMode monitoringMode,
             IList<IUaMonitoredItem> monitoredItems,
-            IList<bool>           processedItems,
-            IList<ServiceResult>  errors);
+            IList<bool> processedItems,
+            IList<ServiceResult> errors);
     }
 }

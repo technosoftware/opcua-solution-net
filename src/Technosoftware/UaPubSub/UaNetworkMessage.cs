@@ -87,7 +87,7 @@ namespace Technosoftware.UaPubSub
                 dataSetWriterId_ = (value != null) ? value.Value : (ushort)0;
             }
         }
-    
+
         /// <summary>
         /// DataSet messages
         /// </summary>

@@ -139,12 +139,12 @@ namespace Technosoftware.UaServer.Configuration
                     SpecifiedLists = (uint)masks
                 };
 
-                using (var store = CertificateStoreIdentifier.OpenStore(trustedStorePath_))
+                using (ICertificateStore store = CertificateStoreIdentifier.OpenStore(trustedStorePath_))
                 {
                     if ((masks & TrustListMasks.TrustedCertificates) != 0)
                     {
                         X509Certificate2Collection certificates = store.Enumerate().GetAwaiter().GetResult();
-                        foreach (var certificate in certificates)
+                        foreach (X509Certificate2 certificate in certificates)
                         {
                             trustList.TrustedCertificates.Add(certificate.RawData);
                         }
@@ -152,19 +152,19 @@ namespace Technosoftware.UaServer.Configuration
 
                     if ((masks & TrustListMasks.TrustedCrls) != 0)
                     {
-                        foreach (var crl in store.EnumerateCRLs().GetAwaiter().GetResult())
+                        foreach (X509CRL crl in store.EnumerateCRLs().GetAwaiter().GetResult())
                         {
                             trustList.TrustedCrls.Add(crl.RawData);
                         }
                     }
                 }
 
-                using (var store = CertificateStoreIdentifier.OpenStore(issuerStorePath_))
+                using (ICertificateStore store = CertificateStoreIdentifier.OpenStore(issuerStorePath_))
                 {
                     if ((masks & TrustListMasks.IssuerCertificates) != 0)
                     {
                         X509Certificate2Collection certificates = store.Enumerate().GetAwaiter().GetResult();
-                        foreach (var certificate in certificates)
+                        foreach (X509Certificate2 certificate in certificates)
                         {
                             trustList.IssuerCertificates.Add(certificate.RawData);
                         }
@@ -172,7 +172,7 @@ namespace Technosoftware.UaServer.Configuration
 
                     if ((masks & TrustListMasks.IssuerCrls) != 0)
                     {
-                        foreach (var crl in store.EnumerateCRLs().GetAwaiter().GetResult())
+                        foreach (X509CRL crl in store.EnumerateCRLs().GetAwaiter().GetResult())
                         {
                             trustList.IssuerCrls.Add(crl.RawData);
                         }
@@ -319,7 +319,7 @@ namespace Technosoftware.UaServer.Configuration
                 try
                 {
 
-                    var trustList = DecodeTrustListData(context, stream_);
+                    TrustListDataType trustList = DecodeTrustListData(context, stream_);
                     var masks = (TrustListMasks)trustList.SpecifiedLists;
 
                     X509Certificate2Collection issuerCertificates = null;
@@ -363,7 +363,7 @@ namespace Technosoftware.UaServer.Configuration
 
                     // update store
                     // test integrity of all CRLs
-                    var updateMasks = TrustListMasks.None;
+                    TrustListMasks updateMasks = TrustListMasks.None;
                     if ((masks & TrustListMasks.IssuerCertificates) != 0)
                     {
                         if (UpdateStoreCertificatesAsync(issuerStorePath_, issuerCertificates).GetAwaiter().GetResult())
@@ -489,17 +489,17 @@ namespace Technosoftware.UaServer.Configuration
 
                 if (sessionId_ != null)
                 {
-                    result =  StatusCodes.BadInvalidState;
+                    result = StatusCodes.BadInvalidState;
                 }
                 else if (String.IsNullOrEmpty(thumbprint))
                 {
-                    result =  StatusCodes.BadInvalidArgument;
+                    result = StatusCodes.BadInvalidArgument;
                 }
                 else
                 {
                     using (ICertificateStore store = CertificateStoreIdentifier.OpenStore(isTrustedCertificate ? trustedStorePath_ : issuerStorePath_))
                     {
-                        var certCollection = store.FindByThumbprint(thumbprint).GetAwaiter().GetResult();
+                        X509Certificate2Collection certCollection = store.FindByThumbprint(thumbprint).GetAwaiter().GetResult();
 
                         if (certCollection.Count == 0)
                         {
@@ -509,9 +509,9 @@ namespace Technosoftware.UaServer.Configuration
                         {
                             // delete all CRLs signed by cert
                             var crlsToDelete = new X509CRLCollection();
-                            foreach (var crl in store.EnumerateCRLs().GetAwaiter().GetResult())
+                            foreach (X509CRL crl in store.EnumerateCRLs().GetAwaiter().GetResult())
                             {
-                                foreach (var cert in certCollection)
+                                foreach (X509Certificate2 cert in certCollection)
                                 {
                                     if (X509Utils.CompareDistinguishedName(cert.SubjectName, crl.IssuerName) &&
                                         crl.VerifySignature(cert, false))
@@ -528,7 +528,7 @@ namespace Technosoftware.UaServer.Configuration
                             }
                             else
                             {
-                                foreach (var crl in crlsToDelete)
+                                foreach (X509CRL crl in crlsToDelete)
                                 {
                                     if (!store.DeleteCRL(crl).GetAwaiter().GetResult())
                                     {
@@ -593,10 +593,10 @@ namespace Technosoftware.UaServer.Configuration
             var result = true;
             try
             {
-                using (var store = CertificateStoreIdentifier.OpenStore(storePath))
+                using (ICertificateStore store = CertificateStoreIdentifier.OpenStore(storePath))
                 {
-                    var storeCrls = await store.EnumerateCRLs().ConfigureAwait(false);
-                    foreach (var crl in storeCrls)
+                    X509CRLCollection storeCrls = await store.EnumerateCRLs().ConfigureAwait(false);
+                    foreach (X509CRL crl in storeCrls)
                     {
                         if (!updatedCrls.Contains(crl))
                         {
@@ -610,7 +610,7 @@ namespace Technosoftware.UaServer.Configuration
                             updatedCrls.Remove(crl);
                         }
                     }
-                    foreach (var crl in updatedCrls)
+                    foreach (X509CRL crl in updatedCrls)
                     {
                         await store.AddCRL(crl).ConfigureAwait(false);
                     }
@@ -630,10 +630,10 @@ namespace Technosoftware.UaServer.Configuration
             var result = true;
             try
             {
-                using (var store = CertificateStoreIdentifier.OpenStore(storePath))
+                using (ICertificateStore store = CertificateStoreIdentifier.OpenStore(storePath))
                 {
-                    var storeCerts = await store.Enumerate().ConfigureAwait(false);
-                    foreach (var cert in storeCerts)
+                    X509Certificate2Collection storeCerts = await store.Enumerate().ConfigureAwait(false);
+                    foreach (X509Certificate2 cert in storeCerts)
                     {
                         if (!updatedCerts.Contains(cert))
                         {
@@ -647,7 +647,7 @@ namespace Technosoftware.UaServer.Configuration
                             updatedCerts.Remove(cert);
                         }
                     }
-                    foreach (var cert in updatedCerts)
+                    foreach (X509Certificate2 cert in updatedCerts)
                     {
                         await store.Add(cert).ConfigureAwait(false);
                     }
@@ -687,13 +687,13 @@ namespace Technosoftware.UaServer.Configuration
 
         #region Private Fields
         private readonly object lock_ = new object();
-        private SecureAccess readAccess_;
-        private SecureAccess writeAccess_;
+        private readonly SecureAccess readAccess_;
+        private readonly SecureAccess writeAccess_;
         private NodeId sessionId_;
         private uint fileHandle_;
         private readonly string trustedStorePath_;
         private readonly string issuerStorePath_;
-        private TrustListState node_;
+        private readonly TrustListState node_;
         private Stream stream_;
         private bool readMode_;
         #endregion

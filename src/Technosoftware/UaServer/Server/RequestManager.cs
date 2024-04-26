@@ -39,8 +39,8 @@ namespace Technosoftware.UaServer.Server
         {
             if (server == null) throw new ArgumentNullException(nameof(server));
 
-            server_       = server;
-            requests_     = new Dictionary<uint,UaServerOperationContext>();
+            server_ = server;
+            requests_ = new Dictionary<uint, UaServerOperationContext>();
             requestTimer_ = null;
         }
         #endregion
@@ -71,7 +71,7 @@ namespace Technosoftware.UaServer.Server
                     requests_.Clear();
                 }
 
-                foreach (var operation in operations)
+                foreach (UaServerOperationContext operation in operations)
                 {
                     operation.SetStatusCode(StatusCodes.BadSessionClosed);
                 }
@@ -148,7 +148,7 @@ namespace Technosoftware.UaServer.Server
             // flag requests as cancelled.
             lock (requests_)
             {
-                foreach (var request in requests_.Values)
+                foreach (UaServerOperationContext request in requests_.Values)
                 {
                     if (request.ClientHandle == requestHandle)
                     {
@@ -201,7 +201,7 @@ namespace Technosoftware.UaServer.Server
                 // find the completed request.
                 bool deadlineExists = false;
 
-                foreach (var request in requests_.Values)
+                foreach (UaServerOperationContext request in requests_.Values)
                 {
                     if (request.OperationDeadline < DateTime.UtcNow)
                     {
@@ -237,7 +237,7 @@ namespace Technosoftware.UaServer.Server
                         catch (Exception e)
                         {
                             Utils.LogError(e, "Unexpected error reporting RequestCancelledEventHandler event.");
-                        }                        
+                        }
                     }
                 }
             }
@@ -247,8 +247,8 @@ namespace Technosoftware.UaServer.Server
         #region Private Fields
         private readonly object lock_ = new object();
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1823:AvoidUnusedPrivateFields")]
-        private IUaServerData server_;
-        private Dictionary<uint,UaServerOperationContext> requests_;
+        private readonly IUaServerData server_;
+        private readonly Dictionary<uint, UaServerOperationContext> requests_;
         private readonly object requestsLock_ = new object();
         private Timer requestTimer_;
         private event EventHandler<RequestCancelledEventArgs> RequestCancelledEventHandler;

@@ -224,7 +224,7 @@ namespace Technosoftware.UaPubSub.Transport
                     IList<UaNetworkMessage> responsesMessages = udpConnection_.CreateDataSetWriterCofigurationMessage(
                         dataSetWriterIdsToSend.ToArray());
 
-                    foreach (var responsesMessage in responsesMessages)
+                    foreach (UaNetworkMessage responsesMessage in responsesMessages)
                     {
                         Utils.Trace("UdpDiscoveryPublisher.SendResponseDataSetWriterConfiguration Before sending message for DataSetWriterId:{0}", responsesMessage.DataSetWriterId);
 

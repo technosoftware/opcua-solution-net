@@ -107,7 +107,7 @@ namespace Technosoftware.UaPubSub.Transport
         {
             try
             {
-                var result = await mqttClient.ConnectAsync(mqttClientOptions, CancellationToken.None).ConfigureAwait(false);
+                MqttClientConnectResult result = await mqttClient.ConnectAsync(mqttClientOptions, CancellationToken.None).ConfigureAwait(false);
                 if (MqttClientConnectResultCode.Success == result.ResultCode)
                 {
                     Utils.Trace("MQTT client {0} successfully connected", mqttClient?.Options?.ClientId);

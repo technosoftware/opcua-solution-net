@@ -128,6 +128,11 @@ namespace Technosoftware.UaConfiguration
         /// <inheritdoc cref="ServerConfiguration.MaxSessionCount"/>
         IUaApplicationConfigurationServerOptions SetMaxSessionCount(int maxSessionCount);
 
+        /// <inheritdoc cref="ServerConfiguration.MaxChannelCount"/>
+        /// <remarks>applies to <see cref="ServerConfiguration.MaxChannelCount"/></remarks>
+        /// <param name="maxChannelCount">The lifetime.</param>
+        IUaApplicationConfigurationServerOptions SetMaxChannelCount(int maxChannelCount);
+
         /// <inheritdoc cref="ServerConfiguration.MinSessionTimeout"/>
         IUaApplicationConfigurationServerOptions SetMinSessionTimeout(int minSessionTimeout);
 

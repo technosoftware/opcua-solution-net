@@ -21,7 +21,7 @@ using Technosoftware.UaServer.Server;
 
 #endregion
 
-namespace Technosoftware.UaServer.Subscriptions 
+namespace Technosoftware.UaServer.Subscriptions
 {
     /// <summary>
     /// Stores the state of an asynchrounous publish operation.
@@ -53,7 +53,7 @@ namespace Technosoftware.UaServer.Subscriptions
         /// Frees any unmanaged resources.
         /// </summary>
         public void Dispose()
-        {   
+        {
             Dispose(true);
         }
 
@@ -109,8 +109,8 @@ namespace Technosoftware.UaServer.Subscriptions
         #endregion
 
         #region Private Fields
-        private IEndpointIncomingRequest request_;
-        private UaGenericServer server_;
+        private readonly IEndpointIncomingRequest request_;
+        private readonly UaGenericServer server_;
 
         #endregion
     }

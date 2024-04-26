@@ -133,7 +133,7 @@ namespace Technosoftware.UaPubSub.Transport
                 this.Application.MetaDataReceivedEvent += Application_MetaDataReceived;
                 this.Application.DataSetWriterConfigurationReceivedEvent += DataSetWriterConfigurationReceived;
             }
-        }       
+        }
 
         /// <summary>
         /// Perform specific Stop tasks
@@ -142,11 +142,11 @@ namespace Technosoftware.UaPubSub.Transport
         {
             lock (lock_)
             {
-                foreach (var list in new List<List<UdpClient>>() { publisherUdpClients_, subscriberUdpClients_ })
+                foreach (List<UdpClient> list in new List<List<UdpClient>>() { publisherUdpClients_, subscriberUdpClients_ })
                 {
                     if (list != null && list.Count > 0)
                     {
-                        foreach (var udpClient in list)
+                        foreach (UdpClient udpClient in list)
                         {
                             udpClient.Close();
                             udpClient.Dispose();
@@ -158,7 +158,7 @@ namespace Technosoftware.UaPubSub.Transport
 
             if (udpDiscoveryPublisher_ != null)
             {
-               await udpDiscoveryPublisher_.StopAsync().ConfigureAwait(false);
+                await udpDiscoveryPublisher_.StopAsync().ConfigureAwait(false);
             }
 
             if (udpDiscoverySubscriber_ != null)
@@ -166,7 +166,7 @@ namespace Technosoftware.UaPubSub.Transport
                 await udpDiscoverySubscriber_.StopAsync().ConfigureAwait(false);
 
                 // remove handler to metaDataReceived event
-                this.Application.MetaDataReceivedEvent -= Application_MetaDataReceived;               
+                this.Application.MetaDataReceivedEvent -= Application_MetaDataReceived;
             }
         }
 
@@ -203,7 +203,7 @@ namespace Technosoftware.UaPubSub.Transport
 
                     if (dataSet != null)
                     {
-                        bool hasMetaDataChanged =  state.HasMetaDataChanged(dataSetWriter, dataSet.DataSetMetaData);
+                        bool hasMetaDataChanged = state.HasMetaDataChanged(dataSetWriter, dataSet.DataSetMetaData);
 
                         if (hasMetaDataChanged)
                         {
@@ -267,7 +267,7 @@ namespace Technosoftware.UaPubSub.Transport
         public IList<UaNetworkMessage> CreateDataSetMetaDataNetworkMessages(UInt16[] dataSetWriterIds)
         {
             List<UaNetworkMessage> networkMessages = new List<UaNetworkMessage>();
-            var writers = GetWriterGroupsDataType();
+            List<DataSetWriterDataType> writers = GetWriterGroupsDataType();
 
             foreach (UInt16 dataSetWriterId in dataSetWriterIds)
             {
@@ -337,7 +337,7 @@ namespace Technosoftware.UaPubSub.Transport
                         // Get encoded bytes
                         byte[] bytes = networkMessage.Encode(MessageContext);
 
-                        foreach (var udpClient in publisherUdpClients_)
+                        foreach (UdpClient udpClient in publisherUdpClients_)
                         {
                             try
                             {
@@ -653,7 +653,7 @@ namespace Technosoftware.UaPubSub.Transport
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void Application_MetaDataReceived(object sender, SubscribedDataEventArgs e)
-        {           
+        {
             if (udpDiscoverySubscriber_ != null && e.NetworkMessage.DataSetWriterId != null)
             {
                 udpDiscoverySubscriber_.RemoveWriterIdForDataSetMetadata(e.NetworkMessage.DataSetWriterId.Value);

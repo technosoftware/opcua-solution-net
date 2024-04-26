@@ -401,14 +401,14 @@ namespace Technosoftware.UaServer.Diagnostics
         {
             if (value != null)
             {
-                var status = value.StatusCode;
+                StatusCode status = value.StatusCode;
                 status.Overflow = true;
                 value.StatusCode = status;
             }
 
             if (error != null)
             {
-                var status = error.StatusCode;
+                StatusCode status = error.StatusCode;
                 status.Overflow = true;
 
                 // have to copy before updating because the ServiceResult is invariant.
@@ -426,7 +426,7 @@ namespace Technosoftware.UaServer.Diagnostics
         #endregion
 
         #region Private Fields
-        private uint monitoredItemId_;
+        private readonly uint monitoredItemId_;
         private DataValue[] values_;
         private ServiceResult[] errors_;
         private int start_;
@@ -435,7 +435,7 @@ namespace Technosoftware.UaServer.Diagnostics
         private bool discardOldest_;
         private long nextSampleTime_;
         private long samplingInterval_;
-        DiscardedValueHandler discardedValueHandler_;
+        readonly DiscardedValueHandler discardedValueHandler_;
         #endregion
     }
 }

@@ -46,7 +46,7 @@ namespace Technosoftware.UaServer.Aggregates
             double processingInterval,
             bool stepped,
             AggregateConfiguration configuration)
-        : 
+        :
             base(aggregateId, startTime, endTime, processingInterval, stepped, configuration)
         {
             SetPartialBit = true;
@@ -103,7 +103,7 @@ namespace Technosoftware.UaServer.Aggregates
         protected DataValue ComputeCount(TimeSlice slice)
         {
             // get the values in the slice.
-            var values = GetValues(slice);
+            List<DataValue> values = GetValues(slice);
 
             // check for empty slice.
             if (values == null)
@@ -126,7 +126,7 @@ namespace Technosoftware.UaServer.Aggregates
             var value = new DataValue();
             value.WrappedValue = new Variant(count, TypeInfo.Scalars.Int32);
             value.SourceTimestamp = GetTimestamp(slice);
-            value.ServerTimestamp = GetTimestamp(slice);           
+            value.ServerTimestamp = GetTimestamp(slice);
             value.StatusCode = GetValueBasedStatusCode(slice, values, value.StatusCode);
 
             if (!StatusCode.IsBad(value.StatusCode))
@@ -144,7 +144,7 @@ namespace Technosoftware.UaServer.Aggregates
         protected DataValue ComputeAnnotationCount(TimeSlice slice)
         {
             // get the values in the slice.
-            var values = GetValues(slice);
+            List<DataValue> values = GetValues(slice);
 
             // check for empty slice.
             if (values == null)
@@ -177,7 +177,7 @@ namespace Technosoftware.UaServer.Aggregates
         protected DataValue ComputeDurationInState(TimeSlice slice, bool isNonZero)
         {
             // get the values in the slice.
-            var values = GetValuesWithSimpleBounds(slice);
+            List<DataValue> values = GetValuesWithSimpleBounds(slice);
 
             // check for empty slice.
             if (values == null)
@@ -186,7 +186,7 @@ namespace Technosoftware.UaServer.Aggregates
             }
 
             // get the regions.
-            var regions = GetRegionsInValueSet(values, false, true);
+            List<SubRegion> regions = GetRegionsInValueSet(values, false, true);
 
             double duration = 0;
 
@@ -217,7 +217,7 @@ namespace Technosoftware.UaServer.Aggregates
             var value = new DataValue();
             value.WrappedValue = new Variant(duration, TypeInfo.Scalars.Double);
             value.SourceTimestamp = GetTimestamp(slice);
-            value.ServerTimestamp = GetTimestamp(slice);            
+            value.ServerTimestamp = GetTimestamp(slice);
             value.StatusCode = GetTimeBasedStatusCode(regions, value.StatusCode);
             value.StatusCode = value.StatusCode.SetAggregateBits(AggregateBits.Calculated);
 
@@ -231,7 +231,7 @@ namespace Technosoftware.UaServer.Aggregates
         protected DataValue ComputeNumberOfTransitions(TimeSlice slice)
         {
             // get the values in the slice.
-            var values = GetValues(slice);
+            List<DataValue> values = GetValues(slice);
 
             // check for empty slice.
             if (values == null)

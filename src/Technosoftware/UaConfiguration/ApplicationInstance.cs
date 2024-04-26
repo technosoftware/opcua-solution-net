@@ -983,7 +983,7 @@ namespace Technosoftware.UaConfiguration
             }
             catch (Exception e)
             {
-                LogError(e, "Could not add certificate to trusted peer store.");
+                LogError("Could not add certificate to trusted peer store: {0}", Opc.Ua.Redaction.Redact.Create(e));
             }
         }
 

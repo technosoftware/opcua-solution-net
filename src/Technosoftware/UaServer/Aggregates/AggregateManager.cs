@@ -34,17 +34,17 @@ namespace Technosoftware.UaServer.Aggregates
         public AggregateManager(IUaServerData server)
         {
             server_ = server;
-            factories_ = new Dictionary<NodeId,AggregatorFactory>();
+            factories_ = new Dictionary<NodeId, AggregatorFactory>();
             minimumProcessingInterval_ = 1000;
         }
         #endregion
-        
+
         #region IDisposable Members
         /// <summary>
         /// Frees any unmanaged resources.
         /// </summary>
         public void Dispose()
-        {   
+        {
             Dispose(true);
         }
 
@@ -52,11 +52,11 @@ namespace Technosoftware.UaServer.Aggregates
         /// An overrideable version of the Dispose.
         /// </summary>
         protected virtual void Dispose(bool disposing)
-        {  
+        {
             if (disposing)
             {
                 // TBD
-            }            
+            }
         }
         #endregion
 
@@ -82,7 +82,7 @@ namespace Technosoftware.UaServer.Aggregates
         /// <summary>
         /// The minimum processing interval for any aggregate calculation.
         /// </summary>
-        public double MinimumProcessingInterval 
+        public double MinimumProcessingInterval
         {
             get
             {
@@ -172,10 +172,10 @@ namespace Technosoftware.UaServer.Aggregates
             if (configuration.UseServerCapabilitiesDefaults)
             {
                 // ensure the configuration is initialized
-                configuration = GetDefaultConfiguration(null); 
+                configuration = GetDefaultConfiguration(null);
             }
 
-            var calculator = factory(aggregateId, startTime, endTime, processingInterval, stepped, configuration);
+            IUaAggregateCalculator calculator = factory(aggregateId, startTime, endTime, processingInterval, stepped, configuration);
 
             if (calculator == null)
             {
@@ -222,9 +222,9 @@ namespace Technosoftware.UaServer.Aggregates
 
         #region Private Fields
         private readonly object lock_ = new object();
-        private IUaServerData server_;
+        private readonly IUaServerData server_;
         private AggregateConfiguration defaultConfiguration_;
-        private Dictionary<NodeId,AggregatorFactory> factories_;
+        private readonly Dictionary<NodeId, AggregatorFactory> factories_;
         private double minimumProcessingInterval_;
         #endregion
     }

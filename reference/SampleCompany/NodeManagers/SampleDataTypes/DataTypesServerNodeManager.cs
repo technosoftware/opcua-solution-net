@@ -133,7 +133,7 @@ namespace SampleCompany.NodeManagers.SampleDataTypes
         {
             // We know the model name to load but because this project is compiled for different environments we don't know
             // the assembly it is in. Therefore we search for it:
-            var assembly = this.GetType().GetTypeInfo().Assembly;
+            Assembly assembly = this.GetType().GetTypeInfo().Assembly;
             var names = assembly.GetManifestResourceNames();
             var resourcePath = String.Empty;
 
@@ -171,7 +171,7 @@ namespace SampleCompany.NodeManagers.SampleDataTypes
         {
             lock (Lock)
             {
-                if (!externalReferences.TryGetValue(Opc.Ua.ObjectIds.ObjectsFolder, out var references))
+                if (!externalReferences.TryGetValue(Opc.Ua.ObjectIds.ObjectsFolder, out IList<IReference> references))
                 {
                     externalReferences[Opc.Ua.ObjectIds.ObjectsFolder] = References = new List<IReference>();
                 }
@@ -183,33 +183,33 @@ namespace SampleCompany.NodeManagers.SampleDataTypes
                 LoadPredefinedNodes(SystemContext, externalReferences);
 
                 // Create the root folder for all nodes of this server
-                root_  = CreateFolderState(null, "My Data", new LocalizedText("en", "My Data"),
+                root_ = CreateFolderState(null, "My Data", new LocalizedText("en", "My Data"),
                     new LocalizedText("en", "Root folder of the Sample Server. All nodes must be placed under this root."));
 
                 try
                 {
                     #region Static
                     ResetRandomGenerator(1);
-                    var staticFolder = CreateFolderState(root_, "Static", "Static", "A folder with a sample static variable.");
+                    FolderState staticFolder = CreateFolderState(root_, "Static", "Static", "A folder with a sample static variable.");
                     const string scalarStatic = "Static_";
                     CreateBaseDataVariableState(staticFolder, scalarStatic + "String", "String", null, Opc.Ua.DataTypeIds.String, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     #endregion
 
                     #region Simulation
-                    var simulationFolder = CreateFolderState(root_, "Simulation", "Simulation", "A folder with simulated variables.");
+                    FolderState simulationFolder = CreateFolderState(root_, "Simulation", "Simulation", "A folder with simulated variables.");
                     const string simulation = "Simulation_";
 
-                    var simulatedVariable = CreateDynamicVariable(simulationFolder, simulation + "Double", "Double", "A simulated variable of type Double. If Enabled is true this value changes based on the defined Interval.", Opc.Ua.DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState simulatedVariable = CreateDynamicVariable(simulationFolder, simulation + "Double", "Double", "A simulated variable of type Double. If Enabled is true this value changes based on the defined Interval.", Opc.Ua.DataTypeIds.Double, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
 
-                    var intervalVariable = CreateBaseDataVariableState(simulationFolder, simulation + "Interval", "Interval", "The Interval used for changing the simulated values.", Opc.Ua.DataTypeIds.UInt16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, simulationInterval_);
+                    BaseDataVariableState intervalVariable = CreateBaseDataVariableState(simulationFolder, simulation + "Interval", "Interval", "The Interval used for changing the simulated values.", Opc.Ua.DataTypeIds.UInt16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, simulationInterval_);
                     intervalVariable.OnSimpleWriteValue = OnWriteInterval;
 
-                    var enabledVariable = CreateBaseDataVariableState(simulationFolder, simulation + "Enabled", "Enabled", "Specifies whether the simulation is enabled (true) or disabled (false).", Opc.Ua.DataTypeIds.Boolean, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, simulationEnabled_);
+                    BaseDataVariableState enabledVariable = CreateBaseDataVariableState(simulationFolder, simulation + "Enabled", "Enabled", "Specifies whether the simulation is enabled (true) or disabled (false).", Opc.Ua.DataTypeIds.Boolean, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, simulationEnabled_);
                     enabledVariable.OnSimpleWriteValue = OnWriteEnabled;
                     #endregion
 
                     #region Devices
-                    var devices = CreateFolderState(root_, "Devices", "Devices", null);
+                    FolderState devices = CreateFolderState(root_, "Devices", "Devices", null);
                     var symbolicName = $"Controler #1";
                     var displayName = symbolicName;
                     var controller = new GenericControllerState(devices);
@@ -223,7 +223,7 @@ namespace SampleCompany.NodeManagers.SampleDataTypes
                     #endregion
 
                     #region Plant
-                    var plantFolder = CreateFolderState(root_, "Plant", "Plant", null);
+                    FolderState plantFolder = CreateFolderState(root_, "Plant", "Plant", null);
 
                     // Create an instance for machine 1
                     symbolicName = $"Machine #1";
@@ -233,8 +233,7 @@ namespace SampleCompany.NodeManagers.SampleDataTypes
                     nodeId = new NodeId(symbolicName, plantFolder.NodeId.NamespaceIndex);
                     machine1_.Create(SystemContext, nodeId, symbolicName, displayName, true);
                     // Initialize the property value of MachineData
-                    machine1_.MachineData.Value = new MachineDataType
-                    {
+                    machine1_.MachineData.Value = new MachineDataType {
                         MachineName = displayName,
                         Manufacturer = "SampleCompany",
                         SerialNumber = "SN 1079",
@@ -258,8 +257,7 @@ namespace SampleCompany.NodeManagers.SampleDataTypes
                         null,
                         true);
                     // Initialize the property value of MachineData
-                    machine2_.MachineData.Value = new MachineDataType
-                    {
+                    machine2_.MachineData.Value = new MachineDataType {
                         MachineName = displayName,
                         Manufacturer = "Unknown",
                         SerialNumber = "SN 1312",
@@ -371,7 +369,7 @@ namespace SampleCompany.NodeManagers.SampleDataTypes
         /// </summary>
         private BaseDataVariableState CreateDynamicVariable(NodeState parent, string path, string name, string description, NodeId dataType, int valueRank, byte accessLevel, object initialValue)
         {
-            var variable = CreateBaseDataVariableState(parent, path, name, description, dataType, valueRank, accessLevel, initialValue);
+            BaseDataVariableState variable = CreateBaseDataVariableState(parent, path, name, description, dataType, valueRank, accessLevel, initialValue);
             dynamicNodes_.Add(variable);
             return variable;
         }
@@ -382,8 +380,8 @@ namespace SampleCompany.NodeManagers.SampleDataTypes
             {
                 lock (Lock)
                 {
-                    var timeStamp = DateTime.UtcNow;
-                    foreach (var variable in dynamicNodes_)
+                    DateTime timeStamp = DateTime.UtcNow;
+                    foreach (BaseDataVariableState variable in dynamicNodes_)
                     {
                         variable.Value = GetNewValue(variable);
                         variable.Timestamp = timeStamp;

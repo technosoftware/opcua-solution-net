@@ -72,53 +72,72 @@ namespace Technosoftware.UaServer.Configuration
 
             if (passiveNode != null)
             {
-                var typeId = passiveNode.TypeDefinitionId;
+                NodeId typeId = passiveNode.TypeDefinitionId;
                 if (IsNodeIdInNamespace(typeId) && typeId.IdType == IdType.Numeric)
                 {
                     switch ((uint)typeId.Identifier)
                     {
 
                         case ObjectTypes.ServerConfigurationType:
+                        {
+                            var activeNode = new ServerConfigurationState(passiveNode.Parent);
+                            activeNode.Create(context, passiveNode);
+
+                            serverConfigurationNode_ = activeNode;
+
+                            // replace the node in the parent.
+                            if (passiveNode.Parent != null)
                             {
-                                var activeNode = new ServerConfigurationState(passiveNode.Parent);
-                                activeNode.Create(context, passiveNode);
-
-                                serverConfigurationNode_ = activeNode;
-
-                                // replace the node in the parent.
-                                if (passiveNode.Parent != null)
-                                {
-                                    passiveNode.Parent.ReplaceChild(context, activeNode);
-                                }
-                                else
-                                {
-                                    var serverNode = FindNodeInAddressSpace(ObjectIds.Server);
-                                    serverNode?.ReplaceChild(context, activeNode);
-                                }
-                                // remove the reference to server node because it is set as parent
-                                activeNode.RemoveReference(ReferenceTypeIds.HasComponent, true, ObjectIds.Server);
-
-                                return activeNode;
+                                passiveNode.Parent.ReplaceChild(context, activeNode);
                             }
+                            else
+                            {
+                                NodeState serverNode = FindNodeInAddressSpace(ObjectIds.Server);
+                                serverNode?.ReplaceChild(context, activeNode);
+                            }
+                            // remove the reference to server node because it is set as parent
+                            activeNode.RemoveReference(ReferenceTypeIds.HasComponent, true, ObjectIds.Server);
+
+                            return activeNode;
+                        }
 
                         case ObjectTypes.CertificateGroupFolderType:
+                        {
+                            var activeNode = new CertificateGroupFolderState(passiveNode.Parent);
+                            activeNode.Create(context, passiveNode);
+
+                            // delete unsupported groups
+                            if (certificateGroups_.All(group => group.BrowseName != activeNode.DefaultHttpsGroup?.BrowseName))
                             {
-                                var activeNode = new CertificateGroupFolderState(passiveNode.Parent);
+                                activeNode.DefaultHttpsGroup = null;
+                            }
+                            if (certificateGroups_.All(group => group.BrowseName != activeNode.DefaultUserTokenGroup?.BrowseName))
+                            {
+                                activeNode.DefaultUserTokenGroup = null;
+                            }
+                            if (certificateGroups_.All(group => group.BrowseName != activeNode.DefaultApplicationGroup?.BrowseName))
+                            {
+                                activeNode.DefaultApplicationGroup = null;
+                            }
+
+                            // replace the node in the parent.
+                            if (passiveNode.Parent != null)
+                            {
+                                passiveNode.Parent.ReplaceChild(context, activeNode);
+                            }
+                            return activeNode;
+                        }
+
+                        case ObjectTypes.CertificateGroupType:
+                        {
+                            ServerCertificateGroup result = certificateGroups_.FirstOrDefault(group => group.NodeId == passiveNode.NodeId);
+                            if (result != null)
+                            {
+                                var activeNode = new CertificateGroupState(passiveNode.Parent);
                                 activeNode.Create(context, passiveNode);
 
-                                // delete unsupported groups
-                                if (certificateGroups_.All(group => group.BrowseName != activeNode.DefaultHttpsGroup?.BrowseName))
-                                {
-                                    activeNode.DefaultHttpsGroup = null;
-                                }
-                                if (certificateGroups_.All(group => group.BrowseName != activeNode.DefaultUserTokenGroup?.BrowseName))
-                                {
-                                    activeNode.DefaultUserTokenGroup = null;
-                                }
-                                if (certificateGroups_.All(group => group.BrowseName != activeNode.DefaultApplicationGroup?.BrowseName))
-                                {
-                                    activeNode.DefaultApplicationGroup = null;
-                                }
+                                result.NodeId = activeNode.NodeId;
+                                result.Node = activeNode;
 
                                 // replace the node in the parent.
                                 if (passiveNode.Parent != null)
@@ -127,27 +146,8 @@ namespace Technosoftware.UaServer.Configuration
                                 }
                                 return activeNode;
                             }
-
-                        case ObjectTypes.CertificateGroupType:
-                            {
-                                var result = certificateGroups_.FirstOrDefault(group => group.NodeId == passiveNode.NodeId);
-                                if (result != null)
-                                {
-                                    var activeNode = new CertificateGroupState(passiveNode.Parent);
-                                    activeNode.Create(context, passiveNode);
-
-                                    result.NodeId = activeNode.NodeId;
-                                    result.Node = activeNode;
-
-                                    // replace the node in the parent.
-                                    if (passiveNode.Parent != null)
-                                    {
-                                        passiveNode.Parent.ReplaceChild(context, activeNode);
-                                    }
-                                    return activeNode;
-                                }
-                            }
-                            break;
+                        }
+                        break;
                     }
                 }
             }
@@ -180,7 +180,7 @@ namespace Technosoftware.UaServer.Configuration
             serverConfigurationNode_.ClearChangeMasks(systemContext, true);
 
             // setup certificate group trust list handlers
-            foreach (var certGroup in certificateGroups_)
+            foreach (ServerCertificateGroup certGroup in certificateGroups_)
             {
                 certGroup.Node.CertificateTypes.Value =
                     certGroup.CertificateTypes;
@@ -219,7 +219,7 @@ namespace Technosoftware.UaServer.Configuration
                 return namespaceMetadataStates_[namespaceUri];
             }
 
-            var namespaceMetadataState = FindNamespaceMetadataState(namespaceUri);
+            NamespaceMetadataState namespaceMetadataState = FindNamespaceMetadataState(namespaceUri);
 
             lock (Lock)
             {
@@ -237,7 +237,7 @@ namespace Technosoftware.UaServer.Configuration
         /// <returns></returns>
         public NamespaceMetadataState CreateNamespaceMetadataState(string namespaceUri)
         {
-            var namespaceMetadataState = FindNamespaceMetadataState(namespaceUri);
+            NamespaceMetadataState namespaceMetadataState = FindNamespaceMetadataState(namespaceUri);
 
             if (namespaceMetadataState == null)
             {
@@ -324,7 +324,7 @@ namespace Technosoftware.UaServer.Configuration
                     throw new ServiceResultException(StatusCodes.BadNotSupported, "The private key format is not supported.");
                 }
 
-                var certificateGroup = VerifyGroupAndTypeId(certificateGroupId, certificateTypeId);
+                ServerCertificateGroup certificateGroup = VerifyGroupAndTypeId(certificateGroupId, certificateTypeId);
                 certificateGroup.UpdateCertificate = null;
 
                 var newIssuerCollection = new X509Certificate2Collection();
@@ -373,7 +373,7 @@ namespace Technosoftware.UaServer.Configuration
                         var certValidator = new CertificateValidator();
                         var issuerStore = new CertificateTrustList();
                         var issuerCollection = new CertificateIdentifierCollection();
-                        foreach (var issuerCert in newIssuerCollection)
+                        foreach (X509Certificate2 issuerCert in newIssuerCollection)
                         {
                             issuerCollection.Add(new CertificateIdentifier(issuerCert));
                         }
@@ -390,27 +390,27 @@ namespace Technosoftware.UaServer.Configuration
                 var updateCertificate = new UpdateCertificateData();
                 try
                 {
-                    var passwordProvider = configuration_.SecurityConfiguration.CertificatePasswordProvider;
+                    ICertificatePasswordProvider passwordProvider = configuration_.SecurityConfiguration.CertificatePasswordProvider;
                     switch (privateKeyFormat)
                     {
                         case null:
                         case "":
-                            {
-                                var certWithPrivateKey = certificateGroup.ApplicationCertificate.LoadPrivateKeyEx(passwordProvider).Result;
-                                updateCertificate.CertificateWithPrivateKey = CertificateFactory.CreateCertificateWithPrivateKey(newCert, certWithPrivateKey);
-                                break;
-                            }
+                        {
+                            X509Certificate2 certWithPrivateKey = certificateGroup.ApplicationCertificate.LoadPrivateKeyEx(passwordProvider).Result;
+                            updateCertificate.CertificateWithPrivateKey = CertificateFactory.CreateCertificateWithPrivateKey(newCert, certWithPrivateKey);
+                            break;
+                        }
                         case "PFX":
-                            {
-                                var certWithPrivateKey = X509Utils.CreateCertificateFromPKCS12(privateKey, passwordProvider?.GetPassword(certificateGroup.ApplicationCertificate));
-                                updateCertificate.CertificateWithPrivateKey = CertificateFactory.CreateCertificateWithPrivateKey(newCert, certWithPrivateKey);
-                                break;
-                            }
+                        {
+                            X509Certificate2 certWithPrivateKey = X509Utils.CreateCertificateFromPKCS12(privateKey, passwordProvider?.GetPassword(certificateGroup.ApplicationCertificate));
+                            updateCertificate.CertificateWithPrivateKey = CertificateFactory.CreateCertificateWithPrivateKey(newCert, certWithPrivateKey);
+                            break;
+                        }
                         case "PEM":
-                            {
-                                updateCertificate.CertificateWithPrivateKey = CertificateFactory.CreateCertificateWithPEMPrivateKey(newCert, privateKey, passwordProvider?.GetPassword(certificateGroup.ApplicationCertificate));
-                                break;
-                            }
+                        {
+                            updateCertificate.CertificateWithPrivateKey = CertificateFactory.CreateCertificateWithPEMPrivateKey(newCert, privateKey, passwordProvider?.GetPassword(certificateGroup.ApplicationCertificate));
+                            break;
+                        }
                     }
                     updateCertificate.IssuerCollection = newIssuerCollection;
                     updateCertificate.SessionId = context.SessionId;
@@ -432,7 +432,7 @@ namespace Technosoftware.UaServer.Configuration
                             Utils.LogCertificate(Utils.TraceMasks.Security, "Delete application certificate: ", certificateGroup.ApplicationCertificate.Certificate);
                             appStore.Delete(certificateGroup.ApplicationCertificate.Thumbprint).Wait();
                             Utils.LogCertificate(Utils.TraceMasks.Security, "Add new application certificate: ", updateCertificate.CertificateWithPrivateKey);
-                            var passwordProvider = configuration_.SecurityConfiguration.CertificatePasswordProvider;
+                            ICertificatePasswordProvider passwordProvider = configuration_.SecurityConfiguration.CertificatePasswordProvider;
                             appStore.Add(updateCertificate.CertificateWithPrivateKey, passwordProvider?.GetPassword(certificateGroup.ApplicationCertificate)).Wait();
                             // keep only track of cert without private key
                             var certOnly = new X509Certificate2(updateCertificate.CertificateWithPrivateKey.RawData);
@@ -441,7 +441,7 @@ namespace Technosoftware.UaServer.Configuration
                         }
                         using (ICertificateStore issuerStore = CertificateStoreIdentifier.OpenStore(certificateGroup.IssuerStorePath))
                         {
-                            foreach (var issuer in updateCertificate.IssuerCollection)
+                            foreach (X509Certificate2 issuer in updateCertificate.IssuerCollection)
                             {
                                 try
                                 {
@@ -489,7 +489,7 @@ namespace Technosoftware.UaServer.Configuration
         {
             HasApplicationSecureAdminAccess(context);
 
-            var certificateGroup = VerifyGroupAndTypeId(certificateGroupId, certificateTypeId);
+            ServerCertificateGroup certificateGroup = VerifyGroupAndTypeId(certificateGroupId, certificateTypeId);
 
             if (!String.IsNullOrEmpty(subjectName))
             {
@@ -499,8 +499,8 @@ namespace Technosoftware.UaServer.Configuration
             // TODO: implement regeneratePrivateKey
             // TODO: use nonce for generating the private key
 
-            var passwordProvider = configuration_.SecurityConfiguration.CertificatePasswordProvider;
-            var certWithPrivateKey = certificateGroup.ApplicationCertificate.LoadPrivateKeyEx(passwordProvider).Result;
+            ICertificatePasswordProvider passwordProvider = configuration_.SecurityConfiguration.CertificatePasswordProvider;
+            X509Certificate2 certWithPrivateKey = certificateGroup.ApplicationCertificate.LoadPrivateKeyEx(passwordProvider).Result;
             Utils.LogCertificate(Utils.TraceMasks.Security, "Create signing request: ", certWithPrivateKey);
             certificateRequest = CertificateFactory.CreateSigningRequest(certWithPrivateKey, X509Utils.GetDomainsFromCertificate(certWithPrivateKey));
             return ServiceResult.Good;
@@ -516,11 +516,11 @@ namespace Technosoftware.UaServer.Configuration
 
             var disconnectSessions = false;
 
-            foreach (var certificateGroup in certificateGroups_)
+            foreach (ServerCertificateGroup certificateGroup in certificateGroups_)
             {
                 try
                 {
-                    var updateCertificate = certificateGroup.UpdateCertificate;
+                    UpdateCertificateData updateCertificate = certificateGroup.UpdateCertificate;
                     if (updateCertificate != null)
                     {
                         disconnectSessions = true;
@@ -538,11 +538,11 @@ namespace Technosoftware.UaServer.Configuration
             {
                 Task.Run(async () => {
                     Utils.LogInfo((int)Utils.TraceMasks.Security, "Apply Changes for application certificate update.");
-                        // give the client some time to receive the response
-                        // before the certificate update may disconnect all sessions
-                        await Task.Delay(1000).ConfigureAwait(false);
-                        await configuration_.CertificateValidator.UpdateCertificate(configuration_.SecurityConfiguration).ConfigureAwait(false);
-                    }
+                    // give the client some time to receive the response
+                    // before the certificate update may disconnect all sessions
+                    await Task.Delay(1000).ConfigureAwait(false);
+                    await configuration_.CertificateValidator.UpdateCertificate(configuration_.SecurityConfiguration).ConfigureAwait(false);
+                }
                 );
             }
 
@@ -557,11 +557,11 @@ namespace Technosoftware.UaServer.Configuration
         {
             HasApplicationSecureAdminAccess(context);
 
-            using (var store = CertificateStoreIdentifier.OpenStore(rejectedStorePath_))
+            using (ICertificateStore store = CertificateStoreIdentifier.OpenStore(rejectedStorePath_))
             {
-                var collection = store.Enumerate().Result;
+                X509Certificate2Collection collection = store.Enumerate().Result;
                 var rawList = new List<byte[]>();
-                foreach (var cert in collection)
+                foreach (X509Certificate2 cert in collection)
                 {
                     rawList.Add(cert.RawData);
                 }
@@ -588,7 +588,7 @@ namespace Technosoftware.UaServer.Configuration
                 certificateGroupId = ObjectIds.ServerConfiguration_CertificateGroups_DefaultApplicationGroup;
             }
 
-            var certificateGroup = certificateGroups_.FirstOrDefault(group => Utils.IsEqual(group.NodeId, certificateGroupId));
+            ServerCertificateGroup certificateGroup = certificateGroups_.FirstOrDefault(group => Utils.IsEqual(group.NodeId, certificateGroupId));
             if (certificateGroup == null)
             {
                 throw new ServiceResultException(StatusCodes.BadInvalidArgument, "Certificate group invalid.");
@@ -624,7 +624,7 @@ namespace Technosoftware.UaServer.Configuration
                 IList<BaseInstanceState> serverNamespacesChildren = new List<BaseInstanceState>();
                 serverNamespacesNode.GetChildren(SystemContext, serverNamespacesChildren);
 
-                foreach (var namespacesReference in serverNamespacesChildren)
+                foreach (BaseInstanceState namespacesReference in serverNamespacesChildren)
                 {
                     // Find NamespaceMetadata node of NamespaceUri in Namespaces children
                     var namespaceMetadata = namespacesReference as NamespaceMetadataState;
@@ -647,7 +647,7 @@ namespace Technosoftware.UaServer.Configuration
                 IList<IReference> serverNamespacesReferencs = new List<IReference>();
                 serverNamespacesNode.GetReferences(SystemContext, serverNamespacesReferencs);
 
-                foreach (var serverNamespacesReference in serverNamespacesReferencs)
+                foreach (IReference serverNamespacesReference in serverNamespacesReferencs)
                 {
                     if (serverNamespacesReference.IsInverse == false)
                     {
@@ -720,10 +720,10 @@ namespace Technosoftware.UaServer.Configuration
         }
 
         private ServerConfigurationState serverConfigurationNode_;
-        private ApplicationConfiguration configuration_;
-        private IList<ServerCertificateGroup> certificateGroups_;
+        private readonly ApplicationConfiguration configuration_;
+        private readonly IList<ServerCertificateGroup> certificateGroups_;
         private readonly string rejectedStorePath_;
-        private Dictionary<string, NamespaceMetadataState> namespaceMetadataStates_ = new Dictionary<string, NamespaceMetadataState>();
+        private readonly Dictionary<string, NamespaceMetadataState> namespaceMetadataStates_ = new Dictionary<string, NamespaceMetadataState>();
         #endregion
     }
 }

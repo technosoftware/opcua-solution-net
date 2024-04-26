@@ -15,7 +15,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
+
 using NUnit.Framework;
+using Assert = NUnit.Framework.Legacy.ClassicAssert;
+
 using Opc.Ua.Security.Certificates;
 
 using Opc.Ua;

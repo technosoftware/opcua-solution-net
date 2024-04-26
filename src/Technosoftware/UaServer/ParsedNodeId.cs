@@ -74,7 +74,7 @@ namespace Technosoftware.UaServer
                 return null;
             }
 
-            var parsedNodeId = new ParsedNodeId {NamespaceIndex = nodeId.NamespaceIndex, RootType = 0};
+            var parsedNodeId = new ParsedNodeId { NamespaceIndex = nodeId.NamespaceIndex, RootType = 0 };
 
             // extract the type of identifier.
             var start = 0;
@@ -99,7 +99,7 @@ namespace Technosoftware.UaServer
             // extract any component path.
             var buffer = new StringBuilder();
 
-            var index = start+1;
+            var index = start + 1;
             var end = identifier.Length;
 
             var escaped = false;
@@ -143,7 +143,7 @@ namespace Technosoftware.UaServer
         /// </summary>
         public static NodeId Construct(int rootType, string rootId, ushort namespaceIndex, params string[] componentNames)
         {
-            var pnd = new ParsedNodeId {RootType = rootType, RootId = rootId, NamespaceIndex = namespaceIndex};
+            var pnd = new ParsedNodeId { RootType = rootType, RootId = rootId, NamespaceIndex = namespaceIndex };
 
             if (componentNames != null)
             {

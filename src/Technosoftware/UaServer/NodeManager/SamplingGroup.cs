@@ -35,26 +35,26 @@ namespace Technosoftware.UaServer.NodeManager
         /// Creates a new instance of a sampling group.
         /// </summary>
         public SamplingGroup(
-            IUaServerData         server,
-            IUaBaseNodeManager            nodeManager,
+            IUaServerData server,
+            IUaBaseNodeManager nodeManager,
             List<SamplingRateGroup> samplingRates,
-            UaServerOperationContext        context,
-            double                  samplingInterval)
+            UaServerOperationContext context,
+            double samplingInterval)
         {
-            if (server == null)        throw new ArgumentNullException(nameof(server));
-            if (nodeManager == null)   throw new ArgumentNullException(nameof(nodeManager));
+            if (server == null) throw new ArgumentNullException(nameof(server));
+            if (nodeManager == null) throw new ArgumentNullException(nameof(nodeManager));
             if (samplingRates == null) throw new ArgumentNullException(nameof(samplingRates));
 
-            server_           = server;
-            nodeManager_      = nodeManager;
-            samplingRates_    = samplingRates;
-            session_          = context.Session;
-            diagnosticsMask_  = (DiagnosticsMasks)context.DiagnosticsMask & DiagnosticsMasks.OperationAll;
+            server_ = server;
+            nodeManager_ = nodeManager;
+            samplingRates_ = samplingRates;
+            session_ = context.Session;
+            diagnosticsMask_ = (DiagnosticsMasks)context.DiagnosticsMask & DiagnosticsMasks.OperationAll;
             samplingInterval_ = AdjustSamplingInterval(samplingInterval);
 
-            itemsToAdd_    = new List<IUaSampledDataChangeMonitoredItem>();
+            itemsToAdd_ = new List<IUaSampledDataChangeMonitoredItem>();
             itemsToRemove_ = new List<IUaSampledDataChangeMonitoredItem>();
-            items_         = new Dictionary<uint, IUaSampledDataChangeMonitoredItem>();
+            items_ = new Dictionary<uint, IUaSampledDataChangeMonitoredItem>();
 
             // create a event to signal shutdown.
             shutdownEvent_ = new ManualResetEvent(true);
@@ -96,8 +96,7 @@ namespace Technosoftware.UaServer.NodeManager
             {
                 shutdownEvent_.Reset();
 
-                Task.Run(() =>
-                {
+                Task.Run(() => {
                     SampleMonitoredItems(samplingInterval_);
                 });
             }
@@ -202,12 +201,12 @@ namespace Technosoftware.UaServer.NodeManager
 
                 for (var ii = 0; ii < itemsToAdd_.Count; ii++)
                 {
-                    var monitoredItem = itemsToAdd_[ii];
+                    IUaSampledDataChangeMonitoredItem monitoredItem = itemsToAdd_[ii];
 
                     if (!items_.ContainsKey(monitoredItem.Id))
                     {
                         items_.Add(monitoredItem.Id, monitoredItem);
-                        
+
                         if (monitoredItem.MonitoringMode != MonitoringMode.Disabled)
                         {
                             itemsToSample.Add(monitoredItem);
@@ -295,7 +294,7 @@ namespace Technosoftware.UaServer.NodeManager
         /// </summary>
         private double AdjustSamplingInterval(double samplingInterval)
         {
-            foreach (var samplingRate in samplingRates_)
+            foreach (SamplingRateGroup samplingRate in samplingRates_)
             {
                 // groups are ordered by start rate.
                 if (samplingInterval <= samplingRate.Start)
@@ -308,7 +307,7 @@ namespace Technosoftware.UaServer.NodeManager
 
                 if (samplingRate.Increment > 0)
                 {
-                    maxSamplingRate += samplingRate.Increment*samplingRate.Count;
+                    maxSamplingRate += samplingRate.Increment * samplingRate.Count;
                 }
 
                 if (samplingInterval > maxSamplingRate)
@@ -348,7 +347,7 @@ namespace Technosoftware.UaServer.NodeManager
 
                 while (server_.IsRunning)
                 {
-                    var start = DateTime.UtcNow;
+                    DateTime start = DateTime.UtcNow;
 
                     // wait till next sample.
                     if (shutdownEvent_.WaitOne(timeToWait))
@@ -362,11 +361,11 @@ namespace Technosoftware.UaServer.NodeManager
                     lock (lock_)
                     {
                         uint disabledItemCount = 0;
-                        var enumerator = items_.GetEnumerator();
+                        Dictionary<uint, IUaSampledDataChangeMonitoredItem>.Enumerator enumerator = items_.GetEnumerator();
 
                         while (enumerator.MoveNext())
                         {
-                            var monitoredItem = enumerator.Current.Value;
+                            IUaSampledDataChangeMonitoredItem monitoredItem = enumerator.Current.Value;
 
                             if (monitoredItem.MonitoringMode == MonitoringMode.Disabled)
                             {
@@ -392,7 +391,7 @@ namespace Technosoftware.UaServer.NodeManager
 
                     if (delay > sleepCycle)
                     {
-                        timeToWait = 2*sleepCycle - delay;
+                        timeToWait = 2 * sleepCycle - delay;
 
                         if (timeToWait < 0)
                         {
@@ -429,7 +428,7 @@ namespace Technosoftware.UaServer.NodeManager
                     // allocate space for results.
                     for (var ii = 0; ii < items.Count; ii++)
                     {
-                        var readValueId = items[ii].GetReadValueId();
+                        ReadValueId readValueId = items[ii].GetReadValueId();
                         readValueId.Processed = false;
                         itemsToRead.Add(readValueId);
 
@@ -468,16 +467,16 @@ namespace Technosoftware.UaServer.NodeManager
 
         #region Private Fields
         private readonly object lock_ = new object();
-        private IUaServerData server_;
-        private IUaBaseNodeManager nodeManager_;
-        private Sessions.Session session_;
-        private DiagnosticsMasks diagnosticsMask_;
-        private double samplingInterval_;
-        private List<IUaSampledDataChangeMonitoredItem> itemsToAdd_;
-        private List<IUaSampledDataChangeMonitoredItem> itemsToRemove_;
-        private Dictionary<uint, IUaSampledDataChangeMonitoredItem> items_;
-        private ManualResetEvent shutdownEvent_;
-        private List<SamplingRateGroup> samplingRates_;
+        private readonly IUaServerData server_;
+        private readonly IUaBaseNodeManager nodeManager_;
+        private readonly Sessions.Session session_;
+        private readonly DiagnosticsMasks diagnosticsMask_;
+        private readonly double samplingInterval_;
+        private readonly List<IUaSampledDataChangeMonitoredItem> itemsToAdd_;
+        private readonly List<IUaSampledDataChangeMonitoredItem> itemsToRemove_;
+        private readonly Dictionary<uint, IUaSampledDataChangeMonitoredItem> items_;
+        private readonly ManualResetEvent shutdownEvent_;
+        private readonly List<SamplingRateGroup> samplingRates_;
         #endregion
     }
 }

@@ -205,7 +205,7 @@ namespace Technosoftware.UaPubSub.Encoding
                 // check also the field names from reader, if any extra field names then the payload is not matching 
                 foreach (string key in payload.Keys)
                 {
-                    var field = dataSetReader.DataSetMetaData.Fields.FirstOrDefault(f => f.Name == key);
+                    FieldMetaData field = dataSetReader.DataSetMetaData.Fields.FirstOrDefault(f => f.Name == key);
                     if (field == null)
                     {
                         // the field from payload was not found in dataSetReader therefore the payload is not suitable to be decoded
@@ -416,7 +416,7 @@ namespace Technosoftware.UaPubSub.Encoding
                 jsonEncoder.PushStructure(kFieldPayload);
             }
 
-            foreach (var field in DataSet.Fields)
+            foreach (Field field in DataSet.Fields)
             {
                 if (field != null)
                 {

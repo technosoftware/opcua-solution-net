@@ -86,7 +86,7 @@ namespace Technosoftware.UaServer.Sessions
                     sessions_.Clear();
                 }
 
-                foreach (var session in sessions)
+                foreach (Session session in sessions)
                 {
                     Utils.SilentDispose(session);
                 }
@@ -124,7 +124,7 @@ namespace Technosoftware.UaServer.Sessions
                 shutdownEvent_.Set();
 
                 // dispose of session objects.
-                foreach (var session in sessions_.Values)
+                foreach (Session session in sessions_.Values)
                 {
                     session.Dispose();
                 }
@@ -167,7 +167,7 @@ namespace Technosoftware.UaServer.Sessions
                 // check for same Nonce in another session
                 if (clientNonce != null)
                 {
-                    foreach (var sessionIterator in sessions_.Values)
+                    foreach (Session sessionIterator in sessions_.Values)
                     {
                         if (Utils.CompareNonce(sessionIterator.ClientNonce, clientNonce))
                         {
@@ -389,7 +389,7 @@ namespace Technosoftware.UaServer.Sessions
 
             lock (lock_)
             {
-                foreach (var current in sessions_)
+                foreach (KeyValuePair<NodeId, Session> current in sessions_)
                 {
                     if (current.Value.Id == sessionId)
                     {
@@ -444,7 +444,7 @@ namespace Technosoftware.UaServer.Sessions
                     // find session.
                     if (!sessions_.TryGetValue(requestHeader.AuthenticationToken, out session))
                     {
-                        var handler = ValidateSessionLessRequestEventHandler;
+                        EventHandler<ValidateSessionLessRequestEventArgs> handler = ValidateSessionLessRequestEventHandler;
 
                         if (handler != null)
                         {
@@ -616,18 +616,18 @@ namespace Technosoftware.UaServer.Sessions
 
         #region Private Fields
         private readonly object lock_ = new object();
-        private IUaServerData server_;
-        private Dictionary<NodeId, Session> sessions_;
+        private readonly IUaServerData server_;
+        private readonly Dictionary<NodeId, Session> sessions_;
         private long lastSessionId_;
-        private ManualResetEvent shutdownEvent_;
+        private readonly ManualResetEvent shutdownEvent_;
 
-        private int minSessionTimeout_;
-        private int maxSessionTimeout_;
-        private int maxSessionCount_;
-        private int maxRequestAge_;
-        private int maxBrowseContinuationPoints_;
-        private int maxHistoryContinuationPoints_;
-        private int minNonceLength_;
+        private readonly int minSessionTimeout_;
+        private readonly int maxSessionTimeout_;
+        private readonly int maxSessionCount_;
+        private readonly int maxRequestAge_;
+        private readonly int maxBrowseContinuationPoints_;
+        private readonly int maxHistoryContinuationPoints_;
+        private readonly int minNonceLength_;
 
         private readonly object eventLock_ = new object();
         private event EventHandler<SessionEventArgs> SessionCreatedEventhandler;

@@ -37,15 +37,15 @@ namespace Technosoftware.UaServer.Subscriptions
         /// </summary>
         public SessionPublishQueue(IUaServerData server, Sessions.Session session, int maxPublishRequests)
         {
-            if (server == null)  throw new ArgumentNullException(nameof(server));
+            if (server == null) throw new ArgumentNullException(nameof(server));
             if (session == null) throw new ArgumentNullException(nameof(session));
 
-            server_              = server;
-            session_             = session;
-            publishEvent_        = new ManualResetEvent(false);
-            queuedRequests_      = new LinkedList<QueuedRequest>();
+            server_ = server;
+            session_ = session;
+            publishEvent_ = new ManualResetEvent(false);
+            queuedRequests_ = new LinkedList<QueuedRequest>();
             queuedSubscriptions_ = new List<QueuedSubscription>();
-            maxPublishRequests_  = maxPublishRequests;
+            maxPublishRequests_ = maxPublishRequests;
         }
         #endregion
 
@@ -72,7 +72,7 @@ namespace Technosoftware.UaServer.Subscriptions
 
                     while (queuedRequests_.Count > 0)
                     {
-                        var request = queuedRequests_.First.Value;
+                        QueuedRequest request = queuedRequests_.First.Value;
                         queuedRequests_.RemoveFirst();
 
                         try
@@ -109,7 +109,7 @@ namespace Technosoftware.UaServer.Subscriptions
 
                 while (queuedRequests_.Count > 0)
                 {
-                    var request = queuedRequests_.First.Value;
+                    QueuedRequest request = queuedRequests_.First.Value;
                     queuedRequests_.RemoveFirst();
                     request.Error = StatusCodes.BadSessionClosed;
                     request.Set();
@@ -192,7 +192,7 @@ namespace Technosoftware.UaServer.Subscriptions
                 {
                     while (queuedRequests_.Count > 0)
                     {
-                        var request = queuedRequests_.First.Value;
+                        QueuedRequest request = queuedRequests_.First.Value;
                         request.Error = StatusCodes.BadNoSubscription;
                         request.Set();
                         queuedRequests_.RemoveFirst();
@@ -226,10 +226,10 @@ namespace Technosoftware.UaServer.Subscriptions
         /// Processes acknowledgements for previously published messages.
         /// </summary>
         public void Acknowledge(
-            UaServerOperationContext                      context,
+            UaServerOperationContext context,
             SubscriptionAcknowledgementCollection subscriptionAcknowledgements,
-            out StatusCodeCollection              acknowledgeResults,
-            out DiagnosticInfoCollection          acknowledgeDiagnosticInfos)
+            out StatusCodeCollection acknowledgeResults,
+            out DiagnosticInfoCollection acknowledgeDiagnosticInfos)
         {
             if (context == null) throw new ArgumentNullException(nameof(context));
             if (subscriptionAcknowledgements == null) throw new ArgumentNullException(nameof(subscriptionAcknowledgements));
@@ -242,17 +242,17 @@ namespace Technosoftware.UaServer.Subscriptions
 
                 for (var ii = 0; ii < subscriptionAcknowledgements.Count; ii++)
                 {
-                    var acknowledgement = subscriptionAcknowledgements[ii];
+                    SubscriptionAcknowledgement acknowledgement = subscriptionAcknowledgements[ii];
 
                     var found = false;
 
                     for (var jj = 0; jj < queuedSubscriptions_.Count; jj++)
                     {
-                        var subscription = queuedSubscriptions_[jj];
+                        QueuedSubscription subscription = queuedSubscriptions_[jj];
 
                         if (subscription.Subscription.Id == acknowledgement.SubscriptionId)
                         {
-                            var result = subscription.Subscription.Acknowledge(context, acknowledgement.SequenceNumber);
+                            ServiceResult result = subscription.Subscription.Acknowledge(context, acknowledgement.SequenceNumber);
 
                             if (ServiceResult.IsGood(result))
                             {
@@ -269,7 +269,7 @@ namespace Technosoftware.UaServer.Subscriptions
 
                                 if ((context.DiagnosticsMask & DiagnosticsMasks.OperationAll) != 0)
                                 {
-                                    var diagnosticInfo = UaServerUtils.CreateDiagnosticInfo(server_, context, result);
+                                    DiagnosticInfo diagnosticInfo = UaServerUtils.CreateDiagnosticInfo(server_, context, result);
                                     acknowledgeDiagnosticInfos.Add(diagnosticInfo);
                                     diagnosticsExist = true;
                                 }
@@ -287,7 +287,7 @@ namespace Technosoftware.UaServer.Subscriptions
 
                         if ((context.DiagnosticsMask & DiagnosticsMasks.OperationAll) != 0)
                         {
-                            var diagnosticInfo = UaServerUtils.CreateDiagnosticInfo(server_, context, result);
+                            DiagnosticInfo diagnosticInfo = UaServerUtils.CreateDiagnosticInfo(server_, context, result);
                             acknowledgeDiagnosticInfos.Add(diagnosticInfo);
                             diagnosticsExist = true;
                         }
@@ -324,7 +324,7 @@ namespace Technosoftware.UaServer.Subscriptions
 
                 for (var ii = 0; ii < queuedSubscriptions_.Count; ii++)
                 {
-                    var subscription = queuedSubscriptions_[ii];
+                    QueuedSubscription subscription = queuedSubscriptions_[ii];
 
                     if (subscription.ReadyToPublish && !subscription.Publishing)
                     {
@@ -336,12 +336,12 @@ namespace Technosoftware.UaServer.Subscriptions
                 if (subscriptions.Count > 0)
                 {
                     byte maxPriority = 0;
-                    var earliestTimestamp = DateTime.MaxValue;
+                    DateTime earliestTimestamp = DateTime.MaxValue;
                     QueuedSubscription subscriptionToPublish = null;
 
                     for (var ii = 0; ii < subscriptions.Count; ii++)
                     {
-                        var subscription = subscriptions[ii];
+                        QueuedSubscription subscription = subscriptions[ii];
                         var priority = subscription.Subscription.Priority;
                         if (priority > maxPriority)
                         {
@@ -376,12 +376,12 @@ namespace Technosoftware.UaServer.Subscriptions
                 // queue request because there is nothing waiting.
                 if (subscriptions.Count == 0)
                 {
-                    var node = queuedRequests_.First;
+                    LinkedListNode<QueuedRequest> node = queuedRequests_.First;
 
                     while (node != null)
                     {
-                        var next = node.Next;
-                        var queuedRequest = node.Value;
+                        LinkedListNode<QueuedRequest> next = node.Next;
+                        QueuedRequest queuedRequest = node.Value;
                         StatusCode requestStatus = StatusCodes.Good;
 
                         // check if expired.
@@ -453,7 +453,7 @@ namespace Technosoftware.UaServer.Subscriptions
             }
 
             // wait for subscription.
-            var error = request.Wait(Timeout.Infinite);
+            ServiceResult error = request.Wait(Timeout.Infinite);
 
             // check for error.
             if (ServiceResult.IsGood(error))
@@ -604,9 +604,9 @@ namespace Technosoftware.UaServer.Subscriptions
                 // check each available subscription.
                 for (var ii = 0; ii < queuedSubscriptions_.Count; ii++)
                 {
-                    var subscription = queuedSubscriptions_[ii];
+                    QueuedSubscription subscription = queuedSubscriptions_[ii];
 
-                    var state = subscription.Subscription.PublishTimerExpired();
+                    UaPublishingState state = subscription.Subscription.PublishTimerExpired();
 
                     // check for expired subscription.
                     if (state == UaPublishingState.Expired)
@@ -661,9 +661,9 @@ namespace Technosoftware.UaServer.Subscriptions
         private void AssignSubscriptionToRequest(QueuedSubscription subscription)
         {
             // find a request.
-            for (var node = queuedRequests_.First; node != null; node = node.Next)
+            for (LinkedListNode<QueuedRequest> node = queuedRequests_.First; node != null; node = node.Next)
             {
-                var request = node.Value;
+                QueuedRequest request = node.Value;
 
                 StatusCode error = StatusCodes.Good;
 
@@ -683,7 +683,7 @@ namespace Technosoftware.UaServer.Subscriptions
                 if (StatusCode.IsBad(error))
                 {
                     // remove request.
-                    var next = node.Next;
+                    LinkedListNode<QueuedRequest> next = node.Next;
                     queuedRequests_.Remove(node);
                     node = next;
 
@@ -884,7 +884,7 @@ namespace Technosoftware.UaServer.Subscriptions
 
                 var expiredRequests = 0;
 
-                for (var ii = queuedRequests_.First; ii != null; ii = ii.Next)
+                for (LinkedListNode<QueuedRequest> ii = queuedRequests_.First; ii != null; ii = ii.Next)
                 {
                     if (ii.Value.Deadline < DateTime.UtcNow)
                     {
@@ -901,12 +901,12 @@ namespace Technosoftware.UaServer.Subscriptions
 
         #region Private Fields
         private readonly object lock_ = new object();
-        private IUaServerData server_;
-        private Sessions.Session session_;
-        private ManualResetEvent publishEvent_;
-        private LinkedList<QueuedRequest> queuedRequests_;
+        private readonly IUaServerData server_;
+        private readonly Sessions.Session session_;
+        private readonly ManualResetEvent publishEvent_;
+        private readonly LinkedList<QueuedRequest> queuedRequests_;
         private List<QueuedSubscription> queuedSubscriptions_;
-        private int maxPublishRequests_;
+        private readonly int maxPublishRequests_;
         private bool subscriptionsWaiting_;
         #endregion
     }

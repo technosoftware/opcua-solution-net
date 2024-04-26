@@ -109,7 +109,7 @@ namespace Technosoftware.UaServer
 
             ValidateRequest(requestHeader);
 
-            lock (lock_)
+            lock (Lock)
             {
                 // parse the url provided by the client.
                 IList<BaseAddress> baseAddresses = BaseAddresses;
@@ -197,7 +197,7 @@ namespace Technosoftware.UaServer
 
             ValidateRequest(requestHeader);
 
-            lock (lock_)
+            lock (Lock)
             {
                 // filter by profile.
                 IList<BaseAddress> baseAddresses = FilterByProfile(profileUris, BaseAddresses);
@@ -449,7 +449,7 @@ namespace Technosoftware.UaServer
                     }
                 }
 
-                lock (lock_)
+                lock (Lock)
                 {
                     // return the application instance certificate for the server.
                     if (requireEncryption)
@@ -716,6 +716,9 @@ namespace Technosoftware.UaServer
                 {
                     return true;
                 }
+
+                default:
+                    break;
             }
 
             return false;
@@ -2201,7 +2204,7 @@ namespace Technosoftware.UaServer
         {
             get
             {
-                lock (lock_)
+                lock (Lock)
                 {
                     return genericServerData_ == null ? throw new ServiceResultException(StatusCodes.BadServerHalted) : (IUaServerData)genericServerData_;
                 }
@@ -2214,7 +2217,7 @@ namespace Technosoftware.UaServer
         /// <returns>Returns a ServerStatusDataType object</returns>
         public ServerStatusDataType GetStatus()
         {
-            lock (lock_)
+            lock (Lock)
             {
                 return genericServerData_ == null ? throw new ServiceResultException(StatusCodes.BadServerHalted) : genericServerData_.Status.Value;
             }
@@ -2435,7 +2438,7 @@ namespace Technosoftware.UaServer
         /// <summary>
         /// The synchronization object.
         /// </summary>
-        protected object Lock => lock_;
+        protected object Lock { get; } = new object();
 
         /// <summary>
         /// The state object associated with the server.
@@ -2482,7 +2485,7 @@ namespace Technosoftware.UaServer
         /// <param name="state">The state.</param>
         protected virtual void SetServerState(ServerState state)
         {
-            lock (lock_)
+            lock (Lock)
             {
                 if (ServiceResult.IsBad(ServerError))
                 {
@@ -2503,12 +2506,12 @@ namespace Technosoftware.UaServer
         /// <summary>
         /// Reports an error during initialization after the base server object has been started.
         /// </summary>
-        /// <param name="error">The error.</param>
-        protected virtual void SetServerError(ServiceResult error)
+        /// <param name="serviceResult">The error.</param>
+        protected virtual void SetServerError(ServiceResult serviceResult)
         {
-            lock (lock_)
+            lock (Lock)
             {
-                ServerError = error;
+                ServerError = serviceResult;
             }
         }
 
@@ -2667,7 +2670,7 @@ namespace Technosoftware.UaServer
         /// <param name="context">The operation context.</param>
         protected virtual void OnRequestComplete(UaServerOperationContext context)
         {
-            lock (lock_)
+            lock (Lock)
             {
                 if (genericServerData_ == null)
                 {
@@ -2692,7 +2695,7 @@ namespace Technosoftware.UaServer
                 ApplicationConfiguration configuration = await ApplicationConfiguration.Load(
                     new FileInfo(args.FilePath),
                     Configuration.ApplicationType,
-                    Configuration.GetType());
+                    Configuration.GetType()).ConfigureAwait(false);
 
                 OnUpdateConfiguration(configuration);
             }
@@ -2711,7 +2714,7 @@ namespace Technosoftware.UaServer
         /// </remarks>
         protected override void OnUpdateConfiguration(ApplicationConfiguration configuration)
         {
-            lock (lock_)
+            lock (Lock)
             {
                 // update security configuration.
                 configuration.SecurityConfiguration.Validate();
@@ -2740,7 +2743,7 @@ namespace Technosoftware.UaServer
         /// <param name="configuration">The configuration.</param>
         protected override void OnServerStarting(ApplicationConfiguration configuration)
         {
-            lock (lock_)
+            lock (Lock)
             {
                 base.OnServerStarting(configuration);
 
@@ -2859,7 +2862,7 @@ namespace Technosoftware.UaServer
         {
             base.StartApplication(configuration);
 
-            lock (lock_)
+            lock (Lock)
             {
                 try
                 {
@@ -3048,7 +3051,7 @@ namespace Technosoftware.UaServer
                     _ = RegisterWithDiscoveryServer();
                 }
 
-                lock (lock_)
+                lock (Lock)
                 {
                     if (genericServerData_ != null)
                     {
@@ -3309,7 +3312,6 @@ namespace Technosoftware.UaServer
         #endregion
 
         #region Private Fields
-        private readonly object lock_ = new object();
         private GenericServerData genericServerData_;
         private ConfigurationWatcher configurationWatcher_;
 

@@ -20,6 +20,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
 using NUnit.Framework;
+using Assert = NUnit.Framework.Legacy.ClassicAssert;
 
 using Opc.Ua;
 using Opc.Ua.Security.Certificates;

@@ -64,11 +64,11 @@ namespace Technosoftware.UaServer.Server
         /// <param name="certificateValidator">The certificate validator.</param>
         /// <param name="instanceCertificate">The instance certificate.</param>
         public GenericServerData(
-            ServerProperties                     serverDescription, 
-            ApplicationConfiguration             configuration,
-            IServiceMessageContext               messageContext,
-            CertificateValidator                 certificateValidator,
-            X509Certificate2                     instanceCertificate)
+            ServerProperties serverDescription,
+            ApplicationConfiguration configuration,
+            IServiceMessageContext messageContext,
+            CertificateValidator certificateValidator,
+            X509Certificate2 instanceCertificate)
         {
             serverDescription_ = serverDescription;
             configuration_ = configuration;
@@ -78,7 +78,7 @@ namespace Technosoftware.UaServer.Server
 
             foreach (var baseAddresses in configuration_.ServerConfiguration.BaseAddresses)
             {
-                var url = Utils.ParseUri(baseAddresses);
+                Uri url = Utils.ParseUri(baseAddresses);
 
                 if (url != null)
                 {
@@ -159,9 +159,9 @@ namespace Technosoftware.UaServer.Server
         /// <param name="resourceManager">The resource manager.</param>
         /// <param name="requestManager">The request manager.</param>
         public void CreateServerObject(
-            EventManager      eventManager,
-            ResourceManager   resourceManager, 
-            RequestManager    requestManager)
+            EventManager eventManager,
+            ResourceManager resourceManager,
+            RequestManager requestManager)
         {
             EventManager = eventManager;
             ResourceManager = resourceManager;
@@ -177,7 +177,7 @@ namespace Technosoftware.UaServer.Server
         /// <param name="sessionManager">The session manager.</param>
         /// <param name="subscriptionManager">The subscription manager.</param>
         public void SetSessionManager(
-            Sessions.SessionManager      sessionManager,
+            Sessions.SessionManager sessionManager,
             SubscriptionManager subscriptionManager)
         {
             SessionManager = sessionManager;
@@ -308,7 +308,7 @@ namespace Technosoftware.UaServer.Server
         /// Gets or sets the current state of the server.
         /// </summary>
         /// <value>The state of the current.</value>
-        public ServerState CurrentState 
+        public ServerState CurrentState
         {
             get
             {
@@ -331,10 +331,7 @@ namespace Technosoftware.UaServer.Server
         /// Returns the Server object node
         /// </summary>
         /// <value>The Server object node.</value>
-        public ServerObjectState ServerObject
-        {
-            get { return serverObject_; }
-        }
+        public ServerObjectState ServerObject { get; private set; }
 
         /// <summary>
         /// Used to synchronize access to the server diagnostics.
@@ -459,7 +456,7 @@ namespace Technosoftware.UaServer.Server
                 return;
             }
 
-            serverObject_.ReportEvent(context, e);
+            ServerObject.ReportEvent(context, e);
         }
 
         /// <summary>
@@ -486,7 +483,7 @@ namespace Technosoftware.UaServer.Server
 
         #region IUaAuditReportEvents Members
         /// <inheritdoc/>
-        public bool Auditing => auditing_;
+        public bool Auditing { get; private set; }
 
         /// <inheritdoc/>
         public ISystemContext DefaultAuditContext => DefaultSystemContext.Copy();
@@ -513,7 +510,7 @@ namespace Technosoftware.UaServer.Server
             lock (DiagnosticsNodeManager.Lock)
             {
                 // get the server object.
-                var serverObject = serverObject_ = (ServerObjectState)DiagnosticsNodeManager.FindPredefinedNode(
+                ServerObjectState serverObject = ServerObject = (ServerObjectState)DiagnosticsNodeManager.FindPredefinedNode(
                     ObjectIds.Server,
                     typeof(ServerObjectState));
 
@@ -530,8 +527,8 @@ namespace Technosoftware.UaServer.Server
                 serverObject.ServerCapabilities.MaxByteStringLength.Value = (uint)configuration_.TransportQuotas.MaxByteStringLength;
 
                 // Any operational limits Property that is provided shall have a non zero value.
-                var operationLimits = serverObject.ServerCapabilities.OperationLimits;
-                var configOperationLimits = configuration_.ServerConfiguration.OperationLimits;
+                OperationLimitsState operationLimits = serverObject.ServerCapabilities.OperationLimits;
+                OperationLimits configOperationLimits = configuration_.ServerConfiguration.OperationLimits;
                 if (configOperationLimits != null)
                 {
                     operationLimits.MaxNodesPerRead = SetPropertyValue(operationLimits.MaxNodesPerRead, configOperationLimits.MaxNodesPerRead);
@@ -652,11 +649,11 @@ namespace Technosoftware.UaServer.Server
                     DefaultSystemContext,
                     configuration_);
 
-                auditing_ = configuration_.ServerConfiguration.AuditingEnabled;
+                Auditing = configuration_.ServerConfiguration.AuditingEnabled;
                 PropertyState<bool> auditing = serverObject.Auditing;
                 auditing.OnSimpleWriteValue += OnWriteAuditing;
                 auditing.OnSimpleReadValue += OnReadAuditing;
-                auditing.Value = auditing_;
+                auditing.Value = Auditing;
                 auditing.RolePermissions = new RolePermissionTypeCollection {
                         new RolePermissionType {
                             RoleId = ObjectIds.WellKnownRole_AuthenticatedUser,
@@ -682,7 +679,7 @@ namespace Technosoftware.UaServer.Server
         {
             lock (DiagnosticsLock)
             {
-                var now = DateTime.UtcNow;
+                DateTime now = DateTime.UtcNow;
                 Status.Timestamp = now;
                 Status.Value.CurrentTime = now;
             }
@@ -748,7 +745,7 @@ namespace Technosoftware.UaServer.Server
             NodeState node,
             ref object value)
         {
-            auditing_ = Convert.ToBoolean(value, CultureInfo.InvariantCulture);
+            Auditing = Convert.ToBoolean(value, CultureInfo.InvariantCulture);
             return ServiceResult.Good;
         }
 
@@ -760,7 +757,7 @@ namespace Technosoftware.UaServer.Server
             NodeState node,
             ref object value)
         {
-            value = auditing_;
+            value = Auditing;
             return ServiceResult.Good;
         }
 
@@ -799,12 +796,9 @@ namespace Technosoftware.UaServer.Server
         #endregion
 
         #region Private Fields
-        private ServerProperties serverDescription_;
-        private ApplicationConfiguration configuration_;
-        private List<Uri> endpointAddresses_;
-
-        private ServerObjectState serverObject_;
-        private bool auditing_;
+        private readonly ServerProperties serverDescription_;
+        private readonly ApplicationConfiguration configuration_;
+        private readonly List<Uri> endpointAddresses_;
         #endregion
     }
 }

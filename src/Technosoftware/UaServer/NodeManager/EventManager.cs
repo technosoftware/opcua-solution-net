@@ -39,7 +39,7 @@ namespace Technosoftware.UaServer.NodeManager
             if (server == null) throw new ArgumentNullException(nameof(server));
 
             server_ = server;
-            monitoredItems_ = new Dictionary<uint,IUaEventMonitoredItem>();
+            monitoredItems_ = new Dictionary<uint, IUaEventMonitoredItem>();
             maxEventQueueSize_ = maxQueueSize;
         }
         #endregion
@@ -68,7 +68,7 @@ namespace Technosoftware.UaServer.NodeManager
                     monitoredItems_.Clear();
                 }
 
-                foreach (var monitoredItem in monitoredItems)
+                foreach (IUaEventMonitoredItem monitoredItem in monitoredItems)
                 {
                     Utils.SilentDispose(monitoredItem);
                 }
@@ -84,7 +84,7 @@ namespace Technosoftware.UaServer.NodeManager
         {
             if (e == null) throw new ArgumentNullException(nameof(e));
 
-            foreach (var monitoredItem in monitoredItems)
+            foreach (IUaEventMonitoredItem monitoredItem in monitoredItems)
             {
                 monitoredItem.QueueEvent(e);
             }
@@ -94,15 +94,15 @@ namespace Technosoftware.UaServer.NodeManager
         /// Creates a set of monitored items.
         /// </summary>
         public UaMonitoredItem CreateMonitoredItem(
-            UaServerOperationContext           context,
-            IUaBaseNodeManager               nodeManager,
-            object                     handle,
-            uint                       subscriptionId,
-            uint                       monitoredItemId,
-            TimestampsToReturn         timestampsToReturn,
-            double                     publishingInterval,
+            UaServerOperationContext context,
+            IUaBaseNodeManager nodeManager,
+            object handle,
+            uint subscriptionId,
+            uint monitoredItemId,
+            TimestampsToReturn timestampsToReturn,
+            double publishingInterval,
             MonitoredItemCreateRequest itemToCreate,
-            EventFilter                filter)
+            EventFilter filter)
         {
             lock (lock_)
             {
@@ -153,11 +153,11 @@ namespace Technosoftware.UaServer.NodeManager
         /// Modifies a monitored item.
         /// </summary>
         public void ModifyMonitoredItem(
-            UaServerOperationContext           context,
-            IUaEventMonitoredItem        monitoredItem,
-            TimestampsToReturn         timestampsToReturn,
+            UaServerOperationContext context,
+            IUaEventMonitoredItem monitoredItem,
+            TimestampsToReturn timestampsToReturn,
             MonitoredItemModifyRequest itemToModify,
-            EventFilter                filter)
+            EventFilter filter)
         {
             lock (lock_)
             {
@@ -214,9 +214,9 @@ namespace Technosoftware.UaServer.NodeManager
 
         #region Private Fields
         private readonly object lock_ = new object();
-        private IUaServerData server_;
-        private Dictionary<uint, IUaEventMonitoredItem> monitoredItems_;
-        private uint maxEventQueueSize_;
+        private readonly IUaServerData server_;
+        private readonly Dictionary<uint, IUaEventMonitoredItem> monitoredItems_;
+        private readonly uint maxEventQueueSize_;
         #endregion
     }
 }

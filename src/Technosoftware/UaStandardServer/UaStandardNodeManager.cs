@@ -58,7 +58,11 @@ namespace Technosoftware.UaStandardServer
         /// <returns>The new NodeId.</returns>
         public override NodeId Create(ISystemContext context, NodeState node)
         {
-            if (node == null) throw new ArgumentNullException(nameof(node));
+            if (node == null)
+            {
+                throw new ArgumentNullException(nameof(node));
+            }
+
             if (node is BaseInstanceState instance && instance.Parent != null)
             {
                 if (instance.Parent.NodeId.Identifier is string id)
@@ -138,8 +142,7 @@ namespace Technosoftware.UaStandardServer
                 userRolePermissions = new RolePermissionTypeCollection();
             }
 
-            var folderState = new FolderState(parent)
-            {
+            var folderState = new FolderState(parent) {
                 SymbolicName = displayName.ToString(),
                 ReferenceTypeId = ReferenceTypes.Organizes,
                 TypeDefinitionId = ObjectTypeIds.FolderType,
@@ -228,8 +231,7 @@ namespace Technosoftware.UaStandardServer
                 userRolePermissions = new RolePermissionTypeCollection();
             }
 
-            var baseObjectState = new BaseObjectState(parent)
-            {
+            var baseObjectState = new BaseObjectState(parent) {
                 SymbolicName = displayName.ToString(),
                 ReferenceTypeId = ReferenceTypes.Organizes,
                 TypeDefinitionId = ObjectTypeIds.BaseObjectType,
@@ -328,8 +330,7 @@ namespace Technosoftware.UaStandardServer
                 userRolePermissions = new RolePermissionTypeCollection();
             }
 
-            var propertyState = new PropertyState(parent)
-            {
+            var propertyState = new PropertyState(parent) {
                 SymbolicName = displayName.ToString(),
                 TypeDefinitionId = VariableTypeIds.PropertyType,
                 ReferenceTypeId = ReferenceTypeIds.HasProperty,
@@ -429,8 +430,7 @@ namespace Technosoftware.UaStandardServer
                 userRolePermissions = new RolePermissionTypeCollection();
             }
 
-            var viewState = new ViewState
-            {
+            var viewState = new ViewState {
                 SymbolicName = displayName.ToString(),
                 NodeId = new NodeId(browseName, NamespaceIndex),
                 BrowseName = new QualifiedName(browseName, NamespaceIndex),
@@ -445,7 +445,7 @@ namespace Technosoftware.UaStandardServer
 
             if (externalReferences != null)
             {
-                if (!externalReferences.TryGetValue(ObjectIds.ViewsFolder, out var references))
+                if (!externalReferences.TryGetValue(ObjectIds.ViewsFolder, out IList<IReference> references))
                 {
                     externalReferences[ObjectIds.ViewsFolder] = references = new List<IReference>();
                 }
@@ -532,8 +532,7 @@ namespace Technosoftware.UaStandardServer
                 userRolePermissions = new RolePermissionTypeCollection();
             }
 
-            var baseDataVariableTypeState = new BaseDataVariableState(parent)
-            {
+            var baseDataVariableTypeState = new BaseDataVariableState(parent) {
                 SymbolicName = displayName.ToString(),
                 ReferenceTypeId = ReferenceTypes.Organizes,
                 TypeDefinitionId = VariableTypeIds.BaseDataVariableType,
@@ -638,8 +637,7 @@ namespace Technosoftware.UaStandardServer
                 userRolePermissions = new RolePermissionTypeCollection();
             }
 
-            var baseDataVariableTypeState = new BaseDataVariableState(parent)
-            {
+            var baseDataVariableTypeState = new BaseDataVariableState(parent) {
                 SymbolicName = displayName.ToString(),
                 ReferenceTypeId = ReferenceTypes.Organizes,
                 TypeDefinitionId = VariableTypeIds.BaseDataVariableType,
@@ -744,8 +742,7 @@ namespace Technosoftware.UaStandardServer
                 userRolePermissions = new RolePermissionTypeCollection();
             }
 
-            var baseDataVariableTypeState = new BaseDataVariableState(parent)
-            {
+            var baseDataVariableTypeState = new BaseDataVariableState(parent) {
                 SymbolicName = displayName.ToString(),
                 ReferenceTypeId = ReferenceTypes.Organizes,
                 TypeDefinitionId = VariableTypeIds.BaseDataVariableType,
@@ -907,7 +904,7 @@ namespace Technosoftware.UaStandardServer
             variable.Historizing = false;
 
             variable.Value = initialValue ??
-                             Opc.Ua.TypeInfo.GetDefaultValue((uint)dataType, valueRank, ServerData.TypeTree);
+                             TypeInfo.GetDefaultValue((uint)dataType, valueRank, ServerData.TypeTree);
             variable.StatusCode = StatusCodes.Good;
             variable.Timestamp = DateTime.UtcNow;
 
@@ -918,6 +915,8 @@ namespace Technosoftware.UaStandardServer
                     break;
                 case ValueRanks.TwoDimensions:
                     variable.ArrayDimensions = new ReadOnlyList<uint>(new List<uint> { 0, 0 });
+                    break;
+                default:
                     break;
             }
 
@@ -966,7 +965,7 @@ namespace Technosoftware.UaStandardServer
         /// <param name="initialValue">The initial value. If null a default value is used as initial value.</param>
         /// <param name="euRange">
         ///     <para>
-        ///         The engineering unit range defines the value <see cref="Opc.Ua.Range" /> likely to be obtained in normal operation. It
+        ///         The engineering unit range defines the value <see cref="Range" /> likely to be obtained in normal operation. It
         ///         is intended for such use as automatically
         ///         scaling a bar graph display.
         ///     </para>
@@ -977,7 +976,7 @@ namespace Technosoftware.UaStandardServer
         /// </param>
         /// <param name="engineeringUnit">The optional engineering unit specifies the units for the item value</param>
         /// <param name="instrumentRange">
-        ///     The optional instrument range defines the value <see cref="Opc.Ua.Range" /> that can be returned by the
+        ///     The optional instrument range defines the value <see cref="Range" /> that can be returned by the
         ///     instrument.
         /// </param>
         /// <param name="writeMask">
@@ -1053,7 +1052,7 @@ namespace Technosoftware.UaStandardServer
         /// <param name="initialValue">The initial value. If null a default value is used as initial value.</param>
         /// <param name="euRange">
         ///     <para>
-        ///         The engineering unit range defines the value <see cref="Opc.Ua.Range" /> likely to be obtained in normal operation. It
+        ///         The engineering unit range defines the value <see cref="Range" /> likely to be obtained in normal operation. It
         ///         is intended for such use as automatically
         ///         scaling a bar graph display.
         ///     </para>
@@ -1064,7 +1063,7 @@ namespace Technosoftware.UaStandardServer
         /// </param>
         /// <param name="engineeringUnit">The optional engineering unit specifies the units for the item value</param>
         /// <param name="instrumentRange">
-        ///     The optional instrument range defines the value <see cref="Opc.Ua.Range" /> that can be returned by the
+        ///     The optional instrument range defines the value <see cref="Range" /> that can be returned by the
         ///     instrument.
         /// </param>
         /// <param name="writeMask">
@@ -1130,8 +1129,7 @@ namespace Technosoftware.UaStandardServer
                 userRolePermissions = new RolePermissionTypeCollection();
             }
 
-            var variable = new AnalogItemState(parent)
-            {
+            var variable = new AnalogItemState(parent) {
                 BrowseName = new QualifiedName(browseName, NamespaceIndex)
             };
 
@@ -1218,7 +1216,7 @@ namespace Technosoftware.UaStandardServer
             variable.EURange.AccessLevel = accessLevel;
             variable.EURange.UserAccessLevel = accessLevel;
 
-            variable.Value = initialValue ?? Opc.Ua.TypeInfo.GetDefaultValue(dataType, valueRank, ServerData.TypeTree);
+            variable.Value = initialValue ?? TypeInfo.GetDefaultValue(dataType, valueRank, ServerData.TypeTree);
 
             variable.StatusCode = StatusCodes.Good;
             variable.Timestamp = DateTime.UtcNow;
@@ -1451,20 +1449,13 @@ namespace Technosoftware.UaStandardServer
             variable.UserAccessLevel = accessLevel;
             variable.Historizing = false;
 
-            if (initialValue == null)
-            {
-                variable.Value = (uint)0;
-            }
-            else
-            {
-                variable.Value = initialValue;
-            }
+            variable.Value = initialValue ?? (uint)0;
 
             variable.StatusCode = StatusCodes.Good;
             variable.Timestamp = DateTime.UtcNow;
 
-            LocalizedText[] strings = new LocalizedText[values.Length];
-            for (int ii = 0; ii < strings.Length; ii++)
+            var strings = new LocalizedText[values.Length];
+            for (var ii = 0; ii < strings.Length; ii++)
             {
                 strings[ii] = values[ii];
             }
@@ -1569,7 +1560,7 @@ namespace Technosoftware.UaStandardServer
 
             variable.SymbolicName = displayName.ToString();
             variable.ReferenceTypeId = ReferenceTypes.Organizes;
-            variable.DataType = dataType == null ? DataTypeIds.UInt32 : dataType;
+            variable.DataType = dataType ?? DataTypeIds.UInt32;
             variable.ValueRank = ValueRanks.Scalar;
             variable.Description = description;
             variable.WriteMask = writeMask;
@@ -1580,14 +1571,7 @@ namespace Technosoftware.UaStandardServer
             variable.UserAccessLevel = accessLevel;
             variable.Historizing = false;
 
-            if (initialValue == null)
-            {
-                variable.Value = (uint)0;
-            }
-            else
-            {
-                variable.Value = initialValue;
-            }
+            variable.Value = initialValue ?? (uint)0;
 
             variable.StatusCode = StatusCodes.Good;
             variable.Timestamp = DateTime.UtcNow;
@@ -1597,8 +1581,8 @@ namespace Technosoftware.UaStandardServer
             // ValueAsText = the actual enumerated value
 
             // set the enumerated strings
-            LocalizedText[] strings = new LocalizedText[enumNames.Length];
-            for (int ii = 0; ii < strings.Length; ii++)
+            var strings = new LocalizedText[enumNames.Length];
+            for (var ii = 0; ii < strings.Length; ii++)
             {
                 strings[ii] = enumNames[ii];
             }
@@ -1609,8 +1593,7 @@ namespace Technosoftware.UaStandardServer
                 var values = new EnumValueType[enumNames.Length];
                 for (var ii = 0; ii < values.Length; ii++)
                 {
-                    values[ii] = new EnumValueType
-                    {
+                    values[ii] = new EnumValueType {
                         Value = ii,
                         Description = strings[ii],
                         DisplayName = strings[ii]
@@ -1650,8 +1633,7 @@ namespace Technosoftware.UaStandardServer
         protected MethodState CreateMethodState(NodeState parent, string path, string name,
             GenericMethodCalledEventHandler2 callingMethod = null)
         {
-            var method = new MethodState(parent)
-            {
+            var method = new MethodState(parent) {
                 SymbolicName = name,
                 ReferenceTypeId = ReferenceTypeIds.HasComponent,
                 NodeId = new NodeId(path, NamespaceIndex),
@@ -1693,8 +1675,7 @@ namespace Technosoftware.UaStandardServer
         /// <returns>The created argument</returns>
         protected Argument CreateArgument(string name, string description, BuiltInType dataType, int valueRank)
         {
-            var argument = new Argument
-                { Name = name, Description = description, DataType = (uint)dataType, ValueRank = valueRank };
+            var argument = new Argument { Name = name, Description = description, DataType = (uint)dataType, ValueRank = valueRank };
 
             return argument;
         }
@@ -1707,9 +1688,10 @@ namespace Technosoftware.UaStandardServer
         {
             if (parent != null)
             {
-                parent.InputArguments = new PropertyState<Argument[]>(parent);
-                parent.InputArguments.NodeId = new NodeId(parent.BrowseName.Name + "InArgs", NamespaceIndex);
-                parent.InputArguments.BrowseName = BrowseNames.InputArguments;
+                parent.InputArguments = new PropertyState<Argument[]>(parent) {
+                    NodeId = new NodeId(parent.BrowseName.Name + "InArgs", NamespaceIndex),
+                    BrowseName = BrowseNames.InputArguments
+                };
                 parent.InputArguments.DisplayName = parent.InputArguments.BrowseName.Name;
                 parent.InputArguments.TypeDefinitionId = VariableTypeIds.PropertyType;
                 parent.InputArguments.ReferenceTypeId = ReferenceTypeIds.HasProperty;
@@ -1731,9 +1713,10 @@ namespace Technosoftware.UaStandardServer
         {
             if (parent != null)
             {
-                parent.OutputArguments = new PropertyState<Argument[]>(parent);
-                parent.OutputArguments.NodeId = new NodeId(parent.BrowseName.Name + "OutArgs", NamespaceIndex);
-                parent.OutputArguments.BrowseName = BrowseNames.OutputArguments;
+                parent.OutputArguments = new PropertyState<Argument[]>(parent) {
+                    NodeId = new NodeId(parent.BrowseName.Name + "OutArgs", NamespaceIndex),
+                    BrowseName = BrowseNames.OutputArguments
+                };
                 parent.OutputArguments.DisplayName = parent.OutputArguments.BrowseName.Name;
                 parent.OutputArguments.TypeDefinitionId = VariableTypeIds.PropertyType;
                 parent.OutputArguments.ReferenceTypeId = ReferenceTypeIds.HasProperty;
@@ -1757,8 +1740,9 @@ namespace Technosoftware.UaStandardServer
         protected void ResetRandomGenerator(int seed, int boundaryValueFrequency = 0)
         {
             randomSource_ = new RandomSource(seed);
-            generator_ = new DataGenerator(randomSource_);
-            generator_.BoundaryValueFrequency = boundaryValueFrequency;
+            generator_ = new DataGenerator(randomSource_) {
+                BoundaryValueFrequency = boundaryValueFrequency
+            };
         }
 
         /// <summary>
@@ -1771,7 +1755,7 @@ namespace Technosoftware.UaStandardServer
             Debug.Assert(generator_ != null, "Need a random generator!");
 
             object value = null;
-            int retryCount = 0;
+            var retryCount = 0;
 
             while (value == null && retryCount < 10)
             {

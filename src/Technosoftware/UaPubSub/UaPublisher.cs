@@ -44,7 +44,7 @@ namespace Technosoftware.UaPubSub
             writerGroupPublishState_ = new WriterGroupPublishState();
 
             intervalRunner_ = new IntervalRunner(writerGroupConfiguration_.Name, writerGroupConfiguration_.PublishingInterval, CanPublish, PublishMessages);
-            
+
         }
 
         #endregion
@@ -116,7 +116,7 @@ namespace Technosoftware.UaPubSub
         #endregion
 
         #region Private Methods
-        
+
         /// <summary>
         /// Decide if the connection can publish
         /// </summary>
