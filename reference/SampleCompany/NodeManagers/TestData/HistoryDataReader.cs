@@ -88,7 +88,7 @@ namespace SampleCompany.NodeManagers.TestData
         /// <param name="dataEncoding">The data encoding to use for structured values.</param>
         /// <param name="values">The values to return.</param>
         public void BeginReadRaw(
-            UaServerOperationContext context,
+            UaServerContext context,
             ReadRawModifiedDetails request,
             TimestampsToReturn timestampsToReturn,
             NumericRange indexRange,
@@ -134,7 +134,7 @@ namespace SampleCompany.NodeManagers.TestData
         /// <param name="values">The values to return.</param>
         /// <returns>False if the operation halted because the maximum number of values was discovered.</returns>
         public bool NextReadRaw(
-            UaServerOperationContext context,
+            UaServerContext context,
             TimestampsToReturn timestampsToReturn,
             NumericRange indexRange,
             QualifiedName dataEncoding,

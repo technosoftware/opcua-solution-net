@@ -140,7 +140,7 @@ namespace SampleCompany.NodeManagers.TestData
 
         #region Overridden Methods
         /// <summary>
-        /// Loads a node set from a file or resource and add them to the set of predefined nodes.
+        /// Loads a node set from a file or resource and adds them to the set of predefined nodes.
         /// </summary>
         protected override NodeStateCollection LoadPredefinedNodes(ISystemContext context)
         {
@@ -460,14 +460,14 @@ namespace SampleCompany.NodeManagers.TestData
         /// <summary>
         /// Restores a previously cached history reader.
         /// </summary>
-        protected virtual HistoryDataReader RestoreDataReader(UaServerOperationContext context, byte[] continuationPoint)
+        protected virtual HistoryDataReader RestoreDataReader(UaServerContext context, byte[] continuationPoint)
         {
-            if (context == null || context.Session == null)
+            if (context == null || context.OperationContext == null || context.OperationContext.Session == null)
             {
                 return null;
             }
 
-            var reader = context.Session.RestoreHistoryContinuationPoint(continuationPoint) as HistoryDataReader;
+            HistoryDataReader reader = context.OperationContext.Session.RestoreHistoryContinuationPoint(continuationPoint) as HistoryDataReader;
 
             if (reader == null)
             {
@@ -480,21 +480,21 @@ namespace SampleCompany.NodeManagers.TestData
         /// <summary>
         /// Saves a history data reader.
         /// </summary>
-        protected virtual void SaveDataReader(UaServerOperationContext context, HistoryDataReader reader)
+        protected virtual void SaveDataReader(UaServerContext context, HistoryDataReader reader)
         {
-            if (context == null || context.Session == null)
+            if (context == null || context.OperationContext == null || context.OperationContext.Session == null)
             {
                 return;
             }
 
-            context.Session.SaveHistoryContinuationPoint(reader.Id, reader);
+            context.OperationContext.Session.SaveHistoryContinuationPoint(reader.Id, reader);
         }
 
         /// <summary>
         /// Returns the history data source for a node.
         /// </summary>
         protected virtual ServiceResult GetHistoryDataSource(
-            UaServerOperationContext context,
+            UaServerContext context,
             BaseVariableState variable,
             out IHistoryDataSource datasource)
         {
@@ -520,7 +520,7 @@ namespace SampleCompany.NodeManagers.TestData
             HistoryReadValueId nodeToRead,
             HistoryReadResult result)
         {
-            var serverContext = context as UaServerOperationContext;
+            var serverContext = context as UaServerContext;
 
             HistoryDataReader reader = null;
             var data = new HistoryData();

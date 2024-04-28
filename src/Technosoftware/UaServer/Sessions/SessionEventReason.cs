@@ -14,7 +14,7 @@
 #endregion Copyright (c) 2011-2024 Technosoftware GmbH. All rights reserved
 
 #region Using Directives
-
+using Opc.Ua;
 #endregion
 
 namespace Technosoftware.UaServer.Sessions
@@ -25,23 +25,29 @@ namespace Technosoftware.UaServer.Sessions
     public enum SessionEventReason
     {
         /// <summary>
-        ///     A new session was created.
+        /// A new session was created.
         /// </summary>
         Created,
 
         /// <summary>
-        ///     A session is being activated with a new user identity.
+        /// A session is being activated with a new user identity.
         /// </summary>
         Impersonating,
 
         /// <summary>
-        ///     A session was activated and the user identity or preferred locales changed.
+        /// A session was activated and the user identity or preferred locales changed.
         /// </summary>
         Activated,
 
         /// <summary>
-        ///     A session is about to be closed.
+        /// A session is about to be closed.
         /// </summary>
-        Closing
+        Closing,
+
+        /// <summary>
+        /// A keep alive to signal a channel that the session is still active.
+        /// Triggered by the session manager based on <see cref="ServerConfiguration.MinSessionTimeout"/>.
+        /// </summary>
+        ChannelKeepAlive
     }
 }

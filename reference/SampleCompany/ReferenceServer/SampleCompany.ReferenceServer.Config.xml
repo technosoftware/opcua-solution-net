@@ -160,7 +160,7 @@
          This specifies how long the server will keep a broken channel around while waiting 
          for a client to reconnect.
          Not used by HTTP or .NET TCP bindings -->
-    <ChannelLifetime>300000</ChannelLifetime>
+    <ChannelLifetime>30000</ChannelLifetime>
 
     <!-- The lifetime of a SecurityToken in milliseconds.
          This specifies how long a security token can be used without renewal. -->
@@ -273,6 +273,7 @@
     <!-- The maximum number of simultaneous sessions -->
     <MaxSessionCount>75</MaxSessionCount>
 
+<MaxChannelCount>1000</MaxChannelCount>
     <!-- The minimum session lifetime permitted by the server -->
     <MinSessionTimeout>10000</MinSessionTimeout>
 

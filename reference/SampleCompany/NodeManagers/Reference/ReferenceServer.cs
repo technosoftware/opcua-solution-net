@@ -224,16 +224,6 @@ namespace SampleCompany.NodeManagers.Reference
 
                 Utils.LogInfo(Utils.TraceMasks.Security, "Username Token Accepted: {0}", args.Identity?.DisplayName);
 
-                // set AuthenticatedUser role for accepted user/password authentication
-                args.Identity.GrantedRoleIds.Add(ObjectIds.WellKnownRole_AuthenticatedUser);
-
-                if (args.Identity is SystemConfigurationIdentity)
-                {
-                    // set ConfigureAdmin role for user with permission to configure server
-                    args.Identity.GrantedRoleIds.Add(ObjectIds.WellKnownRole_ConfigureAdmin);
-                    args.Identity.GrantedRoleIds.Add(ObjectIds.WellKnownRole_SecurityAdmin);
-                }
-
                 return;
             }
 
@@ -243,11 +233,10 @@ namespace SampleCompany.NodeManagers.Reference
             if (x509Token != null)
             {
                 VerifyUserTokenCertificate(x509Token.Certificate);
-                args.Identity = new UserIdentity(x509Token);
-                Utils.LogInfo(Utils.TraceMasks.Security, "X509 Token Accepted: {0}", args.Identity?.DisplayName);
-
                 // set AuthenticatedUser role for accepted certificate authentication
-                args.Identity.GrantedRoleIds.Add(ObjectIds.WellKnownRole_AuthenticatedUser);
+                args.Identity =  new RoleBasedIdentity(new UserIdentity(x509Token),
+                    new List<Role>() { Role.AuthenticatedUser });
+                Utils.LogInfo(Utils.TraceMasks.Security, "X509 Token Accepted: {0}", args.Identity?.DisplayName);
 
                 return;
             }
@@ -267,13 +256,12 @@ namespace SampleCompany.NodeManagers.Reference
             if (args.NewIdentity is AnonymousIdentityToken || args.NewIdentity == null)
             {
                 // allow anonymous authentication and set Anonymous role for this authentication
-                args.Identity = new UserIdentity();
-                args.Identity.GrantedRoleIds.Add(ObjectIds.WellKnownRole_Anonymous);
-
+                args.Identity = new RoleBasedIdentity(new UserIdentity(),
+                    new List<Role>() { Role.Anonymous });
                 return;
             }
 
-            // unsuported identity token type.
+            // unsupported identity token type.
             throw ServiceResultException.Create(StatusCodes.BadIdentityTokenInvalid,
                    "Not supported user token type: {0}.", args.NewIdentity);
         }
@@ -323,8 +311,8 @@ namespace SampleCompany.NodeManagers.Reference
                     LoadServerProperties().ProductUri,
                     new LocalizedText(info)));
             }
-
-            return new UserIdentity(userNameToken);
+            return new RoleBasedIdentity(new UserIdentity(userNameToken),
+                   new List<Role>() { Role.AuthenticatedUser});
         }
 
         /// <summary>
@@ -410,7 +398,7 @@ namespace SampleCompany.NodeManagers.Reference
                     info = new TranslationInfo("IssuedTokenRejected", "en-US", "token is rejected.");
                 }
 
-                Utils.LogWarning(Utils.TraceMasks.Security, "VerifyIssuedToken: Throw ServiceResultExeption 0x{result:x}");
+                Utils.LogWarning(Utils.TraceMasks.Security, "VerifyIssuedToken: Throw ServiceResultException 0x{result:x}");
                 throw new ServiceResultException(new ServiceResult(
                     result,
                     info.Key,

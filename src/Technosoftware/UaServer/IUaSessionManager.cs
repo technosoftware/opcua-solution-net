@@ -31,22 +31,27 @@ namespace Technosoftware.UaServer
     public interface IUaSessionManager
     {
         /// <summary>
-        ///     Raised after a new session is created.
+        /// Raised after a new session is created.
         /// </summary>
         event EventHandler<Sessions.SessionEventArgs> SessionCreatedEvent;
 
         /// <summary>
-        ///     Raised whenever a session is activated and the user identity or preferred locales changed.
+        /// Raised whenever a session is activated and the user identity or preferred locales changed.
         /// </summary>
         event EventHandler<Sessions.SessionEventArgs> SessionActivatedEvent;
 
         /// <summary>
-        ///     Raised before a session is closed.
+        /// Raised before a session is closed.
         /// </summary>
         event EventHandler<Sessions.SessionEventArgs> SessionClosingEvent;
 
         /// <summary>
-        ///     Raised before the user identity for a session is changed.
+        /// Raised to signal a channel that the session is still alive.
+        /// </summary>
+        event EventHandler<Sessions.SessionEventArgs> SessionChannelKeepAliveEvent;
+
+        /// <summary>
+        /// Raised before the user identity for a session is changed.
         /// </summary>
         event EventHandler<UaImpersonateUserEventArgs> ImpersonateUserEvent;
 

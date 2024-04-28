@@ -92,6 +92,8 @@ namespace SampleCompany.ReferenceClient
             var timeout = Timeout.Infinite;
             string logFile = null;
             string reverseConnectUrlString = null;
+            bool leakChannels = false;
+            bool forever = false;
 
             var options = new Mono.Options.OptionSet {
                 usage,
@@ -112,6 +114,8 @@ namespace SampleCompany.ReferenceClient
                 { "v|verbose", "Verbose output", v => { if (v != null) { verbose = true; } } },
                 { "s|subscribe", "Subscribe", s => { if (s != null) { subscribe = true; } } },
                 { "rc|reverseconnect=", "Connect using the reverse connect endpoint. (e.g. rc=opc.tcp://localhost:65300)", url => reverseConnectUrlString = url},
+                { "forever", "Run inner connect/disconnect loop forever", f => { if (f != null) forever = true; } },
+                { "leakchannels", "Leave a channel leak open when disconnecting a session.", l => { if (l != null) leakChannels = true; } },
             };
 
             ReverseConnectManager reverseConnectManager = null;
@@ -133,7 +137,7 @@ namespace SampleCompany.ReferenceClient
             try
             {
                 // parse command line and set options
-                var extraArg = ConsoleUtils.ProcessCommandLine(output, args, options, ref showHelp, "SAMPLECLIENT");
+                var extraArg = ConsoleUtils.ProcessCommandLine(output, args, options, ref showHelp, "SAMPLECLIENT", true);
 
                 // connect Url?
                 Uri serverUrl = !string.IsNullOrEmpty(extraArg) ? new Uri(extraArg) : new Uri("opc.tcp://localhost:62555/ReferenceServer");
@@ -209,7 +213,19 @@ namespace SampleCompany.ReferenceClient
                         waitTime = timeout - (int)DateTime.UtcNow.Subtract(start).TotalMilliseconds;
                         if (waitTime <= 0)
                         {
-                            break;
+                            if (!forever)
+                            {
+                                break;
+                            }
+                            else
+                            {
+                                waitTime = 0;
+                            }
+                        }
+
+                        if (forever)
+                        {
+                            start = DateTime.UtcNow;
                         }
                     }
 
@@ -326,7 +342,7 @@ namespace SampleCompany.ReferenceClient
 
                             await output.WriteLineAsync("Client disconnected.").ConfigureAwait(false);
 
-                            uaClient.Disconnect();
+                            uaClient.Disconnect(leakChannels);
                         }
                         else
                         {
