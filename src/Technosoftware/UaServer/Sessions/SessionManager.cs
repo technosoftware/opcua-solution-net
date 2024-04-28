@@ -543,6 +543,7 @@ namespace Technosoftware.UaServer.Sessions
                     case SessionEventReason.Created: { handler = SessionCreatedEventhandler; break; }
                     case SessionEventReason.Activated: { handler = SessionActivatedEventHandler; break; }
                     case SessionEventReason.Closing: { handler = SessionClosingEventHandler; break; }
+                    case SessionEventReason.ChannelKeepAlive: { handler = SessionChannelKeepAliveEventHandler; break; }
                 }
 
                 if (handler != null)
@@ -584,7 +585,8 @@ namespace Technosoftware.UaServer.Sessions
 
                     for (var ii = 0; ii < sessions.Length; ii++)
                     {
-                        if (sessions[ii].HasExpired)
+                        var session = sessions[ii];
+                        if (session.HasExpired)
                         {
                             // update diagnostics.
                             lock (server_.DiagnosticsWriteLock)
@@ -596,6 +598,12 @@ namespace Technosoftware.UaServer.Sessions
                             server_.ReportAuditCloseSessionEvent(null, sessions[ii], "Session/Timeout");
 
                             server_.CloseSession(null, sessions[ii].Id, false);
+                        }
+                        // if a session had no activity for the last minSessionTimeout_ milliseconds, send a keep alive event.
+                        else if (session.ClientLastContactTime.AddMilliseconds(minSessionTimeout_) < DateTime.UtcNow)
+                        {
+                            // signal the channel that the session is still active.
+                            RaiseSessionEvent(session, SessionEventReason.ChannelKeepAlive);
                         }
                     }
 
@@ -633,6 +641,7 @@ namespace Technosoftware.UaServer.Sessions
         private event EventHandler<SessionEventArgs> SessionCreatedEventhandler;
         private event EventHandler<SessionEventArgs> SessionActivatedEventHandler;
         private event EventHandler<SessionEventArgs> SessionClosingEventHandler;
+        private event EventHandler<SessionEventArgs> SessionChannelKeepAliveEventHandler;
         private event EventHandler<UaImpersonateUserEventArgs> ImpersonateUserEventHandler;
         private event EventHandler<ValidateSessionLessRequestEventArgs> ValidateSessionLessRequestEventHandler;
         #endregion
@@ -694,6 +703,26 @@ namespace Technosoftware.UaServer.Sessions
                 lock (eventLock_)
                 {
                     SessionClosingEventHandler -= value;
+                }
+            }
+        }
+
+        /// <inheritdoc/>
+        public event EventHandler<SessionEventArgs> SessionChannelKeepAliveEvent
+        {
+            add
+            {
+                lock (eventLock_)
+                {
+                    SessionChannelKeepAliveEventHandler += value;
+                }
+            }
+
+            remove
+            {
+                lock (eventLock_)
+                {
+                    SessionChannelKeepAliveEventHandler -= value;
                 }
             }
         }

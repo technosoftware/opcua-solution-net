@@ -74,7 +74,8 @@ namespace Technosoftware.UaServer.Configuration
         /// Delegate to validate the access to the trust list.
         /// </summary>
         /// <param name="context">An interface to an object that describes how access the system containing the data.</param>
-        public delegate void SecureAccess(ISystemContext context);
+        /// <param name="trustedStorePath">the path to identify the trustList</param>
+        public delegate void SecureAccess(ISystemContext context, string trustedStorePath);
         #endregion
 
         #region Private Methods
@@ -300,6 +301,8 @@ namespace Technosoftware.UaServer.Configuration
             uint fileHandle,
             ref bool restartRequired)
         {
+            object[] inputParameters = new object[] { fileHandle };
+            node_.ReportTrustListUpdateRequestedAuditEvent(context, objectId, "Method/CloseAndUpdate", method.NodeId, inputParameters);
             HasSecureWriteAccess(context);
 
             ServiceResult result = StatusCodes.Good;
@@ -414,7 +417,6 @@ namespace Technosoftware.UaServer.Configuration
             restartRequired = false;
 
             // report the TrustListUpdatedAuditEvent
-            object[] inputParameters = new object[] { fileHandle };
             node_.ReportTrustListUpdatedAuditEvent(context, objectId, "Method/CloseAndUpdate", method.NodeId, inputParameters, result.StatusCode);
             return result;
         }
@@ -426,6 +428,8 @@ namespace Technosoftware.UaServer.Configuration
             byte[] certificate,
             bool isTrustedCertificate)
         {
+            object[] inputParameters = new object[] { certificate, isTrustedCertificate };
+            node_.ReportTrustListUpdateRequestedAuditEvent(context, objectId, "Method/AddCertificate", method.NodeId, inputParameters);
             HasSecureWriteAccess(context);
 
             ServiceResult result = StatusCodes.Good;
@@ -468,7 +472,6 @@ namespace Technosoftware.UaServer.Configuration
             }
 
             // report the TrustListUpdatedAuditEvent
-            object[] inputParameters = new object[] { certificate, isTrustedCertificate };
             node_.ReportTrustListUpdatedAuditEvent(context, objectId, "Method/AddCertificate", method.NodeId, inputParameters, result.StatusCode);
 
             return result;
@@ -482,6 +485,9 @@ namespace Technosoftware.UaServer.Configuration
             string thumbprint,
             bool isTrustedCertificate)
         {
+            object[] inputParameters = new object[] { thumbprint };
+            node_.ReportTrustListUpdateRequestedAuditEvent(context, objectId, "Method/RemoveCertificate", method.NodeId, inputParameters);
+
             HasSecureWriteAccess(context);
             ServiceResult result = StatusCodes.Good;
             lock (lock_)
@@ -545,7 +551,6 @@ namespace Technosoftware.UaServer.Configuration
             }
 
             // report the TrustListUpdatedAuditEvent
-            object[] inputParameters = new object[] { thumbprint };
             node_.ReportTrustListUpdatedAuditEvent(context, objectId, "Method/RemoveCertificate", method.NodeId, inputParameters, result.StatusCode);
             return result;
         }
@@ -580,9 +585,10 @@ namespace Technosoftware.UaServer.Configuration
                 Factory = context.EncodeableFactory
             };
             strm.Position = 0;
-            var decoder = new BinaryDecoder(strm, messageContext);
-            trustList.Decode(decoder);
-            decoder.Close();
+            using (IDecoder decoder = new BinaryDecoder(strm, messageContext))
+            {
+                trustList.Decode(decoder);
+            }
             return trustList;
         }
 
@@ -664,7 +670,7 @@ namespace Technosoftware.UaServer.Configuration
         {
             if (readAccess_ != null)
             {
-                readAccess_.Invoke(context);
+                readAccess_.Invoke(context, trustedStorePath_);
             }
             else
             {
@@ -676,7 +682,7 @@ namespace Technosoftware.UaServer.Configuration
         {
             if (writeAccess_ != null)
             {
-                writeAccess_.Invoke(context);
+                writeAccess_.Invoke(context, trustedStorePath_);
             }
             else
             {

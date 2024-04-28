@@ -31,6 +31,7 @@ using Technosoftware.UaServer.NodeManager;
 using Technosoftware.UaServer.Sessions;
 using Technosoftware.UaServer.Subscriptions;
 using Technosoftware.UaServer.Server;
+using System.Diagnostics;
 #endregion
 
 namespace Technosoftware.UaServer
@@ -498,6 +499,7 @@ namespace Technosoftware.UaServer
                 }
 
                 Utils.LogInfo("Server - SESSION CREATED. SessionId={0}", sessionId);
+
                 // report audit for successful create session
                 ServerData.ReportAuditCreateSessionEvent(context?.AuditEntryId, session, revisedSessionTimeout);
 
@@ -2916,6 +2918,9 @@ namespace Technosoftware.UaServer
                     SessionManager sessionManager = CreateSessionManager(genericServerData_, configuration);
                     sessionManager.Startup();
 
+                    // use event to trigger channel that should not be closed.
+                    sessionManager.SessionChannelKeepAliveEvent += OnSessionChannelKeepAlive;
+
                     // start the subscription manager.
                     Utils.LogInfo(Utils.TraceMasks.StartStop, "Server - CreateSubscriptionManager.");
                     SubscriptionManager subscriptionManager = CreateSubscriptionManager(genericServerData_, configuration);
@@ -3304,6 +3309,27 @@ namespace Technosoftware.UaServer
         public virtual void RemoveNodeManager(IUaNodeManagerFactory nodeManagerFactory)
         {
             _ = nodeManagerFactories_.Remove(nodeManagerFactory);
+        }
+        #endregion
+
+        #region Private Methods
+
+        /// <summary>
+        /// Reacts to a session channel keep alive event to signal
+        /// a listener channel that a session is still active.
+        /// </summary>
+        private void OnSessionChannelKeepAlive(object sender, SessionEventArgs e)
+        {
+            Debug.Assert(e.Reason == SessionEventReason.ChannelKeepAlive);
+
+            Session session = (Session)sender;
+
+            string secureChannelId = session?.SecureChannelId;
+            if (!string.IsNullOrEmpty(secureChannelId))
+            {
+                var transportListener = TransportListeners.FirstOrDefault(tl => secureChannelId.StartsWith(tl.ListenerId, StringComparison.Ordinal));
+                transportListener?.UpdateChannelLastActiveTime(secureChannelId);
+            }
         }
         #endregion
 

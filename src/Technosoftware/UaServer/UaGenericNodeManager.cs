@@ -455,7 +455,7 @@ namespace Technosoftware.UaServer
 
         #region CreateAddressSpace Support Functions
         /// <summary>
-        /// Loads a node set from a file or resource and add them to the set of predefined nodes.
+        /// Loads a node set from a file or resource and adds them to the set of predefined nodes.
         /// </summary>
         /// <param name="context">The UA server implementation of the ISystemContext interface.</param>
         /// <param name="resourcePath">The resource path.</param>
@@ -487,7 +487,7 @@ namespace Technosoftware.UaServer
         }
 
         /// <summary>
-        /// Loads a node set from a file or resource and add them to the set of predefined nodes.
+        /// Loads a node set from a file or resource and adds them to the set of predefined nodes.
         /// </summary>
         /// <param name="context">The UA server implementation of the ISystemContext interface.</param>
         protected virtual NodeStateCollection LoadPredefinedNodes(ISystemContext context)
@@ -1223,7 +1223,7 @@ namespace Technosoftware.UaServer
                     throw new ServiceResultException(StatusCodes.BadNodeNotInView);
                 }
 
-                // check if node is in the view.
+                // check if node is accessible for the user.
                 if (!IsNodeAccessibleForUser(systemContext, continuationPoint, source))
                 {
                     throw new ServiceResultException(StatusCodes.BadNodeIdUnknown);
@@ -4064,13 +4064,6 @@ After:
                 queueSize,
                 parameters.Filter,
                 out MonitoringFilter filterToUse,
-
-/* Unmerged change from project 'Technosoftware.UaServer (net48)'
-Before:
-                out var euRange,
-After:
-                out Range euRange,
-*/
                 out Opc.Ua.Range euRange,
                 out filterResult);
 

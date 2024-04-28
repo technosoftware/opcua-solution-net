@@ -179,7 +179,8 @@ namespace SampleCompany.ReferenceClient
                         configuration_.ApplicationName,
                         SessionLifeTime,
                         UserIdentity,
-                        null
+                        null,
+                        ct
                     ).ConfigureAwait(false);
 
                     // Assign the created session
@@ -218,7 +219,8 @@ namespace SampleCompany.ReferenceClient
         /// <summary>
         /// Disconnects the session.
         /// </summary>
-        public void Disconnect()
+        /// <param name="leaveChannelOpen">Leaves the channel open.</param>
+        public void Disconnect(bool leaveChannelOpen = false)
         {
             try
             {
@@ -233,7 +235,12 @@ namespace SampleCompany.ReferenceClient
                         reconnectHandler_ = null;
                     }
 
-                    _ = session_.Close();
+                    _ = session_.Close(!leaveChannelOpen);
+                    if (leaveChannelOpen)
+                    {
+                        // detach the channel, so it doesn't get closed when the session is disposed.
+                        session_.DetachChannel();
+                    }
                     session_.Dispose();
                     session_ = null;
 

@@ -274,19 +274,31 @@ namespace Technosoftware.UaServer.Configuration
         /// <seealso cref="StatusCodes.BadUserAccessDenied"/>
         public void HasApplicationSecureAdminAccess(ISystemContext context)
         {
+            HasApplicationSecureAdminAccess(context, "");
+        }
+
+        /// <summary>
+        /// Determine if the impersonated user has admin access.
+        /// </summary>
+        /// <param name="context">An interface to an object that describes how access the system containing the data.</param>
+        /// <param name="_"></param>
+        /// <exception cref="ServiceResultException"/>
+        /// <seealso cref="StatusCodes.BadUserAccessDenied"/>
+        public void HasApplicationSecureAdminAccess(ISystemContext context, string _)
+        {
             var operationContext = (context as SystemContext)?.OperationContext as UaServerOperationContext;
             if (operationContext != null)
             {
                 if (operationContext.ChannelContext?.EndpointDescription?.SecurityMode != MessageSecurityMode.SignAndEncrypt)
                 {
-                    throw new ServiceResultException(StatusCodes.BadUserAccessDenied, "Secure Application Administrator access required.");
+                    throw new ServiceResultException(StatusCodes.BadUserAccessDenied, "Access to this item is only allowed with MessageSecurityMode SignAndEncrypt.");
                 }
-
-                // allow access to system configuration only through special identity
-                var user = context.UserIdentity as SystemConfigurationIdentity;
-                if (user == null || user.TokenType == UserTokenType.Anonymous)
+                IUserIdentity identity = operationContext.UserIdentity;
+                // allow access to system configuration only with Role SecurityAdmin
+                if (identity == null || identity.TokenType == UserTokenType.Anonymous ||
+                    !identity.GrantedRoleIds.Contains(ObjectIds.WellKnownRole_SecurityAdmin))
                 {
-                    throw new ServiceResultException(StatusCodes.BadUserAccessDenied, "System Configuration Administrator access required.");
+                    throw new ServiceResultException(StatusCodes.BadUserAccessDenied, "Security Admin Role required to access this item.");
                 }
 
             }
@@ -311,6 +323,7 @@ namespace Technosoftware.UaServer.Configuration
             object[] inputArguments = new object[] { certificateGroupId, certificateTypeId, certificate, issuerCertificates, privateKeyFormat, privateKey };
             X509Certificate2 newCert = null;
 
+            ServerData.ReportCertificateUpdateRequestedAuditEvent(context, objectId, method, inputArguments);
             try
             {
                 if (certificate == null)
@@ -397,12 +410,13 @@ namespace Technosoftware.UaServer.Configuration
                         case "":
                         {
                             X509Certificate2 certWithPrivateKey = certificateGroup.ApplicationCertificate.LoadPrivateKeyEx(passwordProvider).Result;
-                            updateCertificate.CertificateWithPrivateKey = CertificateFactory.CreateCertificateWithPrivateKey(newCert, certWithPrivateKey);
+                            var exportableKey = X509Utils.CreateCopyWithPrivateKey(certWithPrivateKey, false);
+                            updateCertificate.CertificateWithPrivateKey = CertificateFactory.CreateCertificateWithPrivateKey(newCert, exportableKey);
                             break;
                         }
                         case "PFX":
                         {
-                            X509Certificate2 certWithPrivateKey = X509Utils.CreateCertificateFromPKCS12(privateKey, passwordProvider?.GetPassword(certificateGroup.ApplicationCertificate));
+                            X509Certificate2 certWithPrivateKey = X509Utils.CreateCertificateFromPKCS12(privateKey, passwordProvider?.GetPassword(certificateGroup.ApplicationCertificate), true);
                             updateCertificate.CertificateWithPrivateKey = CertificateFactory.CreateCertificateWithPrivateKey(newCert, certWithPrivateKey);
                             break;
                         }

@@ -308,6 +308,20 @@ namespace Technosoftware.UaServer.Sessions
         }
 
         /// <summary>
+        /// The last time the session was contacted by the client.
+        /// </summary>
+        public DateTime ClientLastContactTime
+        {
+            get
+            {
+                lock (DiagnosticsLock)
+                {
+                    return SessionDiagnostics.ClientLastContactTime;
+                }
+            }
+        }
+
+        /// <summary>
         /// Whether the session has been activated.
         /// </summary>
         public bool IsActivated { get; private set; }

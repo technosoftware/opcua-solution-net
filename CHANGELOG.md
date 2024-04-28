@@ -3,6 +3,9 @@
 -------------------------------------------------------------------------------------------------------------
 ## OPC UA Solution .NET - 3.3.0
 
+### Enhancements
+- Added Role based User management
+
 ### Changes
 - Improve client for sessions and subscriptions (#167)
 - Moved reference applications to the **reference** directoy

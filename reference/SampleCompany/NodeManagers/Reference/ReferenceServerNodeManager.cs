@@ -748,7 +748,7 @@ namespace SampleCompany.NodeManagers.Reference
                         new RolePermissionType()
                         {
                             RoleId = ObjectIds.WellKnownRole_Anonymous,
-                            Permissions = (uint)(PermissionType.Browse |PermissionType.Read|PermissionType.ReadRolePermissions | PermissionType.Write)
+                            Permissions = (uint)(PermissionType.Browse | PermissionType.Read | PermissionType.ReadRolePermissions | PermissionType.Write)
                         },
                     };
                     variables.Add(rpAnonymous);
@@ -761,12 +761,12 @@ namespace SampleCompany.NodeManagers.Reference
                         new RolePermissionType()
                         {
                             RoleId = ObjectIds.WellKnownRole_AuthenticatedUser,
-                            Permissions = (uint)(PermissionType.Browse |PermissionType.Read|PermissionType.ReadRolePermissions | PermissionType.Write)
+                            Permissions = (uint)(PermissionType.Browse | PermissionType.Read | PermissionType.ReadRolePermissions | PermissionType.Write)
                         },
                     };
                     variables.Add(rpAuthenticatedUser);
 
-                    BaseDataVariableState rpSecurityAdminUser = CreateBaseDataVariableState(folderRolePermissions, rolePermissions + "AdminUser", "AdminUser", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState rpSecurityAdminUser = CreateBaseDataVariableState(folderRolePermissions, rolePermissions + "SecurityAdmin", "SecurityAdmin", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     rpSecurityAdminUser.Description = "This node can be accessed by users that have SecurityAdmin Role over an encrypted connection";
                     rpSecurityAdminUser.AccessRestrictions = AccessRestrictionType.EncryptionRequired;
                     rpSecurityAdminUser.RolePermissions = new RolePermissionTypeCollection()
@@ -775,12 +775,12 @@ namespace SampleCompany.NodeManagers.Reference
                         new RolePermissionType()
                         {
                             RoleId = ObjectIds.WellKnownRole_SecurityAdmin,
-                            Permissions = (uint)(PermissionType.Browse |PermissionType.Read|PermissionType.ReadRolePermissions | PermissionType.Write)
+                            Permissions = (uint)(PermissionType.Browse | PermissionType.Read| PermissionType.ReadRolePermissions | PermissionType.Write)
                         },
                     };
                     variables.Add(rpSecurityAdminUser);
 
-                    BaseDataVariableState rpConfigAdminUser = CreateBaseDataVariableState(folderRolePermissions, rolePermissions + "AdminUser", "AdminUser", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
+                    BaseDataVariableState rpConfigAdminUser = CreateBaseDataVariableState(folderRolePermissions, rolePermissions + "ConfigureAdmin", "ConfigureAdmin", null, BuiltInType.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
                     rpConfigAdminUser.Description = "This node can be accessed by users that have ConfigureAdmin Role over an encrypted connection";
                     rpConfigAdminUser.AccessRestrictions = AccessRestrictionType.EncryptionRequired;
                     rpConfigAdminUser.RolePermissions = new RolePermissionTypeCollection()
@@ -789,7 +789,7 @@ namespace SampleCompany.NodeManagers.Reference
                         new RolePermissionType()
                         {
                             RoleId = ObjectIds.WellKnownRole_ConfigureAdmin,
-                            Permissions = (uint)(PermissionType.Browse |PermissionType.Read|PermissionType.ReadRolePermissions | PermissionType.Write)
+                            Permissions = (uint)(PermissionType.Browse | PermissionType.Read| PermissionType.ReadRolePermissions | PermissionType.Write)
                         },
                     };
                     variables.Add(rpConfigAdminUser);
@@ -833,7 +833,7 @@ namespace SampleCompany.NodeManagers.Reference
                     variables.Add(nodeIdsInstructions);
 
                     BaseDataVariableState integerNodeId = CreateBaseDataVariableState(nodeIdsFolder, nodeIds + "Int16Integer", "Int16Integer", null, DataTypeIds.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null);
-                    integerNodeId.NodeId = new NodeId(9202, NamespaceIndex);
+                    integerNodeId.NodeId = new NodeId((uint)9202, NamespaceIndex);
                     variables.Add(integerNodeId);
 
                     variables.Add(CreateBaseDataVariableState(nodeIdsFolder, nodeIds + "Int16String", "Int16String", null, DataTypeIds.Int16, ValueRanks.Scalar, AccessLevels.CurrentReadOrWrite, null));
@@ -848,6 +848,7 @@ namespace SampleCompany.NodeManagers.Reference
                     #endregion
 
                     #region Methods
+                    ResetRandomGenerator(17);
                     FolderState methodsFolder = CreateFolderState(root, "Methods", "Methods", null);
                     const string methods = "Methods_";
 
