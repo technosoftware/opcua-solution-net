@@ -28,6 +28,13 @@ namespace Technosoftware.UaPubSub
     /// </summary>
     public class UaPubSubApplication : IDisposable
     {
+        #region Fields
+        private readonly List<IUaPubSubConnection> uaPubSubConnections_;
+        private readonly DataCollector dataCollector_;
+        private readonly IUaPubSubDataStore dataStore_;
+        private readonly UaPubSubConfigurator uaPubSubConfigurator_;
+        #endregion
+
         #region Events
         /// <summary>
         /// Event that is triggered when the <see cref="UaPubSubApplication"/> receives a message via its active connections
@@ -59,6 +66,7 @@ namespace Technosoftware.UaPubSub
         /// Event that is triggered when the <see cref="UaPubSubApplication"/> receives and decodes subscribed DataSet MetaData
         /// </summary>
         public event EventHandler<DataSetWriterConfigurationEventArgs> DataSetWriterConfigurationReceivedEvent;
+
         #endregion
 
         #region Event Callbacks
@@ -72,6 +80,7 @@ namespace Technosoftware.UaPubSub
         #endregion
 
         #region Constructors
+
         /// <summary>
         ///  Initializes a new instance of the <see cref="UaPubSubApplication"/> class.
         /// </summary>
@@ -96,7 +105,7 @@ namespace Technosoftware.UaPubSub
             }
             else
             {
-                ApplicationId = $"opcua:{System.Net.Dns.GetHostName()}:{new Random().Next().ToString("D10")}";
+                ApplicationId = $"opcua:{System.Net.Dns.GetHostName()}:{new Random().Next():D10}";
             }
 
             dataCollector_ = new DataCollector(dataStore_);
@@ -108,41 +117,7 @@ namespace Technosoftware.UaPubSub
 
             Utils.Trace("An instance of UaPubSubApplication was created.");
         }
-        #endregion
 
-        #region IDisposable Implementation
-        /// <summary>
-        /// Releases all resources used by the current instance of the <see cref="UaPublisher"/> class.
-        /// </summary>
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
-        ///  When overridden in a derived class, releases the unmanaged resources used by that class 
-        ///  and optionally releases the managed resources.
-        /// </summary>
-        /// <param name="disposing"> true to release both managed and unmanaged resources; false to release only unmanaged resources.</param>
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                uaPubSubConfigurator_.ConnectionAddedEvent -= UaPubSubConfigurator_ConnectionAdded;
-                uaPubSubConfigurator_.ConnectionRemovedEvent -= UaPubSubConfigurator_ConnectionRemoved;
-                uaPubSubConfigurator_.PublishedDataSetAddedEvent -= UaPubSubConfigurator_PublishedDataSetAdded;
-                uaPubSubConfigurator_.PublishedDataSetRemovedEvent -= UaPubSubConfigurator_PublishedDataSetRemoved;
-
-                Stop();
-                // free managed resources
-                foreach (IUaPubSubConnection connection in uaPubSubConnections_)
-                {
-                    connection.Dispose();
-                }
-                uaPubSubConnections_.Clear();
-            }
-        }
         #endregion
 
         #region Public Properties
@@ -240,7 +215,7 @@ namespace Technosoftware.UaPubSub
                 pubSubConfiguration = new PubSubConfigurationDataType();
             }
 
-            UaPubSubApplication uaPubSubApplication = new UaPubSubApplication(dataStore);
+            var uaPubSubApplication = new UaPubSubApplication(dataStore);
             uaPubSubApplication.uaPubSubConfigurator_.LoadConfiguration(pubSubConfiguration);
             return uaPubSubApplication;
         }
@@ -253,7 +228,7 @@ namespace Technosoftware.UaPubSub
         public void Start()
         {
             Utils.Trace("UaPubSubApplication is starting.");
-            foreach (IUaPubSubConnection connection in uaPubSubConnections_)
+            foreach (var connection in uaPubSubConnections_)
             {
                 connection.Start();
             }
@@ -266,7 +241,7 @@ namespace Technosoftware.UaPubSub
         public void Stop()
         {
             Utils.Trace("UaPubSubApplication is stopping.");
-            foreach (IUaPubSubConnection connection in uaPubSubConnections_)
+            foreach (var connection in uaPubSubConnections_)
             {
                 connection.Stop();
             }
@@ -282,9 +257,6 @@ namespace Technosoftware.UaPubSub
         /// <param name="e"></param>
         internal void RaiseRawDataReceivedEvent(RawDataReceivedEventArgs e)
         {
-            // check for valid license
-            LicenseHandler.ValidateFeatures(LicenseHandler.ProductLicense.PubSub, Opc.Ua.LicenseHandler.ProductFeature.None);
-
             try
             {
                 RawDataReceivedEvent?.Invoke(this, e);
@@ -301,9 +273,6 @@ namespace Technosoftware.UaPubSub
         /// <param name="e"></param>
         internal void RaiseDataReceivedEvent(SubscribedDataEventArgs e)
         {
-            // check for valid license
-            LicenseHandler.ValidateFeatures(LicenseHandler.ProductLicense.PubSub, Opc.Ua.LicenseHandler.ProductFeature.None);
-
             try
             {
                 DataReceivedEvent?.Invoke(this, e);
@@ -335,9 +304,6 @@ namespace Technosoftware.UaPubSub
         /// <param name="e"></param>
         internal void RaiseDatasetWriterConfigurationReceivedEvent(DataSetWriterConfigurationEventArgs e)
         {
-            // check for valid license
-            LicenseHandler.ValidateFeatures(LicenseHandler.ProductLicense.PubSub, Opc.Ua.LicenseHandler.ProductFeature.None);
-
             try
             {
                 DataSetWriterConfigurationReceivedEvent?.Invoke(this, e);
@@ -354,9 +320,6 @@ namespace Technosoftware.UaPubSub
         /// <param name="e"></param>
         internal void RaisePublisherEndpointsReceivedEvent(PublisherEndpointsEventArgs e)
         {
-            // check for valid license
-            LicenseHandler.ValidateFeatures(LicenseHandler.ProductLicense.PubSub, Opc.Ua.LicenseHandler.ProductFeature.None);
-
             try
             {
                 PublisherEndpointsReceivedEvent?.Invoke(this, e);
@@ -373,9 +336,6 @@ namespace Technosoftware.UaPubSub
         /// <param name="e"></param>
         internal void RaiseConfigurationUpdatingEvent(ConfigurationUpdatingEventArgs e)
         {
-            // check for valid license
-            LicenseHandler.ValidateFeatures(LicenseHandler.ProductLicense.PubSub, Opc.Ua.LicenseHandler.ProductFeature.None);
-
             try
             {
                 ConfigurationUpdatingEvent?.Invoke(this, e);
@@ -414,7 +374,7 @@ namespace Technosoftware.UaPubSub
         private void UaPubSubConfigurator_ConnectionRemoved(object sender, ConnectionEventArgs e)
         {
             IUaPubSubConnection removedUaPubSubConnection = null;
-            foreach (IUaPubSubConnection connection in uaPubSubConnections_)
+            foreach (var connection in uaPubSubConnections_)
             {
                 if (connection.PubSubConnectionConfiguration.Equals(e.PubSubConnectionDataType))
                 {
@@ -444,11 +404,39 @@ namespace Technosoftware.UaPubSub
         }
         #endregion
 
-        #region Private Fields
-        private List<IUaPubSubConnection> uaPubSubConnections_;
-        private DataCollector dataCollector_;
-        private IUaPubSubDataStore dataStore_;
-        private UaPubSubConfigurator uaPubSubConfigurator_;
+        #region IDisposable Implementation
+        /// <summary>
+        /// Releases all resources used by the current instance of the <see cref="UaPublisher"/> class.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        ///  When overridden in a derived class, releases the unmanaged resources used by that class 
+        ///  and optionally releases the managed resources.
+        /// </summary>
+        /// <param name="disposing"> true to release both managed and unmanaged resources; false to release only unmanaged resources.</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                uaPubSubConfigurator_.ConnectionAddedEvent -= UaPubSubConfigurator_ConnectionAdded;
+                uaPubSubConfigurator_.ConnectionRemovedEvent -= UaPubSubConfigurator_ConnectionRemoved;
+                uaPubSubConfigurator_.PublishedDataSetAddedEvent -= UaPubSubConfigurator_PublishedDataSetAdded;
+                uaPubSubConfigurator_.PublishedDataSetRemovedEvent -= UaPubSubConfigurator_PublishedDataSetRemoved;
+
+                Stop();
+                // free managed resources
+                foreach (var connection in uaPubSubConnections_)
+                {
+                    connection.Dispose();
+                }
+                uaPubSubConnections_.Clear();
+            }
+        }
         #endregion
     }
 

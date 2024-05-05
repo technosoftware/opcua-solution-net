@@ -159,7 +159,7 @@ namespace Technosoftware.UaClient.Tests
 
             subscription.ConditionRefresh();
             var sre = Assert.Throws<ServiceResultException>(() => subscription.Republish(subscription.SequenceNumber + 100));
-            Assert.AreEqual(StatusCodes.BadMessageNotAvailable, sre.StatusCode);
+            Assert.AreEqual((StatusCode)StatusCodes.BadMessageNotAvailable, (StatusCode)sre.StatusCode);
 
             // verify that reconnect created subclassed version of subscription and monitored item
             foreach (var s in Session.Subscriptions)
@@ -273,7 +273,7 @@ namespace Technosoftware.UaClient.Tests
 
             await subscription.ConditionRefreshAsync().ConfigureAwait(false);
             var sre = Assert.ThrowsAsync<ServiceResultException>(async () => await subscription.RepublishAsync(subscription.SequenceNumber + 100).ConfigureAwait(false));
-            Assert.AreEqual(StatusCodes.BadMessageNotAvailable, sre.StatusCode, $"Expected BadMessageNotAvailable, but received {sre.Message}");
+            Assert.AreEqual((StatusCode)StatusCodes.BadMessageNotAvailable, (StatusCode)sre.StatusCode, $"Expected BadMessageNotAvailable, but received {sre.Message}");
 
             // verify that reconnect created subclassed version of subscription and monitored item
             foreach (var s in Session.Subscriptions)
@@ -586,7 +586,7 @@ namespace Technosoftware.UaClient.Tests
                 return userIdentity;
             };
 
-            // activate the session from saved sesson secrets on the new channel
+            // activate the session from saved session secrets on the new channel
             if (asyncTest)
             {
                 await session2.ReconnectAsync(channel2).ConfigureAwait(false);
@@ -662,7 +662,7 @@ namespace Technosoftware.UaClient.Tests
             if (endpoint.EndpointUrl.ToString().StartsWith(Utils.UriSchemeOpcTcp, StringComparison.Ordinal))
             {
                 sre = Assert.Throws<ServiceResultException>(() => session1.ReadValue(VariableIds.Server_ServerStatus, typeof(ServerStatusDataType)));
-                Assert.AreEqual(StatusCodes.BadSecureChannelIdInvalid, sre.StatusCode, sre.Message);
+                Assert.AreEqual((StatusCode)StatusCodes.BadSecureChannelIdInvalid, (StatusCode)sre.StatusCode, sre.Message);
             }
             else
             {
@@ -826,7 +826,7 @@ namespace Technosoftware.UaClient.Tests
                 originSubscriptions, originSubscriptionCounters, originSubscriptionFastDataCounters,
                 kTestSubscriptions, kQueueSize);
 
-            if(TransferType.KeepOpen == transferType)
+            if (TransferType.KeepOpen == transferType)
             {
                 foreach (var subscription in originSubscriptions)
                 {
@@ -1186,7 +1186,7 @@ namespace Technosoftware.UaClient.Tests
             Assert.True(conditionRefresh);
 
             var sre = Assert.Throws<ServiceResultException>(() => subscription.Republish(subscription.SequenceNumber + 100));
-            Assert.AreEqual(StatusCodes.BadMessageNotAvailable, sre.StatusCode);
+            Assert.AreEqual((StatusCode)StatusCodes.BadMessageNotAvailable, (StatusCode)sre.StatusCode);
 
             subscription.RemoveItems(list);
             subscription.ApplyChanges();

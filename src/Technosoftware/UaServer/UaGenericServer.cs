@@ -2306,6 +2306,7 @@ namespace Technosoftware.UaServer
                                     _ = client.RegisterServer(requestHeader, registrationInfo_);
                                 }
 
+                                registeredWithDiscoveryServer_ = m_registrationInfo.IsOnline;
                                 return true;
                             }
                             catch (Exception e)
@@ -2342,7 +2343,7 @@ namespace Technosoftware.UaServer
                     configuration.CertificateValidator.CertificateValidation -= registrationCertificateValidator;
                 }
             }
-
+            registeredWithDiscoveryServer_ = false;
             return false;
         }
 
@@ -2981,6 +2982,7 @@ namespace Technosoftware.UaServer
 
                         _ = registrationEndpoints_.Add(endpoint);
 
+                        registeredWithDiscoveryServer_ = false;
                         minRegistrationInterval_ = 1000;
                         lastRegistrationInterval_ = minRegistrationInterval_;
 
@@ -3049,7 +3051,7 @@ namespace Technosoftware.UaServer
             // attempt graceful shutdown the server.
             try
             {
-                if (maxRegistrationInterval_ > 0)
+                if (maxRegistrationInterval_ > 0 && registeredWithDiscoveryServer_)
                 {
                     // unregister from Discovery ServerData
                     registrationInfo_.IsOnline = false;
@@ -3348,6 +3350,7 @@ namespace Technosoftware.UaServer
         private int minRegistrationInterval_;
         private int maxRegistrationInterval_;
         private int lastRegistrationInterval_;
+        private bool registeredWithDiscoveryServer_;
         private int minNonceLength_;
         private bool useRegisterServer2_;
         private readonly List<IUaNodeManagerFactory> nodeManagerFactories_;

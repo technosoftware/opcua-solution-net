@@ -10,6 +10,7 @@
 #endregion Copyright (c) 2022-2024 Technosoftware GmbH. All rights reserved
 
 #region Using Directives
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
@@ -26,7 +27,7 @@ namespace Technosoftware.UaPubSub.Transport
     internal abstract class UdpDiscovery
     {
         #region Fields
-        private const string DefaultDiscoveryUrl = "opc.udp://224.0.2.14:4840";
+        private const string kDefaultDiscoveryUrl = "opc.udp://224.0.2.14:4840";
 
         protected readonly object lock_ = new object();
         protected UdpPubSubConnection udpConnection_;
@@ -58,7 +59,7 @@ namespace Technosoftware.UaPubSub.Transport
         public string DiscoveryNetworkInterfaceName { get; set; }
 
         /// <summary>
-        /// Get the coresponding <see cref="IServiceMessageContext"/>
+        /// Get the corresponding <see cref="IServiceMessageContext"/>
         /// </summary>
         public IServiceMessageContext MessageContext { get; private set; }
         #endregion
@@ -93,7 +94,7 @@ namespace Technosoftware.UaPubSub.Transport
             {
                 if (discoveryUdpClients_ != null && discoveryUdpClients_.Count > 0)
                 {
-                    foreach (UdpClient udpClient in discoveryUdpClients_)
+                    foreach (var udpClient in discoveryUdpClients_)
                     {
                         udpClient.Close();
                         udpClient.Dispose();
@@ -105,6 +106,7 @@ namespace Technosoftware.UaPubSub.Transport
             await Task.CompletedTask.ConfigureAwait(false);
         }
         #endregion
+
 
         #region Private Methods
         /// <summary>
@@ -129,11 +131,14 @@ namespace Technosoftware.UaPubSub.Transport
             if (DiscoveryNetworkAddressEndPoint == null)
             {
                 Utils.Trace(Utils.TraceMasks.Information, "The configuration for connection {0} will use the default DiscoveryAddress: {1}.",
-                              pubSubConnectionConfiguration.Name, DefaultDiscoveryUrl);
+                              pubSubConnectionConfiguration.Name, kDefaultDiscoveryUrl);
 
-                DiscoveryNetworkAddressEndPoint = UdpClientCreator.GetEndPoint(DefaultDiscoveryUrl);
+                DiscoveryNetworkAddressEndPoint = UdpClientCreator.GetEndPoint(kDefaultDiscoveryUrl);
             }
         }
+
+
+
         #endregion
 
     }

@@ -81,6 +81,7 @@ namespace Technosoftware.UaClient
 
                 if (requireEncryption)
                 {
+                    ValidateServerCertificateApplicationUri(serverCertificate);
                     if (checkDomain)
                     {
                         await configuration_.CertificateValidator.ValidateAsync(serverCertificateChain, ConfiguredEndpoint, ct).ConfigureAwait(false);

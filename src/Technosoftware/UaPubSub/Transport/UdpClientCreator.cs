@@ -12,6 +12,7 @@
 #region Using Directives
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
@@ -50,7 +51,7 @@ namespace Technosoftware.UaPubSub.Transport
                     Utils.Trace(Utils.TraceMasks.Error, "Invalid Port specified in URL: {0}", url);
                     return null;
                 }
-                string hostName = connectionUri.Host;
+                var hostName = connectionUri.Host;
                 if (string.Equals(hostName, "localhost", StringComparison.OrdinalIgnoreCase))
                 {
                     hostName = "127.0.0.1";
@@ -92,13 +93,13 @@ namespace Technosoftware.UaPubSub.Transport
         /// <returns></returns>
         internal static List<UdpClient> GetUdpClients(UsedInContext pubSubContext, string networkInterface, IPEndPoint configuredEndpoint)
         {
-            StringBuilder buffer = new StringBuilder();
-            buffer.AppendFormat("networkAddressUrl.NetworkInterface = {0} \n", networkInterface ?? "null");
-            buffer.AppendFormat("configuredEndpoint = {0}", configuredEndpoint != null ? configuredEndpoint.ToString() : "null");
+            var buffer = new StringBuilder();
+            buffer.AppendFormat(CultureInfo.InvariantCulture, "networkAddressUrl.NetworkInterface = {0} \n", networkInterface ?? "null");
+            buffer.AppendFormat(CultureInfo.InvariantCulture, "configuredEndpoint = {0}", configuredEndpoint != null ? configuredEndpoint.ToString() : "null");
 
             Utils.Trace(Utils.TraceMasks.Information, buffer.ToString());
 
-            List<UdpClient> udpClients = new List<UdpClient>();
+            var udpClients = new List<UdpClient>();
             //validate input parameters
             if (configuredEndpoint == null)
             {
@@ -106,8 +107,8 @@ namespace Technosoftware.UaPubSub.Transport
                 return udpClients;
             }
             //detect the list on network interfaces that will be used for creating the UdpClient s
-            List<NetworkInterface> usableNetworkInterfaces = new List<NetworkInterface>();
-            NetworkInterface[] interfaces = NetworkInterface.GetAllNetworkInterfaces();
+            var usableNetworkInterfaces = new List<NetworkInterface>();
+            var interfaces = NetworkInterface.GetAllNetworkInterfaces();
             if (string.IsNullOrEmpty(networkInterface))
             {
                 Utils.Trace(Utils.TraceMasks.Information, "No NetworkInterface name was provided. Use all available NICs.");
@@ -145,7 +146,10 @@ namespace Technosoftware.UaPubSub.Transport
                 }
 
                 UdpClient udpClient = CreateUdpClientForNetworkInterface(pubSubContext, nic, configuredEndpoint);
-                if (udpClient == null) continue;
+                if (udpClient == null)
+                {
+                    continue;
+                }
                 //store UdpClient
                 udpClients.Add(udpClient);
                 Utils.Trace(Utils.TraceMasks.Information, "NetworkInterface name('{0}') UdpClient successfully created.", nic.Name);
@@ -167,7 +171,7 @@ namespace Technosoftware.UaPubSub.Transport
             IPInterfaceProperties ipProps = networkInterface.GetIPProperties();
             IPAddress localAddress = IPAddress.Any;
 
-            foreach (UnicastIPAddressInformation address in ipProps.UnicastAddresses)
+            foreach (var address in ipProps.UnicastAddresses)
             {
                 if (address.Address.AddressFamily == AddressFamily.InterNetwork)
                 {
@@ -178,7 +182,7 @@ namespace Technosoftware.UaPubSub.Transport
             try
             {
                 //detect the port used for binding
-                int port = 0;
+                var port = 0;
                 if (pubSubContext == UsedInContext.Subscriber || pubSubContext == UsedInContext.Discovery)
                 {
                     port = configuredEndpoint.Port;
@@ -233,8 +237,12 @@ namespace Technosoftware.UaPubSub.Transport
         /// <returns></returns>
         private static bool IsIPv4MulticastAddress(IPAddress address)
         {
-            if (address == null) return false;
-            byte[] bytes = address.GetAddressBytes();
+            if (address == null)
+            {
+                return false;
+            }
+
+            var bytes = address.GetAddressBytes();
             return bytes[0] >= 224 && bytes[0] <= 239;
         }
 
@@ -251,11 +259,11 @@ namespace Technosoftware.UaPubSub.Transport
             {
                 if (localUnicastAddress.Address.AddressFamily == AddressFamily.InterNetwork)
                 {
-                    byte[] subnetMask = localUnicastAddress.IPv4Mask.GetAddressBytes();
-                    uint addressBits = BitConverter.ToUInt32(address.GetAddressBytes(), 0);
-                    uint invertedSubnetBits = ~BitConverter.ToUInt32(subnetMask, 0);
+                    var subnetMask = localUnicastAddress.IPv4Mask.GetAddressBytes();
+                    var addressBits = BitConverter.ToUInt32(address.GetAddressBytes(), 0);
+                    var invertedSubnetBits = ~BitConverter.ToUInt32(subnetMask, 0);
 
-                    bool isBroadcast = ((addressBits & invertedSubnetBits) == invertedSubnetBits);
+                    var isBroadcast = ((addressBits & invertedSubnetBits) == invertedSubnetBits);
                     if (isBroadcast)
                     {
                         return true;

@@ -139,7 +139,7 @@ namespace Technosoftware.UaStandardServer.Tests
                     _ = services.Browse(requestHeader, null,
                         0, browseDescriptionCollection.Take(0).ToArray(),
                         out var results, out var infos));
-                Assert.AreEqual(StatusCodes.BadNothingToDo, sre.StatusCode);
+                Assert.AreEqual((StatusCode)StatusCodes.BadNothingToDo, (StatusCode)sre.StatusCode);
             }
 
             while (browseDescriptionCollection.Any())
@@ -154,7 +154,7 @@ namespace Technosoftware.UaStandardServer.Tests
                         _ = services.Browse(requestHeader, null,
                             0, browseDescriptionCollection,
                             out var results, out var infos));
-                    Assert.AreEqual(StatusCodes.BadTooManyOperations, sre.StatusCode);
+                    Assert.AreEqual((StatusCode)StatusCodes.BadTooManyOperations, (StatusCode)sre.StatusCode);
 
                     // Test if server responds with BadTooManyOperations
                     var tempBrowsePath = browseDescriptionCollection.Take((int)operationLimits.MaxNodesPerBrowse + 1).ToArray();
@@ -162,7 +162,7 @@ namespace Technosoftware.UaStandardServer.Tests
                         _ = services.Browse(requestHeader, null,
                             0, tempBrowsePath,
                             out var results, out var infos));
-                    Assert.AreEqual(StatusCodes.BadTooManyOperations, sre.StatusCode);
+                    Assert.AreEqual((StatusCode)StatusCodes.BadTooManyOperations, (StatusCode)sre.StatusCode);
                 }
 
                 bool repeatBrowse;
@@ -276,7 +276,7 @@ namespace Technosoftware.UaStandardServer.Tests
                     // Test if server responds with BadTooManyOperations
                     var sre = Assert.Throws<ServiceResultException>(() =>
                         _ = services.TranslateBrowsePathsToNodeIds(requestHeader, browsePaths, out var results, out var infos));
-                    Assert.AreEqual(StatusCodes.BadTooManyOperations, sre.StatusCode);
+                    Assert.AreEqual((StatusCode)StatusCodes.BadTooManyOperations, (StatusCode)sre.StatusCode);
                 }
                 var browsePathSnippet = (operationLimits.MaxNodesPerTranslateBrowsePathsToNodeIds > 0) ?
                     browsePaths.Take((int)operationLimits.MaxNodesPerTranslateBrowsePathsToNodeIds).ToArray() :
@@ -340,7 +340,7 @@ namespace Technosoftware.UaStandardServer.Tests
             var sre = Assert.Throws<ServiceResultException>(() =>
                 services.CreateMonitoredItems(requestHeader, id, TimestampsToReturn.Neither, itemsToCreate,
                     out MonitoredItemCreateResultCollection mockResults, out DiagnosticInfoCollection mockInfos));
-            Assert.AreEqual(StatusCodes.BadNothingToDo, sre.StatusCode);
+            Assert.AreEqual((StatusCode)StatusCodes.BadNothingToDo, (StatusCode)sre.StatusCode);
 
             // add item
             uint handleCounter = 1;
@@ -519,7 +519,7 @@ namespace Technosoftware.UaStandardServer.Tests
             requestHeader.Timestamp = DateTime.UtcNow;
             var response = services.TransferSubscriptions(requestHeader, subscriptionIds, sendInitialData,
                 out TransferResultCollection transferResults, out DiagnosticInfoCollection diagnosticInfos);
-            Assert.AreEqual(StatusCodes.Good, response.ServiceResult.Code);
+            Assert.AreEqual((StatusCode)StatusCodes.Good, response.ServiceResult);
             Assert.AreEqual(subscriptionIds.Count, transferResults.Count);
             ServerFixtureUtils.ValidateResponse(response, transferResults, subscriptionIds);
             ServerFixtureUtils.ValidateDiagnosticInfos(diagnosticInfos, subscriptionIds, response.StringTable);
@@ -529,7 +529,7 @@ namespace Technosoftware.UaStandardServer.Tests
                 TestContext.Out.WriteLine("TransferResult: {0}", transferResult.StatusCode);
                 if (expectAccessDenied)
                 {
-                    Assert.AreEqual(StatusCodes.BadUserAccessDenied, transferResult.StatusCode.Code);
+                    Assert.AreEqual((StatusCode)StatusCodes.BadUserAccessDenied, transferResult.StatusCode);
                 }
                 else
                 {
@@ -549,7 +549,7 @@ namespace Technosoftware.UaStandardServer.Tests
                 out uint publishedId, out UInt32Collection availableSequenceNumbers,
                 out bool moreNotifications, out NotificationMessage notificationMessage,
                 out StatusCodeCollection _, out diagnosticInfos);
-            Assert.AreEqual(StatusCodes.Good, response.ServiceResult.Code);
+            Assert.AreEqual((StatusCode)StatusCodes.Good, response.ServiceResult);
             ServerFixtureUtils.ValidateResponse(response);
             ServerFixtureUtils.ValidateDiagnosticInfos(diagnosticInfos, acknowledgements, response.StringTable);
             Assert.AreEqual(subscriptionIds[0], publishedId);
@@ -565,7 +565,7 @@ namespace Technosoftware.UaStandardServer.Tests
 
             requestHeader.Timestamp = DateTime.UtcNow;
             response = services.DeleteSubscriptions(requestHeader, subscriptionIds, out StatusCodeCollection statusResults, out diagnosticInfos);
-            Assert.AreEqual(StatusCodes.Good, response.ServiceResult.Code);
+            Assert.AreEqual((StatusCode)StatusCodes.Good, response.ServiceResult);
         }
 
         /// <summary>

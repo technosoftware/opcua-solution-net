@@ -434,7 +434,7 @@ namespace Technosoftware.UaConfiguration
                 {
                     var sre = Assert.ThrowsAsync<ServiceResultException>(async () =>
                         await applicationInstance.CheckApplicationInstanceCertificateAsync(true, 0).ConfigureAwait(false));
-                    Assert.AreEqual(StatusCodes.BadConfigurationError, sre.StatusCode);
+                    Assert.AreEqual((StatusCode)StatusCodes.BadConfigurationError, (StatusCode)sre.StatusCode);
                 }
             }
         }
@@ -521,7 +521,7 @@ namespace Technosoftware.UaConfiguration
                 {
                     var sre = Assert.ThrowsAsync<ServiceResultException>(async () =>
                         await applicationInstance.CheckApplicationInstanceCertificateAsync(true, 0).ConfigureAwait(false));
-                    Assert.AreEqual(StatusCodes.BadConfigurationError, sre.StatusCode);
+                    Assert.AreEqual((StatusCode)StatusCodes.BadConfigurationError, (StatusCode)sre.StatusCode);
                 }
             }
         }
@@ -602,7 +602,7 @@ namespace Technosoftware.UaConfiguration
             {
                 var sre = Assert.ThrowsAsync<ServiceResultException>(async () =>
                     await applicationInstance.CheckApplicationInstanceCertificateAsync(true, 0).ConfigureAwait(false));
-                Assert.AreEqual(StatusCodes.BadConfigurationError, sre.StatusCode);
+                Assert.AreEqual((StatusCode)StatusCodes.BadConfigurationError, (StatusCode)sre.StatusCode);
             }
             else
             {

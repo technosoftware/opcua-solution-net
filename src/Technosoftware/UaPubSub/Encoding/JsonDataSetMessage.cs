@@ -29,7 +29,7 @@ namespace Technosoftware.UaPubSub.Encoding
     {
         #region Fields
         private const string kFieldPayload = "Payload";
-        private FieldTypeEncodingMask m_fieldTypeEncoding;
+        private FieldTypeEncodingMask fieldTypeEncoding_;
         #endregion
 
         #region Constructors
@@ -70,13 +70,13 @@ namespace Technosoftware.UaPubSub.Encoding
             if (FieldContentMask == DataSetFieldContentMask.None)
             {
                 // 00 Variant Field Encoding
-                m_fieldTypeEncoding = FieldTypeEncodingMask.Variant;
+                fieldTypeEncoding_ = FieldTypeEncodingMask.Variant;
             }
             else if ((FieldContentMask & DataSetFieldContentMask.RawData) != 0)
             {
                 // If the RawData flag is set, all other bits are ignored.
                 // 01 RawData Field Encoding
-                m_fieldTypeEncoding = FieldTypeEncodingMask.RawData;
+                fieldTypeEncoding_ = FieldTypeEncodingMask.RawData;
             }
             else if ((FieldContentMask & (DataSetFieldContentMask.StatusCode
                                           | DataSetFieldContentMask.SourceTimestamp
@@ -85,7 +85,7 @@ namespace Technosoftware.UaPubSub.Encoding
                                           | DataSetFieldContentMask.ServerPicoSeconds)) != 0)
             {
                 // 10 DataValue Field Encoding
-                m_fieldTypeEncoding = FieldTypeEncodingMask.DataValue;
+                fieldTypeEncoding_ = FieldTypeEncodingMask.DataValue;
             }
         }
 
@@ -140,12 +140,12 @@ namespace Technosoftware.UaPubSub.Encoding
             }
             else
             {
-                for (int index = 0; index < messagesCount; index++)
+                for (var index = 0; index < messagesCount; index++)
                 {
-                    bool wasPush = jsonDecoder.PushArray(messagesListName, index);
+                    var wasPush = jsonDecoder.PushArray(messagesListName, index);
                     if (wasPush)
                     {
-                        // atempt decoding the DataSet fields
+                        // attempt decoding the DataSet fields
                         DecodePossibleDataSetReader(jsonDecoder, dataSetReader);
 
                         // redo jsonDecoder stack
@@ -165,7 +165,7 @@ namespace Technosoftware.UaPubSub.Encoding
 
 
         /// <summary>
-        /// Atempt to decode dataset from the KeyValue pairs
+        /// Attempt to decode dataset from the KeyValue pairs
         /// </summary>
         private void DecodePossibleDataSetReader(IJsonDecoder jsonDecoder, DataSetReaderDataType dataSetReader)
         {
@@ -181,7 +181,7 @@ namespace Technosoftware.UaPubSub.Encoding
             }
 
             object token = null;
-            string payloadStructureName = kFieldPayload;
+            var payloadStructureName = kFieldPayload;
             // try to read "Payload" structure 
             if (!jsonDecoder.ReadField(kFieldPayload, out token))
             {
@@ -203,9 +203,9 @@ namespace Technosoftware.UaPubSub.Encoding
                     return;
                 }
                 // check also the field names from reader, if any extra field names then the payload is not matching 
-                foreach (string key in payload.Keys)
+                foreach (var key in payload.Keys)
                 {
-                    FieldMetaData field = dataSetReader.DataSetMetaData.Fields.FirstOrDefault(f => f.Name == key);
+                    var field = dataSetReader.DataSetMetaData.Fields.FirstOrDefault(f => f.Name == key);
                     if (field == null)
                     {
                         // the field from payload was not found in dataSetReader therefore the payload is not suitable to be decoded
@@ -216,7 +216,7 @@ namespace Technosoftware.UaPubSub.Encoding
             try
             {
                 // try decoding Payload Structure
-                bool wasPush = jsonDecoder.PushStructure(payloadStructureName);
+                var wasPush = jsonDecoder.PushStructure(payloadStructureName);
                 if (wasPush)
                 {
                     DataSet = DecodePayloadContent(jsonDecoder, dataSetReader);
@@ -237,26 +237,26 @@ namespace Technosoftware.UaPubSub.Encoding
             DataSetMetaDataType dataSetMetaData = dataSetReader.DataSetMetaData;
 
             object token;
-            List<DataValue> dataValues = new List<DataValue>();
-            for (int index = 0; index < dataSetMetaData?.Fields.Count; index++)
+            var dataValues = new List<DataValue>();
+            for (var index = 0; index < dataSetMetaData?.Fields.Count; index++)
             {
                 FieldMetaData fieldMetaData = dataSetMetaData?.Fields[index];
 
                 if (jsonDecoder.ReadField(fieldMetaData.Name, out token))
                 {
-                    switch (m_fieldTypeEncoding)
+                    switch (fieldTypeEncoding_)
                     {
                         case FieldTypeEncodingMask.Variant:
                             Variant variantValue = jsonDecoder.ReadVariant(fieldMetaData.Name);
                             dataValues.Add(new DataValue(variantValue));
                             break;
                         case FieldTypeEncodingMask.RawData:
-                            object value = DecodeRawData(jsonDecoder, dataSetMetaData?.Fields[index], dataSetMetaData?.Fields[index].Name);
+                            var value = DecodeRawData(jsonDecoder, dataSetMetaData?.Fields[index], dataSetMetaData?.Fields[index].Name);
                             dataValues.Add(new DataValue(new Variant(value)));
                             break;
                         case FieldTypeEncodingMask.DataValue:
-                            bool wasPush2 = jsonDecoder.PushStructure(fieldMetaData.Name);
-                            DataValue dataValue = new DataValue(Variant.Null);
+                            var wasPush2 = jsonDecoder.PushStructure(fieldMetaData.Name);
+                            var dataValue = new DataValue(Variant.Null);
                             try
                             {
                                 if (wasPush2 && jsonDecoder.ReadField("Value", out token))
@@ -278,7 +278,7 @@ namespace Technosoftware.UaPubSub.Encoding
                                 {
                                     if (jsonDecoder.ReadField("StatusCode", out token))
                                     {
-                                        bool wasPush3 = jsonDecoder.PushStructure("StatusCode");
+                                        var wasPush3 = jsonDecoder.PushStructure("StatusCode");
                                         if (wasPush3)
                                         {
                                             dataValue.StatusCode = jsonDecoder.ReadStatusCode("Code");
@@ -320,7 +320,7 @@ namespace Technosoftware.UaPubSub.Encoding
                 }
                 else
                 {
-                    switch (m_fieldTypeEncoding)
+                    switch (fieldTypeEncoding_)
                     {
                         case FieldTypeEncodingMask.Variant:
                         case FieldTypeEncodingMask.RawData:
@@ -345,10 +345,10 @@ namespace Technosoftware.UaPubSub.Encoding
             }
 
             //build the DataSet Fields collection based on the decoded values and the target 
-            List<Field> dataFields = new List<Field>();
-            for (int i = 0; i < dataValues.Count; i++)
+            var dataFields = new List<Field>();
+            for (var i = 0; i < dataValues.Count; i++)
             {
-                Field dataField = new Field();
+                var dataField = new Field();
                 dataField.FieldMetaData = dataSetMetaData?.Fields[i];
                 dataField.Value = dataValues[i];
 
@@ -363,7 +363,7 @@ namespace Technosoftware.UaPubSub.Encoding
             }
 
             // build the dataset object
-            DataSet dataSet = new DataSet(dataSetMetaData?.Name);
+            var dataSet = new DataSet(dataSetMetaData?.Name);
             dataSet.DataSetMetaData = dataSetMetaData;
             dataSet.Fields = dataFields.ToArray();
             dataSet.DataSetWriterId = DataSetWriterId;
@@ -409,14 +409,14 @@ namespace Technosoftware.UaPubSub.Encoding
         /// </summary>
         internal void EncodePayload(IJsonEncoder jsonEncoder, bool pushStructure = true)
         {
-            bool forceNamespaceUri = jsonEncoder.ForceNamespaceUri;
+            var forceNamespaceUri = jsonEncoder.ForceNamespaceUri;
 
             if (pushStructure)
             {
                 jsonEncoder.PushStructure(kFieldPayload);
             }
 
-            foreach (Field field in DataSet.Fields)
+            foreach (var field in DataSet.Fields)
             {
                 if (field != null)
                 {
@@ -437,22 +437,22 @@ namespace Technosoftware.UaPubSub.Encoding
         /// </summary>
         private void EncodeField(IJsonEncoder encoder, Field field)
         {
-            string fieldName = field.FieldMetaData.Name;
+            var fieldName = field.FieldMetaData.Name;
 
             Variant valueToEncode = field.Value.WrappedValue;
 
             // The StatusCode.Good value is not encoded correctly then it shall be committed
-            if (valueToEncode == StatusCodes.Good && m_fieldTypeEncoding != FieldTypeEncodingMask.Variant)
+            if (valueToEncode == StatusCodes.Good && fieldTypeEncoding_ != FieldTypeEncodingMask.Variant)
             {
                 valueToEncode = Variant.Null;
             }
 
-            if (m_fieldTypeEncoding != FieldTypeEncodingMask.DataValue && StatusCode.IsBad(field.Value.StatusCode))
+            if (fieldTypeEncoding_ != FieldTypeEncodingMask.DataValue && StatusCode.IsBad(field.Value.StatusCode))
             {
                 valueToEncode = field.Value.StatusCode;
             }
 
-            switch (m_fieldTypeEncoding)
+            switch (fieldTypeEncoding_)
             {
                 case FieldTypeEncodingMask.Variant:
                     // If the DataSetFieldContentMask results in a Variant representation,
@@ -471,7 +471,7 @@ namespace Technosoftware.UaPubSub.Encoding
                     break;
 
                 case FieldTypeEncodingMask.DataValue:
-                    DataValue dataValue = new DataValue();
+                    var dataValue = new DataValue();
 
                     dataValue.WrappedValue = valueToEncode;
 

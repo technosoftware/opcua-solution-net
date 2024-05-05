@@ -28,17 +28,21 @@ namespace Technosoftware.UaPubSub
     /// </summary>
     internal abstract class UaPubSubConnection : IUaPubSubConnection
     {
+        #region Fields
+        protected readonly object Lock = new object();
+        private bool isRunning_;
+        private readonly List<IUaPublisher> publishers_;
+        private readonly PubSubConnectionDataType pubSubConnectionDataType_;
+        private readonly UaPubSubApplication uaPubSubApplication_;
+        protected TransportProtocol transportProtocol_ = TransportProtocol.NotAvailable;
+        #endregion
+
         #region Constructor
         /// <summary>
         /// Create new instance of UaPubSubConnection with PubSubConnectionDataType configuration data
         /// </summary>
-        /// <param name="parentUaPubSubApplication">The OPC UA PubSub application.</param>
-        /// <param name="pubSubConnectionDataType">Represent the configuration parameters for PubSubConnections</param>
         internal UaPubSubConnection(UaPubSubApplication parentUaPubSubApplication, PubSubConnectionDataType pubSubConnectionDataType)
         {
-            // check for valid license
-            LicenseHandler.ValidateFeatures(LicenseHandler.ProductLicense.PubSub, Opc.Ua.LicenseHandler.ProductFeature.None);
-
             // set the default message context that uses the GlobalContext
             MessageContext = new ServiceMessageContext {
                 NamespaceUris = ServiceMessageContext.GlobalContext.NamespaceUris,
@@ -47,7 +51,7 @@ namespace Technosoftware.UaPubSub
 
             if (parentUaPubSubApplication == null)
             {
-                throw new ArgumentException("The OPC UA PubSub application cannot be null.", nameof(parentUaPubSubApplication));
+                throw new ArgumentNullException(nameof(parentUaPubSubApplication));
             }
 
             uaPubSubApplication_ = parentUaPubSubApplication;
@@ -62,38 +66,7 @@ namespace Technosoftware.UaPubSub
                 Utils.Trace("UaPubSubConnection() received a PubSubConnectionDataType object without name. '<connection>' will be used");
             }
         }
-        #endregion
 
-        #region IDisposable Implementation
-        /// <summary>
-        /// Releases all resources used by the current instance of the <see cref="UaPubSubConnection"/> class.
-        /// </summary>
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
-        ///  When overridden in a derived class, releases the unmanaged resources used by that class 
-        ///  and optionally releases the managed resources.
-        /// </summary>
-        /// <param name="disposing"> true to release both managed and unmanaged resources; false to release only unmanaged resources.</param>
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                uaPubSubApplication_.UaPubSubConfigurator.WriterGroupAddedEvent -= UaPubSubConfigurator_WriterGroupAdded;
-                Stop();
-                // free managed resources
-                foreach (UaPublisher publisher in publishers_)
-                {
-                    publisher.Dispose();
-                }
-
-                Utils.Trace("Connection '{0}' was disposed.", pubSubConnectionDataType_.Name);
-            }
-        }
         #endregion
 
         #region Properties
@@ -133,6 +106,50 @@ namespace Technosoftware.UaPubSub
         /// Get/Set the current <see cref="IServiceMessageContext"/>
         /// </summary>
         public IServiceMessageContext MessageContext { get; set; }
+
+        #endregion
+
+        #region Internal Properties
+        /// <summary>
+        /// Get the list of current publishers associated with this connection
+        /// </summary>
+        internal IReadOnlyCollection<IUaPublisher> Publishers
+        {
+            get { return publishers_.AsReadOnly(); }
+        }
+
+        #endregion
+
+        #region IDisposable Implementation
+        /// <summary>
+        /// Releases all resources used by the current instance of the <see cref="UaPubSubConnection"/> class.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        ///  When overridden in a derived class, releases the unmanaged resources used by that class 
+        ///  and optionally releases the managed resources.
+        /// </summary>
+        /// <param name="disposing"> true to release both managed and unmanaged resources; false to release only unmanaged resources.</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                uaPubSubApplication_.UaPubSubConfigurator.WriterGroupAddedEvent -= UaPubSubConfigurator_WriterGroupAdded;
+                Stop();
+                // free managed resources
+                foreach (UaPublisher publisher in publishers_)
+                {
+                    publisher.Dispose();
+                }
+
+                Utils.Trace("Connection '{0}' was disposed.", pubSubConnectionDataType_.Name);
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -144,10 +161,10 @@ namespace Technosoftware.UaPubSub
             InternalStart().Wait();
             Utils.Trace("Connection '{0}' was started.", pubSubConnectionDataType_.Name);
 
-            lock (lock_)
+            lock (Lock)
             {
                 isRunning_ = true;
-                foreach (IUaPublisher publisher in publishers_)
+                foreach (var publisher in publishers_)
                 {
                     publisher.Start();
                 }
@@ -160,10 +177,10 @@ namespace Technosoftware.UaPubSub
         public void Stop()
         {
             InternalStop().Wait();
-            lock (lock_)
+            lock (Lock)
             {
                 isRunning_ = false;
-                foreach (IUaPublisher publisher in publishers_)
+                foreach (var publisher in publishers_)
                 {
                     publisher.Stop();
                 }
@@ -174,7 +191,7 @@ namespace Technosoftware.UaPubSub
         /// <summary>
         /// Determine if the connection has anything to publish -> at least one WriterDataSet is configured as enabled for current writer group
         /// </summary>
-        /// <param name="writerGroupConfiguration">Represent the configuration parameters for WriterGroups</param>
+        /// <param name="writerGroupConfiguration"></param>
         /// <returns></returns>
         public bool CanPublish(WriterGroupDataType writerGroupConfiguration)
         {
@@ -279,7 +296,7 @@ namespace Technosoftware.UaPubSub
                 {
                     var raiseChangedEvent = false;
 
-                    lock (lock_)
+                    lock (Lock)
                     {
                         // check if reader's MetaData shall be updated
                         if (reader.DataSetWriterId != 0
@@ -294,7 +311,7 @@ namespace Technosoftware.UaPubSub
                     if (raiseChangedEvent)
                     {
                         // raise event
-                        ConfigurationUpdatingEventArgs metaDataUpdatedEventArgs = new ConfigurationUpdatingEventArgs() {
+                        var metaDataUpdatedEventArgs = new ConfigurationUpdatingEventArgs() {
                             ChangedProperty = ConfigurationProperty.DataSetMetaData,
                             Parent = reader,
                             NewValue = networkMessage.DataSetMetaData,
@@ -310,7 +327,7 @@ namespace Technosoftware.UaPubSub
                             Utils.Trace("Connection '{0}' - The MetaData is updated for DataSetReader '{1}' with DataSetWriterId={2}",
                                     source, reader.Name, networkMessage.DataSetWriterId);
 
-                            lock (lock_)
+                            lock (Lock)
                             {
                                 reader.DataSetMetaData = networkMessage.DataSetMetaData;
                             }
@@ -318,7 +335,7 @@ namespace Technosoftware.UaPubSub
                     }
                 }
 
-                SubscribedDataEventArgs subscribedDataEventArgs = new SubscribedDataEventArgs() {
+                var subscribedDataEventArgs = new SubscribedDataEventArgs() {
                     NetworkMessage = networkMessage,
                     Source = source
                 };
@@ -333,7 +350,7 @@ namespace Technosoftware.UaPubSub
             }
             else if (networkMessage.DataSetMessages != null && networkMessage.DataSetMessages.Count > 0)
             {
-                SubscribedDataEventArgs subscribedDataEventArgs = new SubscribedDataEventArgs() {
+                var subscribedDataEventArgs = new SubscribedDataEventArgs() {
                     NetworkMessage = networkMessage,
                     Source = source
                 };
@@ -348,14 +365,14 @@ namespace Technosoftware.UaPubSub
             }
             else if (networkMessage is Encoding.UadpNetworkMessage)
             {
-                Encoding.UadpNetworkMessage uadpNetworkMessage = networkMessage as Encoding.UadpNetworkMessage;
+                var uadpNetworkMessage = networkMessage as Encoding.UadpNetworkMessage;
 
                 if (uadpNetworkMessage != null)
                 {
                     if (uadpNetworkMessage.UADPDiscoveryType == UADPNetworkMessageDiscoveryType.DataSetWriterConfiguration &&
                         uadpNetworkMessage.UADPNetworkMessageType == UADPNetworkMessageType.DiscoveryResponse)
                     {
-                        DataSetWriterConfigurationEventArgs eventArgs = new DataSetWriterConfigurationEventArgs() {
+                        var eventArgs = new DataSetWriterConfigurationEventArgs() {
                             DataSetWriterIds = uadpNetworkMessage.DataSetWriterIds,
                             Source = source,
                             DataSetWriterConfiguration = uadpNetworkMessage.DataSetWriterConfiguration,
@@ -374,7 +391,7 @@ namespace Technosoftware.UaPubSub
                     else if (uadpNetworkMessage.UADPDiscoveryType == UADPNetworkMessageDiscoveryType.PublisherEndpoint &&
                         uadpNetworkMessage.UADPNetworkMessageType == UADPNetworkMessageType.DiscoveryResponse)
                     {
-                        PublisherEndpointsEventArgs publisherEndpointsEventArgs = new PublisherEndpointsEventArgs() {
+                        var publisherEndpointsEventArgs = new PublisherEndpointsEventArgs() {
                             PublisherEndpoints = uadpNetworkMessage.PublisherEndpoints,
                             Source = source,
                             PublisherId = uadpNetworkMessage.PublisherId,
@@ -431,16 +448,16 @@ namespace Technosoftware.UaPubSub
         /// </summary>
         protected IList<DataSetWriterConfigurationResponse> GetDataSetWriterDiscoveryResponses(UInt16[] dataSetWriterIds)
         {
-            List<DataSetWriterConfigurationResponse> responses = new List<DataSetWriterConfigurationResponse>();
+            var responses = new List<DataSetWriterConfigurationResponse>();
 
-            List<ushort> writerGroupsIds = pubSubConnectionDataType_.WriterGroups
+            var writerGroupsIds = pubSubConnectionDataType_.WriterGroups
                 .SelectMany(group => group.DataSetWriters)
                 .Select(writer => writer.DataSetWriterId)
                 .ToList();
 
             foreach (var dataSetWriterId in dataSetWriterIds)
             {
-                DataSetWriterConfigurationResponse response = new DataSetWriterConfigurationResponse();
+                var response = new DataSetWriterConfigurationResponse();
 
                 if (!writerGroupsIds.Contains(dataSetWriterId))
                 {
@@ -483,8 +500,6 @@ namespace Technosoftware.UaPubSub
         /// <summary>
         /// Create and return the current DataSet for the provided dataSetWriter according to current WriterGroupPublishState
         /// </summary>
-        /// <param name="dataSetWriter">Represent the DataSetWriter parameter.</param>
-        /// <param name="state">The publishing state for a writer group.</param>
         /// <returns></returns>
         protected DataSet CreateDataSet(DataSetWriterDataType dataSetWriter, WriterGroupPublishState state)
         {
@@ -492,7 +507,8 @@ namespace Technosoftware.UaPubSub
             //check if dataSetWriter enabled
             if (dataSetWriter.Enabled)
             {
-                var isDeltaFrame = state.IsDeltaFrame(dataSetWriter, out var sequenceNumber);
+                uint sequenceNumber = 0;
+                var isDeltaFrame = state.IsDeltaFrame(dataSetWriter, out sequenceNumber);
 
                 dataSet = Application.DataCollector.CollectData(dataSetWriter.DataSetName);
 
@@ -512,16 +528,6 @@ namespace Technosoftware.UaPubSub
         }
         #endregion
 
-        #region Internal Properties
-        /// <summary>
-        /// Get the list of current publishers associated with this connection
-        /// </summary>
-        internal IReadOnlyCollection<IUaPublisher> Publishers
-        {
-            get { return publishers_.AsReadOnly(); }
-        }
-        #endregion
-
         #region Private Methods
         /// <summary>
         /// Handler for <see cref="UaPubSubConfigurator.WriterGroupAddedEvent"/> event. 
@@ -536,15 +542,6 @@ namespace Technosoftware.UaPubSub
                 publishers_.Add(publisher);
             }
         }
-        #endregion
-
-        #region Fields
-        protected object lock_ = new object();
-        private bool isRunning_;
-        private readonly List<IUaPublisher> publishers_;
-        private readonly PubSubConnectionDataType pubSubConnectionDataType_;
-        private readonly UaPubSubApplication uaPubSubApplication_;
-        protected TransportProtocol transportProtocol_ = TransportProtocol.NotAvailable;
         #endregion
     }
 }

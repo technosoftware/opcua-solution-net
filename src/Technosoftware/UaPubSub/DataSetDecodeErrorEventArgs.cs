@@ -22,6 +22,12 @@ namespace Technosoftware.UaPubSub
     /// </summary>
     public class DataSetDecodeErrorEventArgs : EventArgs
     {
+        #region Private members
+        private DataSetDecodeErrorReason dataSetDecodeErrorReason_;
+        private UaNetworkMessage networkMessage_;
+        private DataSetReaderDataType dataSetReader_;
+        #endregion
+
         #region Constructor
         /// <summary>
         /// Constructor
@@ -82,12 +88,5 @@ namespace Technosoftware.UaPubSub
             }
         }
         #endregion
-
-        #region Private Fields
-        private DataSetDecodeErrorReason dataSetDecodeErrorReason_;
-        private UaNetworkMessage networkMessage_;
-        private DataSetReaderDataType dataSetReader_;
-        #endregion
-
     }
 }

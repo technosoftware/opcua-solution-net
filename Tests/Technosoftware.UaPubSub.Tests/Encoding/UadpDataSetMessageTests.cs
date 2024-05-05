@@ -15,6 +15,7 @@ using System.Linq;
 using System.IO;
 
 using NUnit.Framework;
+using Assert = NUnit.Framework.Legacy.ClassicAssert;
 
 using Opc.Ua;
 using Technosoftware.UaPubSub.PublishedData;
@@ -26,18 +27,18 @@ namespace Technosoftware.UaPubSub.Tests.Encoding
     [TestFixture(Description = "Tests for Encoding/Decoding of UadpDataSeMessage objects")]
     public class UadpDataSetMessageTests
     {
-        private string m_publisherConfigurationFileName = Path.Combine("Configuration", "PublisherConfiguration.xml");
-        private string m_subscriberConfigurationFileName = Path.Combine("Configuration", "SubscriberConfiguration.xml");
+        private string publisherConfigurationFileName_ = Path.Combine("Configuration", "PublisherConfiguration.xml");
+        private string subscriberConfigurationFileName_ = Path.Combine("Configuration", "SubscriberConfiguration.xml");
 
-        private PubSubConfigurationDataType m_publisherConfiguration;
-        private UaPubSubApplication m_publisherApplication;
-        private WriterGroupDataType m_firstWriterGroup;
-        private IUaPubSubConnection m_firstPublisherConnection;
+        private PubSubConfigurationDataType publisherConfiguration_;
+        private UaPubSubApplication publisherApplication_;
+        private WriterGroupDataType firstWriterGroup_;
+        private IUaPubSubConnection firstPublisherConnection_;
 
-        private PubSubConfigurationDataType m_subscriberConfiguration;
-        private UaPubSubApplication m_subscriberApplication;
-        private ReaderGroupDataType m_firstReaderGroup;
-        private DataSetReaderDataType m_firstDataSetReaderType;
+        private PubSubConfigurationDataType subscriberConfiguration_;
+        private UaPubSubApplication subscriberApplication_;
+        private ReaderGroupDataType firstReaderGroup_;
+        private DataSetReaderDataType firstDataSetReaderType_;
 
         private const ushort kNamespaceIndexSimple = 2;
 
@@ -52,42 +53,42 @@ namespace Technosoftware.UaPubSub.Tests.Encoding
         {
             // Create a publisher application
             // todo refactor to use the MessagesHelper create configuration
-            string publisherConfigurationFile = Utils.GetAbsoluteFilePath(m_publisherConfigurationFileName, true, true, false);
-            m_publisherApplication = UaPubSubApplication.Create(publisherConfigurationFile);
-            Assert.IsNotNull(m_publisherApplication, "m_publisherApplication should not be null");
+            string publisherConfigurationFile = Utils.GetAbsoluteFilePath(publisherConfigurationFileName_, true, true, false);
+            publisherApplication_ = UaPubSubApplication.Create(publisherConfigurationFile);
+            Assert.IsNotNull(publisherApplication_, "publisherApplication_ should not be null");
 
             // Get the publisher configuration
-            m_publisherConfiguration = m_publisherApplication.UaPubSubConfigurator.PubSubConfiguration;
-            Assert.IsNotNull(m_publisherConfiguration, "m_publisherConfiguration should not be null");
+            publisherConfiguration_ = publisherApplication_.UaPubSubConfigurator.PubSubConfiguration;
+            Assert.IsNotNull(publisherConfiguration_, "publisherConfiguration_ should not be null");
 
             // Get first connection
-            Assert.IsNotNull(m_publisherConfiguration.Connections, "m_publisherConfiguration.Connections should not be null");
-            Assert.IsNotEmpty(m_publisherConfiguration.Connections, "m_publisherConfiguration.Connections should not be empty");
-            m_firstPublisherConnection = m_publisherApplication.PubSubConnections[0];
-            Assert.IsNotNull(m_firstPublisherConnection, "m_firstPublisherConnection should not be null");
+            Assert.IsNotNull(publisherConfiguration_.Connections, "publisherConfiguration_.Connections should not be null");
+            Assert.IsNotEmpty(publisherConfiguration_.Connections, "publisherConfiguration_.Connections should not be empty");
+            firstPublisherConnection_ = publisherApplication_.PubSubConnections[0];
+            Assert.IsNotNull(firstPublisherConnection_, "firstPublisherConnection_ should not be null");
 
             // Read the first writer group
-            Assert.IsNotEmpty(m_publisherConfiguration.Connections[0].WriterGroups, "pubSubConfigConnection.WriterGroups should not be empty");
-            m_firstWriterGroup = m_publisherConfiguration.Connections[0].WriterGroups[0];
-            Assert.IsNotNull(m_firstWriterGroup, "m_firstWriterGroup should not be null");
+            Assert.IsNotEmpty(publisherConfiguration_.Connections[0].WriterGroups, "pubSubConfigConnection.WriterGroups should not be empty");
+            firstWriterGroup_ = publisherConfiguration_.Connections[0].WriterGroups[0];
+            Assert.IsNotNull(firstWriterGroup_, "firstWriterGroup_ should not be null");
 
-            Assert.IsNotNull(m_publisherConfiguration.PublishedDataSets, "m_publisherConfiguration.PublishedDataSets should not be null");
-            Assert.IsNotEmpty(m_publisherConfiguration.PublishedDataSets, "m_publisherConfiguration.PublishedDataSets should not be empty");
+            Assert.IsNotNull(publisherConfiguration_.PublishedDataSets, "publisherConfiguration_.PublishedDataSets should not be null");
+            Assert.IsNotEmpty(publisherConfiguration_.PublishedDataSets, "publisherConfiguration_.PublishedDataSets should not be empty");
 
             // Create a subscriber application
-            string subscriberConfigurationFile = Utils.GetAbsoluteFilePath(m_subscriberConfigurationFileName, true, true, false);
-            m_subscriberApplication = UaPubSubApplication.Create(subscriberConfigurationFile);
-            Assert.IsNotNull(m_subscriberApplication, "m_subscriberApplication should not be null");
+            string subscriberConfigurationFile = Utils.GetAbsoluteFilePath(subscriberConfigurationFileName_, true, true, false);
+            subscriberApplication_ = UaPubSubApplication.Create(subscriberConfigurationFile);
+            Assert.IsNotNull(subscriberApplication_, "subscriberApplication_ should not be null");
 
             // Get the subscriber configuration
-            m_subscriberConfiguration = m_subscriberApplication.UaPubSubConfigurator.PubSubConfiguration;
-            Assert.IsNotNull(m_subscriberConfiguration, "m_subscriberConfiguration should not be null");
+            subscriberConfiguration_ = subscriberApplication_.UaPubSubConfigurator.PubSubConfiguration;
+            Assert.IsNotNull(subscriberConfiguration_, "subscriberConfiguration_ should not be null");
 
             // Read the first reader group
-            m_firstReaderGroup = m_subscriberConfiguration.Connections[0].ReaderGroups[0];
-            Assert.IsNotNull(m_firstWriterGroup, "m_firstReaderGroup should not be null");
+            firstReaderGroup_ = subscriberConfiguration_.Connections[0].ReaderGroups[0];
+            Assert.IsNotNull(firstWriterGroup_, "firstReaderGroup_ should not be null");
 
-            m_firstDataSetReaderType = GetFirstDataSetReader();
+            firstDataSetReaderType_ = GetFirstDataSetReader();
         }
 
         [Test(Description = "Validate dataset message mask with Variant data type;" +
@@ -247,7 +248,7 @@ namespace Technosoftware.UaPubSub.Tests.Encoding
             BinaryDecoder decoder = new BinaryDecoder(bytes, messageContextEncode);
 
             // Make sure the reader MajorVersion and MinorVersion are the same with the ones on the dataset message
-            DataSetReaderDataType reader = (DataSetReaderDataType)m_firstDataSetReaderType.MemberwiseClone();
+            DataSetReaderDataType reader = (DataSetReaderDataType)firstDataSetReaderType_.MemberwiseClone();
             reader.DataSetMetaData.ConfigurationVersion.MajorVersion = versionValue;
             reader.DataSetMetaData.ConfigurationVersion.MinorVersion = versionValue * 10;
 
@@ -307,7 +308,7 @@ namespace Technosoftware.UaPubSub.Tests.Encoding
 
             // Make sure the reader MajorVersion is same with the ones on the dataset message
             // and MinorVersion differ
-            DataSetReaderDataType reader = (DataSetReaderDataType)m_firstDataSetReaderType.MemberwiseClone();
+            DataSetReaderDataType reader = (DataSetReaderDataType)firstDataSetReaderType_.MemberwiseClone();
             reader.DataSetMetaData.ConfigurationVersion.MajorVersion = uadpDataSetMessage.MetaDataVersion.MajorVersion;
             reader.DataSetMetaData.ConfigurationVersion.MinorVersion = uadpDataSetMessage.MetaDataVersion.MinorVersion + 1;
 
@@ -366,7 +367,7 @@ namespace Technosoftware.UaPubSub.Tests.Encoding
             BinaryDecoder decoder = new BinaryDecoder(bytes, messageContextEncode);
 
             // Make sure the reader MajorVersion differ and MinorVersion are equal
-            DataSetReaderDataType reader = (DataSetReaderDataType)m_firstDataSetReaderType.MemberwiseClone();
+            DataSetReaderDataType reader = (DataSetReaderDataType)firstDataSetReaderType_.MemberwiseClone();
             reader.DataSetMetaData.ConfigurationVersion.MajorVersion = uadpDataSetMessage.MetaDataVersion.MajorVersion + 1;
             reader.DataSetMetaData.ConfigurationVersion.MinorVersion = uadpDataSetMessage.MetaDataVersion.MinorVersion;
 
@@ -423,7 +424,7 @@ namespace Technosoftware.UaPubSub.Tests.Encoding
             BinaryDecoder decoder = new BinaryDecoder(bytes, messageContextEncode);
 
             // Make sure the reader MajorVersion differ and MinorVersion differ
-            DataSetReaderDataType reader = (DataSetReaderDataType)m_firstDataSetReaderType.MemberwiseClone();
+            DataSetReaderDataType reader = (DataSetReaderDataType)firstDataSetReaderType_.MemberwiseClone();
             reader.DataSetMetaData.ConfigurationVersion.MajorVersion = uadpDataSetMessage.MetaDataVersion.MajorVersion + 1;
             reader.DataSetMetaData.ConfigurationVersion.MinorVersion = uadpDataSetMessage.MetaDataVersion.MinorVersion + 1;
 
@@ -474,18 +475,18 @@ namespace Technosoftware.UaPubSub.Tests.Encoding
         /// </summary>
         private void LoadData()
         {
-            Assert.IsNotNull(m_publisherApplication, "m_publisherApplication should not be null");
+            Assert.IsNotNull(publisherApplication_, "publisherApplication_ should not be null");
 
             #region DataSet Simple
             // DataSet 'Simple' fill with data
             DataValue booleanValue = new DataValue(new Variant(true), StatusCodes.Good);
-            m_publisherApplication.DataStore.WritePublishedDataItem(new NodeId("BoolToggle", kNamespaceIndexSimple), Attributes.Value, booleanValue);
+            publisherApplication_.DataStore.WritePublishedDataItem(new NodeId("BoolToggle", kNamespaceIndexSimple), Attributes.Value, booleanValue);
             DataValue scalarInt32XValue = new DataValue(new Variant(100), StatusCodes.Good);
-            m_publisherApplication.DataStore.WritePublishedDataItem(new NodeId("Int32", kNamespaceIndexSimple), Attributes.Value, scalarInt32XValue);
+            publisherApplication_.DataStore.WritePublishedDataItem(new NodeId("Int32", kNamespaceIndexSimple), Attributes.Value, scalarInt32XValue);
             DataValue scalarInt32YValue = new DataValue(new Variant(50), StatusCodes.Good);
-            m_publisherApplication.DataStore.WritePublishedDataItem(new NodeId("Int32Fast", kNamespaceIndexSimple), Attributes.Value, scalarInt32YValue);
+            publisherApplication_.DataStore.WritePublishedDataItem(new NodeId("Int32Fast", kNamespaceIndexSimple), Attributes.Value, scalarInt32YValue);
             DataValue dateTimeValue = new DataValue(new Variant(DateTime.UtcNow), StatusCodes.Good);
-            m_publisherApplication.DataStore.WritePublishedDataItem(new NodeId("DateTime", kNamespaceIndexSimple), Attributes.Value, dateTimeValue);
+            publisherApplication_.DataStore.WritePublishedDataItem(new NodeId("DateTime", kNamespaceIndexSimple), Attributes.Value, dateTimeValue);
             #endregion
         }
 
@@ -496,11 +497,11 @@ namespace Technosoftware.UaPubSub.Tests.Encoding
         private DataSetReaderDataType GetFirstDataSetReader()
         {
             // Read the first configured ReaderGroup
-            Assert.IsNotNull(m_firstReaderGroup, "m_firstReaderGroup should not be null");
-            Assert.IsNotEmpty(m_firstReaderGroup.DataSetReaders, "m_firstReaderGroup.DataSetReaders should not be empty");
-            Assert.IsNotNull(m_firstReaderGroup.DataSetReaders[0], "m_firstReaderGroup.DataSetReaders[0] should not be null");
+            Assert.IsNotNull(firstReaderGroup_, "firstReaderGroup_ should not be null");
+            Assert.IsNotEmpty(firstReaderGroup_.DataSetReaders, "firstReaderGroup_.DataSetReaders should not be empty");
+            Assert.IsNotNull(firstReaderGroup_.DataSetReaders[0], "firstReaderGroup_.DataSetReaders[0] should not be null");
 
-            return m_firstReaderGroup.DataSetReaders[0];
+            return firstReaderGroup_.DataSetReaders[0];
         }
 
         /// <summary>
@@ -518,7 +519,7 @@ namespace Technosoftware.UaPubSub.Tests.Encoding
             LoadData();
 
             // set the configurable field content mask to allow only Variant data type
-            foreach (DataSetWriterDataType dataSetWriter in m_firstWriterGroup.DataSetWriters)
+            foreach (DataSetWriterDataType dataSetWriter in firstWriterGroup_.DataSetWriters)
             {
                 // 00 The DataSet fields are encoded as Variant data type
                 // The Variant can contain a StatusCode instead of the expected DataType if the status of the field is Bad.
@@ -526,7 +527,7 @@ namespace Technosoftware.UaPubSub.Tests.Encoding
                 dataSetWriter.DataSetFieldContentMask = (uint)fieldContentMask;
             }
 
-            var networkMessages = m_firstPublisherConnection.CreateNetworkMessages(m_firstWriterGroup, new WriterGroupPublishState());
+            var networkMessages = firstPublisherConnection_.CreateNetworkMessages(firstWriterGroup_, new WriterGroupPublishState());
             // filter out the metadata message
             networkMessages = (from m in networkMessages
                                where !m.IsMetaDataMessage
@@ -570,7 +571,7 @@ namespace Technosoftware.UaPubSub.Tests.Encoding
 
             // workaround
             uaDataSetMessageDecoded.DataSetWriterId = kTestDataSetWriterId;
-            uaDataSetMessageDecoded.DecodePossibleDataSetReader(decoder, m_firstDataSetReaderType);
+            uaDataSetMessageDecoded.DecodePossibleDataSetReader(decoder, firstDataSetReaderType_);
             decoder.Dispose();
 
             // compare uadpDataSetMessage with uaDataSetMessageDecoded

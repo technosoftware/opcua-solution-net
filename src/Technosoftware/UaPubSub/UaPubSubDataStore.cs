@@ -23,6 +23,11 @@ namespace Technosoftware.UaPubSub
     /// </summary>
     public class UaPubSubDataStore : IUaPubSubDataStore
     {
+        #region Private Fields
+        private readonly object lock_ = new object();
+        private readonly Dictionary<NodeId, Dictionary<uint, DataValue>> store_;
+        #endregion
+
         #region Constructor
         /// <summary>
         /// Create new instance of <see cref="UaPubSubDataStore"/>
@@ -50,7 +55,7 @@ namespace Technosoftware.UaPubSub
         {
             if (nodeId == null)
             {
-                throw new ArgumentException("The Node ID cannot be null.", nameof(nodeId));
+                throw new ArgumentException(nameof(nodeId));
             }
 
             lock (lock_)
@@ -83,7 +88,7 @@ namespace Technosoftware.UaPubSub
         {
             if (nodeId == null)
             {
-                throw new ArgumentException("The Node ID cannot be null.", nameof(nodeId));
+                throw new ArgumentException(nameof(nodeId));
             }
             if (attributeId == 0)
             {
@@ -91,7 +96,7 @@ namespace Technosoftware.UaPubSub
             }
             if (!Attributes.IsValid(attributeId))
             {
-                throw new ArgumentException("The Attribute ID is not valid.", nameof(nodeId));
+                throw new ArgumentException(nameof(attributeId));
             }
             lock (lock_)
             {
@@ -101,7 +106,7 @@ namespace Technosoftware.UaPubSub
                 }
                 else
                 {
-                    Dictionary<uint, DataValue> dictionary = new Dictionary<uint, DataValue>();
+                    var dictionary = new Dictionary<uint, DataValue>();
                     dictionary.Add(attributeId, dataValue);
                     store_.Add(nodeId, dictionary);
                 }
@@ -119,7 +124,7 @@ namespace Technosoftware.UaPubSub
             // todo find out why the deltaFrame parameter is not used
             if (nodeId == null)
             {
-                throw new ArgumentException("The Node ID cannot be null.", nameof(nodeId));
+                throw new ArgumentException(nameof(nodeId));
             }
             if (attributeId == 0)
             {
@@ -127,7 +132,7 @@ namespace Technosoftware.UaPubSub
             }
             if (!Attributes.IsValid(attributeId))
             {
-                throw new ArgumentException("The Attribute ID is not valid.", nameof(nodeId));
+                throw new ArgumentException(nameof(attributeId));
             }
             lock (lock_)
             {
@@ -148,11 +153,6 @@ namespace Technosoftware.UaPubSub
         public void UpdateMetaData(PublishedDataSetDataType publishedDataSet)
         {
         }
-        #endregion
-
-        #region Private Fields
-        private readonly object lock_ = new object();
-        private readonly Dictionary<NodeId, Dictionary<uint, DataValue>> store_;
         #endregion
     }
 }

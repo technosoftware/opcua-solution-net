@@ -490,6 +490,20 @@ namespace Technosoftware.UaConfiguration
         }
 
         /// <inheritdoc/>
+        public IUaApplicationConfigurationTransportQuotas SetMaxEncodingNestingLevels(int maxEncodingNestingLevels)
+        {
+            ApplicationConfiguration.TransportQuotas.MaxEncodingNestingLevels = maxEncodingNestingLevels;
+            return this;
+        }
+
+        /// <inheritdoc/>
+        public IUaApplicationConfigurationTransportQuotas SetMaxDecoderRecoveries(int maxDecoderRecoveries)
+        {
+            ApplicationConfiguration.TransportQuotas.MaxDecoderRecoveries = maxDecoderRecoveries;
+            return this;
+        }
+
+        /// <inheritdoc/>
         public IUaApplicationConfigurationServerOptions SetMinRequestThreadCount(int minRequestThreadCount)
         {
             ApplicationConfiguration.ServerConfiguration.MinRequestThreadCount = minRequestThreadCount;

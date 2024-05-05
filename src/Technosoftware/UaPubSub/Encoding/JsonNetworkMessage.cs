@@ -26,11 +26,11 @@ namespace Technosoftware.UaPubSub.Encoding
     public class JsonNetworkMessage : UaNetworkMessage
     {
         #region Fields
-        private const string DataSetMessageType = "ua-data";
-        private const string MetaDataMessageType = "ua-metadata";
-        private const string FieldMessages = "Messages";
-        private const string FieldMetaData = "MetaData";
-        private const string FieldReplyTo = "ReplyTo";
+        private const string kDataSetMessageType = "ua-data";
+        private const string kMetaDataMessageType = "ua-metadata";
+        private const string kFieldMessages = "Messages";
+        private const string kFieldMetaData = "MetaData";
+        private const string kFieldReplyTo = "ReplyTo";
 
         private JSONNetworkMessageType jsonNetworkMessageType_;
         #endregion
@@ -52,20 +52,20 @@ namespace Technosoftware.UaPubSub.Encoding
             : base(writerGroupConfiguration, jsonDataSetMessages?.ConvertAll<UaDataSetMessage>(x => (UaDataSetMessage)x) ?? new List<UaDataSetMessage>())
         {
             MessageId = Guid.NewGuid().ToString();
-            MessageType = DataSetMessageType;
+            MessageType = kDataSetMessageType;
             DataSetClassId = string.Empty;
 
             jsonNetworkMessageType_ = JSONNetworkMessageType.DataSetMessage;
         }
 
         /// <summary>
-        /// Create new instance of <see cref="JsonNetworkMessage"/> as a DataSetMetadata message
+        /// Create new instance of <see cref="JsonNetworkMessage"/> as a DataSetMetaData message
         /// </summary>
         public JsonNetworkMessage(WriterGroupDataType writerGroupConfiguration, DataSetMetaDataType metadata)
             : base(writerGroupConfiguration, metadata)
         {
             MessageId = Guid.NewGuid().ToString();
-            MessageType = MetaDataMessageType;
+            MessageType = kMetaDataMessageType;
             DataSetClassId = string.Empty;
 
             jsonNetworkMessageType_ = JSONNetworkMessageType.DataSetMetaData;
@@ -165,7 +165,7 @@ namespace Technosoftware.UaPubSub.Encoding
         /// <param name="messageContext">The context.</param>
         public override byte[] Encode(IServiceMessageContext messageContext)
         {
-            using (MemoryStream stream = new MemoryStream())
+            using (var stream = new MemoryStream())
             {
                 Encode(messageContext, stream);
                 return stream.ToArray();
@@ -179,7 +179,7 @@ namespace Technosoftware.UaPubSub.Encoding
         /// <param name="stream">The stream to use.</param>
         public override void Encode(IServiceMessageContext messageContext, Stream stream)
         {
-            bool topLevelIsArray = !HasNetworkMessageHeader && !HasSingleDataSetMessage && !IsMetaDataMessage;
+            var topLevelIsArray = !HasNetworkMessageHeader && !HasSingleDataSetMessage && !IsMetaDataMessage;
 
             using (IJsonEncoder encoder = new JsonEncoder(messageContext, true, topLevelIsArray, stream))
             {
@@ -187,7 +187,7 @@ namespace Technosoftware.UaPubSub.Encoding
                 {
                     EncodeNetworkMessageHeader(encoder);
 
-                    encoder.WriteEncodeable(FieldMetaData, metadata_, null);
+                    encoder.WriteEncodeable(kFieldMetaData, metadata_, null);
 
                     return;
                 }
@@ -224,7 +224,7 @@ namespace Technosoftware.UaPubSub.Encoding
                     {
                         // If the NetworkMessageHeader bit of the NetworkMessageContentMask is not set,
                         // the NetworkMessage is the contents of the Messages field (e.g. a JSON array of DataSetMessages).
-                        foreach (UaDataSetMessage message in DataSetMessages)
+                        foreach (var message in DataSetMessages)
                         {
                             if (message is JsonDataSetMessage jsonDataSetMessage)
                             {
@@ -244,7 +244,7 @@ namespace Technosoftware.UaPubSub.Encoding
         /// <param name="dataSetReaders"></param>
         public override void Decode(IServiceMessageContext context, byte[] message, IList<DataSetReaderDataType> dataSetReaders)
         {
-            string json = System.Text.Encoding.UTF8.GetString(message);
+            var json = System.Text.Encoding.UTF8.GetString(message);
 
             using (IJsonDecoder jsonDecoder = new JsonDecoder(json, context))
             {
@@ -304,7 +304,7 @@ namespace Technosoftware.UaPubSub.Encoding
                 {
                     if (HasSingleDataSetMessage)
                     {
-                        JsonDataSetMessage jsonDataSetMessage = DataSetMessages[0] as JsonDataSetMessage;
+                        var jsonDataSetMessage = DataSetMessages[0] as JsonDataSetMessage;
 
                         if (jsonDataSetMessage?.DataSet?.DataSetMetaData?.DataSetClassId != null)
                         {
@@ -340,13 +340,13 @@ namespace Technosoftware.UaPubSub.Encoding
                     // encode single dataset message
                     if (DataSetMessages[0] is JsonDataSetMessage jsonDataSetMessage)
                     {
-                        jsonDataSetMessage.Encode(encoder, FieldMessages);
+                        jsonDataSetMessage.Encode(encoder, kFieldMessages);
                     }
                 }
                 else
                 {
-                    encoder.PushArray(FieldMessages);
-                    foreach (UaDataSetMessage message in DataSetMessages)
+                    encoder.PushArray(kFieldMessages);
+                    foreach (var message in DataSetMessages)
                     {
                         if (message is JsonDataSetMessage jsonDataSetMessage)
                         {
@@ -365,7 +365,7 @@ namespace Technosoftware.UaPubSub.Encoding
         {
             if ((NetworkMessageContentMask & JsonNetworkMessageContentMask.ReplyTo) != 0)
             {
-                jsonEncoder.WriteString(FieldReplyTo, ReplyTo);
+                jsonEncoder.WriteString(kFieldReplyTo, ReplyTo);
             }
         }
 
@@ -391,11 +391,11 @@ namespace Technosoftware.UaPubSub.Encoding
                 MessageType = jsonDecoder.ReadString(nameof(MessageType));
 
                 // detect the json network message type
-                if (MessageType == DataSetMessageType)
+                if (MessageType == kDataSetMessageType)
                 {
                     jsonNetworkMessageType_ = JSONNetworkMessageType.DataSetMessage;
                 }
-                else if (MessageType == MetaDataMessageType)
+                else if (MessageType == kMetaDataMessageType)
                 {
                     jsonNetworkMessageType_ = JSONNetworkMessageType.DataSetMetaData;
                 }
@@ -404,7 +404,7 @@ namespace Technosoftware.UaPubSub.Encoding
                     jsonNetworkMessageType_ = JSONNetworkMessageType.Invalid;
 
                     Utils.Format("Invalid JSON MessageType: {0}. Supported values are {1} and {2}.",
-                        MessageType, DataSetMessageType, MetaDataMessageType);
+                        MessageType, kDataSetMessageType, kMetaDataMessageType);
                 }
             }
 
@@ -446,7 +446,7 @@ namespace Technosoftware.UaPubSub.Encoding
         {
             try
             {
-                metadata_ = jsonDecoder.ReadEncodeable(FieldMetaData, typeof(DataSetMetaDataType)) as DataSetMetaDataType;
+                metadata_ = jsonDecoder.ReadEncodeable(kFieldMetaData, typeof(DataSetMetaDataType)) as DataSetMetaDataType;
             }
             catch (Exception ex)
             {
@@ -469,7 +469,7 @@ namespace Technosoftware.UaPubSub.Encoding
             }
             try
             {
-                List<DataSetReaderDataType> dataSetReadersFiltered = new List<DataSetReaderDataType>();
+                var dataSetReadersFiltered = new List<DataSetReaderDataType>();
 
                 // 1. decode network message header (PublisherId & DataSetClassId)
                 DecodeNetworkMessageHeader(jsonDecoder);
@@ -477,7 +477,7 @@ namespace Technosoftware.UaPubSub.Encoding
                 // handle metadata messages.
                 if (jsonNetworkMessageType_ == JSONNetworkMessageType.DataSetMetaData)
                 {
-                    metadata_ = jsonDecoder.ReadEncodeable(FieldMetaData, typeof(DataSetMetaDataType)) as DataSetMetaDataType;
+                    metadata_ = jsonDecoder.ReadEncodeable(kFieldMetaData, typeof(DataSetMetaDataType)) as DataSetMetaDataType;
                     return;
                 }
 
@@ -512,19 +512,19 @@ namespace Technosoftware.UaPubSub.Encoding
 
                 object messagesToken = null;
                 List<object> messagesList = null;
-                string messagesListName = string.Empty;
-                if (jsonDecoder.ReadField(FieldMessages, out messagesToken))
+                var messagesListName = string.Empty;
+                if (jsonDecoder.ReadField(kFieldMessages, out messagesToken))
                 {
                     messagesList = messagesToken as List<object>;
                     if (messagesList == null)
                     {
                         // this is a SingleDataSetMessage encoded as the content of Messages 
-                        jsonDecoder.PushStructure(FieldMessages);
+                        jsonDecoder.PushStructure(kFieldMessages);
                         messagesList = new List<object>();
                     }
                     else
                     {
-                        messagesListName = FieldMessages;
+                        messagesListName = kFieldMessages;
                     }
                 }
                 else if (jsonDecoder.ReadField(JsonDecoder.RootArrayName, out messagesToken))
@@ -539,7 +539,7 @@ namespace Technosoftware.UaPubSub.Encoding
                 }
                 if (messagesList != null)
                 {
-                    // atempt decoding for each data set reader
+                    // attempt decoding for each data set reader
                     foreach (DataSetReaderDataType dataSetReader in dataSetReaders)
                     {
                         if (!(ExtensionObject.ToEncodeable(dataSetReader.MessageSettings) is JsonDataSetReaderMessageDataType jsonMessageSettings))
@@ -547,7 +547,7 @@ namespace Technosoftware.UaPubSub.Encoding
                             // The reader MessageSettings is not set up correctly 
                             continue;
                         }
-                        JsonNetworkMessageContentMask networkMessageContentMask =
+                        var networkMessageContentMask =
                             (JsonNetworkMessageContentMask)jsonMessageSettings.NetworkMessageContentMask;
                         if ((networkMessageContentMask & NetworkMessageContentMask) != NetworkMessageContentMask)
                         {
@@ -556,7 +556,7 @@ namespace Technosoftware.UaPubSub.Encoding
                         }
 
                         // initialize the dataset message
-                        JsonDataSetMessage jsonDataSetMessage = new JsonDataSetMessage();
+                        var jsonDataSetMessage = new JsonDataSetMessage();
                         jsonDataSetMessage.DataSetMessageContentMask = (JsonDataSetMessageContentMask)jsonMessageSettings.DataSetMessageContentMask;
                         jsonDataSetMessage.SetFieldContentMask((DataSetFieldContentMask)dataSetReader.DataSetFieldContentMask);
                         // set the flag that indicates if dataset message shall have a header

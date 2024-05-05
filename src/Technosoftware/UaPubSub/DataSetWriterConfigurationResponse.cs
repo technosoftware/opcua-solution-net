@@ -10,6 +10,8 @@
 #endregion Copyright (c) 2022-2024 Technosoftware GmbH. All rights reserved
 
 #region Using Directives
+using System;
+
 using Opc.Ua;
 #endregion
 

@@ -58,7 +58,7 @@ namespace SampleCompany.NodeManagers.MemoryBuffer
             OnReadValue = parent.ReadTagValue;
             OnWriteValue = parent.WriteTagValue;
 
-            m_offset = offet;
+            offset_ = offet;
         }
         #endregion
 
@@ -68,12 +68,12 @@ namespace SampleCompany.NodeManagers.MemoryBuffer
         /// </summary>
         public uint Offset
         {
-            get { return m_offset; }
+            get { return offset_; }
         }
         #endregion
 
         #region Private Fields
-        private uint m_offset;
+        private uint offset_;
         #endregion
     }
 }

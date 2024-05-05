@@ -24,6 +24,7 @@ using Moq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
+using Assert = NUnit.Framework.Legacy.ClassicAssert;
 
 using Opc.Ua;
 
@@ -1540,7 +1541,7 @@ namespace Technosoftware.UaPubSub.Tests.Encoding
             MetaDataFailOptions failOptions = VerifyDataSetMetaDataEncoding(jsonNetworkMessage);
             if (failOptions != MetaDataFailOptions.Ok)
             {
-                Assert.Fail("The mandatory 'jsonNetworkMessage.{0}' field is wrong or missing from decoded message.", failOptions);
+                Assert.Fail($"The mandatory 'jsonNetworkMessage.{failOptions}' field is wrong or missing from decoded message.");
             }
         }
 
@@ -1693,14 +1694,14 @@ namespace Technosoftware.UaPubSub.Tests.Encoding
             {
                 if ((NetworkMessageFailOptions)failOptions != NetworkMessageFailOptions.Ok)
                 {
-                    Assert.Fail("The mandatory 'jsonNetworkMessage.{0}' field is wrong or missing from decoded message.", failOptions);
+                    Assert.Fail($"The mandatory 'jsonNetworkMessage.{failOptions}' field is wrong or missing from decoded message.");
                 }
             }
             if (failOptions is DataSetMessageFailOptions)
             {
                 if ((DataSetMessageFailOptions)failOptions != DataSetMessageFailOptions.Ok)
                 {
-                    Assert.Fail("The mandatory 'jsonDataSetMessage.{0}' field is wrong or missing from decoded message.", failOptions);
+                    Assert.Fail($"The mandatory 'jsonDataSetMessage.{failOptions}' field is wrong or missing from decoded message.");
                 }
             }
         }
@@ -2085,12 +2086,12 @@ namespace Technosoftware.UaPubSub.Tests.Encoding
                     }
                     else
                     {
-                        Assert.Warn("JsonDataSetMessage - Decoding ValueRank = {0} not supported yet !!!", fieldMetaData.ValueRank);
+                        Assert.Warn($"JsonDataSetMessage - Decoding ValueRank = {fieldMetaData.ValueRank} not supported yet !!!");
                     }
                 }
                 catch (Exception ex)
                 {
-                    Assert.Warn("JsonDataSetMessage - Error reading element for RawData. {0}", ex.Message);
+                    Assert.Warn($"JsonDataSetMessage - Error reading element for RawData. {ex.Message}");
                     return (StatusCodes.BadDecodingError);
                 }
             }
@@ -2166,7 +2167,7 @@ namespace Technosoftware.UaPubSub.Tests.Encoding
             }
             catch (Exception)
             {
-                Assert.Warn("JsonDataSetMessage - Error decoding field {0}", fieldName);
+                Assert.Warn($"JsonDataSetMessage - Error decoding field {fieldName}");
             }
 
             return null;

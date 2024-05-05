@@ -11,6 +11,7 @@
 
 #region Using Directives
 using System;
+using System.Globalization;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Text;
@@ -38,9 +39,9 @@ namespace Technosoftware.UaPubSub.Configuration
             XmlWriterSettings settings = Utils.DefaultXmlWriterSettings();
             settings.CloseOutput = true;
 
-            using (XmlWriter writer = XmlDictionaryWriter.Create(ostrm, settings))
+            using (var writer = XmlWriter.Create(ostrm, settings))
             {
-                DataContractSerializer serializer = new DataContractSerializer(typeof(PubSubConfigurationDataType));
+                var serializer = new DataContractSerializer(typeof(PubSubConfigurationDataType));
                 serializer.WriteObject(writer, pubSubConfiguration);
             }
         }
@@ -53,17 +54,17 @@ namespace Technosoftware.UaPubSub.Configuration
         {
             try
             {
-                using (FileStream stream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+                using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
                 {
-                    DataContractSerializer serializer = new DataContractSerializer(typeof(PubSubConfigurationDataType));
+                    var serializer = new DataContractSerializer(typeof(PubSubConfigurationDataType));
                     return (PubSubConfigurationDataType)serializer.ReadObject(stream);
                 }
             }
             catch (Exception e)
             {
-                StringBuilder buffer = new StringBuilder();
-                buffer.AppendFormat("Configuration file could not be loaded: {0}\r\n", filePath);
-                buffer.AppendFormat("Error: {0}", e.Message);
+                var buffer = new StringBuilder();
+                buffer.AppendFormat(CultureInfo.InvariantCulture, "Configuration file could not be loaded: {0}\r\n", filePath);
+                buffer.AppendFormat(CultureInfo.InvariantCulture, "Error: {0}", e.Message);
 
                 throw ServiceResultException.Create(
                     StatusCodes.BadConfigurationError,
