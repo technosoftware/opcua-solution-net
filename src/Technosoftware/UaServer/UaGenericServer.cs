@@ -2306,7 +2306,7 @@ namespace Technosoftware.UaServer
                                     _ = client.RegisterServer(requestHeader, registrationInfo_);
                                 }
 
-                                registeredWithDiscoveryServer_ = m_registrationInfo.IsOnline;
+                                registeredWithDiscoveryServer_ = registrationInfo_.IsOnline;
                                 return true;
                             }
                             catch (Exception e)
