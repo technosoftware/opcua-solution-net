@@ -29,7 +29,7 @@ namespace Technosoftware.UaPubSub.Transport
     internal class UdpDiscoverySubscriber : UdpDiscovery
     {
         #region  Private Fields
-        private const int InitialRequestInterval = 5000;
+        private const int kInitialRequestInterval = 5000;
 
         // The list that will store the WriterIds that shall be included in a DataSetMetaData Request message
         private readonly List<UInt16> metadataWriterIdsToSend_;
@@ -48,12 +48,12 @@ namespace Technosoftware.UaPubSub.Transport
             metadataWriterIdsToSend_ = new List<ushort>();
 
             intervalRunner_ = new IntervalRunner(udpConnection.PubSubConnectionConfiguration.Name,
-                InitialRequestInterval, CanPublish, SendDiscoveryRequestDataSetMetaData);
+                kInitialRequestInterval, CanPublish, RequestDiscoveryMessages);
 
         }
         #endregion
 
-        #region Start/Stop Method Overides
+        #region Start/Stop Method Overrides
 
         /// <summary>
         /// Implementation of StartAsync for the subscriber Discovery
@@ -96,7 +96,7 @@ namespace Technosoftware.UaPubSub.Transport
         }
 
         /// <summary>
-        /// Removes the specfoed DataSetWriterId for DataSetInformation to be requested 
+        /// Removes the specified DataSetWriterId for DataSetInformation to be requested 
         /// </summary>
         /// <param name="writerId"></param>
         public void RemoveWriterIdForDataSetMetadata(UInt16 writerId)
@@ -109,23 +109,22 @@ namespace Technosoftware.UaPubSub.Transport
                 }
             }
         }
-
         /// <summary>
         /// Send a discovery Request for DataSetWriterConfiguration
         /// </summary>
         public void SendDiscoveryRequestDataSetWriterConfiguration()
         {
-            ushort[] dataSetWriterIds = udpConnection_.PubSubConnectionConfiguration.ReaderGroups?
+            var dataSetWriterIds = udpConnection_.PubSubConnectionConfiguration.ReaderGroups?
                 .SelectMany(group => group.DataSetReaders)?
                 .Select(group => group.DataSetWriterId)?
                 .ToArray();
 
-            UadpNetworkMessage discoveryRequestDataSetWriterConfiguration = new UadpNetworkMessage(UADPNetworkMessageDiscoveryType.DataSetWriterConfiguration) {
+            var discoveryRequestDataSetWriterConfiguration = new UadpNetworkMessage(UADPNetworkMessageDiscoveryType.DataSetWriterConfiguration) {
                 DataSetWriterIds = dataSetWriterIds,
                 PublisherId = udpConnection_.PubSubConnectionConfiguration.PublisherId.Value,
             };
 
-            byte[] bytes = discoveryRequestDataSetWriterConfiguration.Encode(MessageContext);
+            var bytes = discoveryRequestDataSetWriterConfiguration.Encode(MessageContext);
 
             // send the Discovery request message to all open UADPClient 
             foreach (UdpClient udpClient in discoveryUdpClients_)
@@ -155,7 +154,7 @@ namespace Technosoftware.UaPubSub.Transport
                 .Find(x => x.WriterGroupId == writerConfig.WriterGroupId);
             if (writerGroup != null)
             {
-                int index = udpConnection_.PubSubConnectionConfiguration.WriterGroups.IndexOf(writerGroup);
+                var index = udpConnection_.PubSubConnectionConfiguration.WriterGroups.IndexOf(writerGroup);
                 udpConnection_.PubSubConnectionConfiguration.WriterGroups[index] = writerConfig;
             }
         }
@@ -165,13 +164,13 @@ namespace Technosoftware.UaPubSub.Transport
         /// </summary>
         public void SendDiscoveryRequestPublisherEndpoints()
         {
-            UadpNetworkMessage discoveryRequestPublisherEndpoints = new UadpNetworkMessage(UADPNetworkMessageDiscoveryType.PublisherEndpoint);
+            var discoveryRequestPublisherEndpoints = new UadpNetworkMessage(UADPNetworkMessageDiscoveryType.PublisherEndpoint);
             discoveryRequestPublisherEndpoints.PublisherId = udpConnection_.PubSubConnectionConfiguration.PublisherId.Value;
 
-            byte[] bytes = discoveryRequestPublisherEndpoints.Encode(MessageContext);
+            var bytes = discoveryRequestPublisherEndpoints.Encode(MessageContext);
 
             // send the PublisherEndpoints DiscoveryRequest message to all open UdpClients
-            foreach (UdpClient udpClient in discoveryUdpClients_)
+            foreach (var udpClient in discoveryUdpClients_)
             {
                 try
                 {
@@ -209,15 +208,15 @@ namespace Technosoftware.UaPubSub.Transport
             }
 
             // create the DataSetMetaData DiscoveryRequest message
-            UadpNetworkMessage discoveryRequestMetaDataMessage = new UadpNetworkMessage(UADPNetworkMessageDiscoveryType.DataSetMetaData) {
+            var discoveryRequestMetaDataMessage = new UadpNetworkMessage(UADPNetworkMessageDiscoveryType.DataSetMetaData) {
                 DataSetWriterIds = dataSetWriterIds,
                 PublisherId = udpConnection_.PubSubConnectionConfiguration.PublisherId.Value,
             };
 
-            byte[] bytes = discoveryRequestMetaDataMessage.Encode(MessageContext);
+            var bytes = discoveryRequestMetaDataMessage.Encode(MessageContext);
 
             // send the DataSetMetaData DiscoveryRequest message to all open UDPClient 
-            foreach (UdpClient udpClient in discoveryUdpClients_)
+            foreach (var udpClient in discoveryUdpClients_)
             {
                 try
                 {
@@ -249,7 +248,7 @@ namespace Technosoftware.UaPubSub.Transport
                 if (metadataWriterIdsToSend_.Count == 0)
                 {
                     // reset the interval for publisher if there is nothing to send
-                    intervalRunner_.Interval = InitialRequestInterval;
+                    intervalRunner_.Interval = kInitialRequestInterval;
                 }
 
                 return metadataWriterIdsToSend_.Count > 0;

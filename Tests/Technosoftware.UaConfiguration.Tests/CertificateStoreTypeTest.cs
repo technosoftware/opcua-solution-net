@@ -56,7 +56,7 @@ namespace Technosoftware.UaConfiguration
 
         #region Test Methods
         [Test]
-        public async Task CertifcateStoreTypeNoConfigTest()
+        public async Task CertificateStoreTypeNoConfigTest()
         {
             ApplicationInstance application = new ApplicationInstance() {
                 ApplicationName = "Application",

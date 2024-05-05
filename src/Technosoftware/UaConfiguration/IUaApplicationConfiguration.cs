@@ -75,6 +75,16 @@ namespace Technosoftware.UaConfiguration
         /// <param name="maxBufferSize">The max buffer size.</param>
         IUaApplicationConfigurationTransportQuotas SetMaxBufferSize(int maxBufferSize);
 
+        /// <inheritdoc cref="TransportQuotas.MaxEncodingNestingLevels"/>
+        /// <remarks>applies to <see cref="TransportQuotas.MaxEncodingNestingLevels"/></remarks>
+        /// <param name="maxEncodingNestingLevels"></param>
+        IUaApplicationConfigurationTransportQuotas SetMaxEncodingNestingLevels(int maxEncodingNestingLevels);
+
+        /// <inheritdoc cref="TransportQuotas.MaxDecoderRecoveries"/>
+        /// <remarks>applies to <see cref="TransportQuotas.MaxDecoderRecoveries"/></remarks>
+        /// <param name="maxDecoderRecoveries"></param>
+        IUaApplicationConfigurationTransportQuotas SetMaxDecoderRecoveries(int maxDecoderRecoveries);
+
         /// <inheritdoc cref="TransportQuotas.ChannelLifetime"/>
         /// <remarks>applies to <see cref="TransportQuotas.ChannelLifetime"/></remarks>
         /// <param name="channelLifetime">The lifetime.</param>

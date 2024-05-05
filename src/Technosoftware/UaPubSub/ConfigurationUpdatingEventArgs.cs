@@ -11,6 +11,8 @@
 
 #region Using Directives
 using System;
+
+using Opc.Ua;
 #endregion
 
 namespace Technosoftware.UaPubSub

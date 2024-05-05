@@ -24,8 +24,8 @@ namespace Technosoftware.UaPubSub.PublishedData
     public class DataCollector
     {
         #region Private Fields
-        private readonly Dictionary<string, PublishedDataSetDataType> m_publishedDataSetsByName;
-        private readonly IUaPubSubDataStore m_dataStore;
+        private readonly Dictionary<string, PublishedDataSetDataType> publishedDataSetsByName_;
+        private readonly IUaPubSubDataStore dataStore_;
         #endregion
 
         #region Constructor
@@ -35,8 +35,8 @@ namespace Technosoftware.UaPubSub.PublishedData
         /// <param name="dataStore">Reference to the <see cref="IUaPubSubDataStore"/> that will be used to collect data.</param>
         public DataCollector(IUaPubSubDataStore dataStore)
         {
-            m_dataStore = dataStore;
-            m_publishedDataSetsByName = new Dictionary<string, PublishedDataSetDataType>();
+            dataStore_ = dataStore;
+            publishedDataSetsByName_ = new Dictionary<string, PublishedDataSetDataType>();
         }
         #endregion
 
@@ -81,7 +81,7 @@ namespace Technosoftware.UaPubSub.PublishedData
             // validate publishedDataSet
             if (ValidatePublishedDataSet(publishedDataSet))
             {
-                m_publishedDataSetsByName[publishedDataSet.Name] = publishedDataSet;
+                publishedDataSetsByName_[publishedDataSet.Name] = publishedDataSet;
             }
             else
             {
@@ -100,7 +100,7 @@ namespace Technosoftware.UaPubSub.PublishedData
             {
                 throw new ArgumentException(nameof(publishedDataSet));
             }
-            m_publishedDataSetsByName.Remove(publishedDataSet.Name);
+            publishedDataSetsByName_.Remove(publishedDataSet.Name);
         }
 
         /// <summary>
@@ -114,18 +114,18 @@ namespace Technosoftware.UaPubSub.PublishedData
 
             if (publishedDataSet != null)
             {
-                m_dataStore.UpdateMetaData(publishedDataSet);
+                dataStore_.UpdateMetaData(publishedDataSet);
 
                 if (publishedDataSet.DataSetSource != null)
                 {
-                    DataSet dataSet = new DataSet(dataSetName);
+                    var dataSet = new DataSet(dataSetName);
                     dataSet.DataSetMetaData = publishedDataSet.DataSetMetaData;
 
 
                     if (ExtensionObject.ToEncodeable(publishedDataSet.DataSetSource) is PublishedDataItemsDataType publishedDataItems && publishedDataItems.PublishedData != null && publishedDataItems.PublishedData.Count > 0)
                     {
                         dataSet.Fields = new Field[publishedDataItems.PublishedData.Count];
-                        for (int i = 0; i < publishedDataItems.PublishedData.Count; i++)
+                        for (var i = 0; i < publishedDataItems.PublishedData.Count; i++)
                         {
                             try
                             {
@@ -140,7 +140,7 @@ namespace Technosoftware.UaPubSub.PublishedData
 
                                 if (publishedVariable.PublishedVariable != null)
                                 {
-                                    dataValue = m_dataStore.ReadPublishedDataItem(publishedVariable.PublishedVariable, publishedVariable.AttributeId);
+                                    dataValue = dataStore_.ReadPublishedDataItem(publishedVariable.PublishedVariable, publishedVariable.AttributeId);
                                 }
 
                                 if (dataValue == null)
@@ -149,7 +149,7 @@ namespace Technosoftware.UaPubSub.PublishedData
                                     /*If an entry of the PublishedData references one of the ExtensionFields, the substituteValue shall contain the 
                                     * QualifiedName of the ExtensionFields entry. 
                                     * All other fields of this PublishedVariableDataType array element shall be null*/
-                                    QualifiedName extensionFieldName = publishedVariable.SubstituteValue.Value as QualifiedName;
+                                    var extensionFieldName = publishedVariable.SubstituteValue.Value as QualifiedName;
                                     if (extensionFieldName != null)
                                     {
                                         Opc.Ua.KeyValuePair extensionField = publishedDataSet.ExtensionFields.Find(x => x.Key == extensionFieldName);
@@ -184,13 +184,8 @@ namespace Technosoftware.UaPubSub.PublishedData
 
                                 bool shouldBringToConstraints(uint givenStrlen)
                                 {
-                                    if (field.FieldMetaData.MaxStringLength > 0 &&
-                                        givenStrlen > field.FieldMetaData.MaxStringLength)
-                                    {
-                                        return true;
-                                    }
-
-                                    return false;
+                                    return field.FieldMetaData.MaxStringLength > 0 &&
+                                        givenStrlen > field.FieldMetaData.MaxStringLength;
                                 }
 
                                 switch ((BuiltInType)field.FieldMetaData.BuiltInType)
@@ -206,10 +201,10 @@ namespace Technosoftware.UaPubSub.PublishedData
                                         }
                                         else if (field.FieldMetaData.ValueRank == ValueRanks.OneDimension)
                                         {
-                                            string[] valueArray = variant.Value as string[];
+                                            var valueArray = variant.Value as string[];
                                             if (valueArray != null)
                                             {
-                                                for (int idx = 0; idx < valueArray.Length; idx++)
+                                                for (var idx = 0; idx < valueArray.Length; idx++)
                                                 {
                                                     if (shouldBringToConstraints((uint)valueArray[idx].Length))
                                                     {
@@ -225,7 +220,7 @@ namespace Technosoftware.UaPubSub.PublishedData
                                         {
                                             if (variant.Value is byte[] byteStringFieldValue && shouldBringToConstraints((uint)byteStringFieldValue.Length))
                                             {
-                                                byte[] byteArray = (byte[])byteStringFieldValue.Clone();
+                                                var byteArray = (byte[])byteStringFieldValue.Clone();
                                                 Array.Resize(ref byteArray, (int)field.FieldMetaData.MaxStringLength);
                                                 variant.Value = byteArray;
                                                 dataValue.Value = variant;
@@ -233,14 +228,14 @@ namespace Technosoftware.UaPubSub.PublishedData
                                         }
                                         else if (field.FieldMetaData.ValueRank == ValueRanks.OneDimension)
                                         {
-                                            byte[][] valueArray = variant.Value as byte[][];
+                                            var valueArray = variant.Value as byte[][];
                                             if (valueArray != null)
                                             {
-                                                for (int idx = 0; idx < valueArray.Length; idx++)
+                                                for (var idx = 0; idx < valueArray.Length; idx++)
                                                 {
                                                     if (shouldBringToConstraints((uint)valueArray[idx].Length))
                                                     {
-                                                        byte[] byteArray = (byte[])valueArray[idx].Clone();
+                                                        var byteArray = (byte[])valueArray[idx].Clone();
                                                         Array.Resize(ref byteArray, (int)field.FieldMetaData.MaxStringLength);
                                                         valueArray[idx] = byteArray;
                                                     }
@@ -277,16 +272,9 @@ namespace Technosoftware.UaPubSub.PublishedData
         /// <returns></returns>
         public PublishedDataSetDataType GetPublishedDataSet(string dataSetName)
         {
-            if (dataSetName == null)
-            {
-                throw new ArgumentException(nameof(dataSetName));
-            }
-
-            if (m_publishedDataSetsByName.TryGetValue(dataSetName, out PublishedDataSetDataType value))
-            {
-                return value;
-            }
-            return null;
+            return dataSetName == null
+                ? throw new ArgumentException(nameof(dataSetName))
+                : publishedDataSetsByName_.TryGetValue(dataSetName, out PublishedDataSetDataType value) ? value : null;
         }
 
         #endregion

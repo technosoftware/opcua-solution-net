@@ -133,7 +133,7 @@ namespace Technosoftware.UaClient.Tests
                 Assert.AreEqual(diagnosticInfos.Count, diagnosticInfos.Count);
             });
 
-            Assert.AreEqual(StatusCodes.BadServiceUnsupported, sre.StatusCode);
+            Assert.AreEqual((StatusCode)StatusCodes.BadServiceUnsupported, (StatusCode)sre.StatusCode);
         }
 
         [Test]
@@ -159,7 +159,7 @@ namespace Technosoftware.UaClient.Tests
                 Assert.AreEqual(diagnosticInfos.Count, diagnosticInfos.Count);
             });
 
-            Assert.AreEqual(StatusCodes.BadServiceUnsupported, sre.StatusCode, sre.ToString());
+            Assert.AreEqual((StatusCode)StatusCodes.BadServiceUnsupported, (StatusCode)sre.StatusCode, sre.ToString());
         }
 
         [Test]
@@ -184,7 +184,7 @@ namespace Technosoftware.UaClient.Tests
                 Assert.AreEqual(diagnosticInfos.Count, diagnosticInfos.Count);
             });
 
-            Assert.AreEqual(StatusCodes.BadServiceUnsupported, sre.StatusCode);
+            Assert.AreEqual((StatusCode)StatusCodes.BadServiceUnsupported, (StatusCode)sre.StatusCode);
         }
 
         [Test]
@@ -210,7 +210,7 @@ namespace Technosoftware.UaClient.Tests
                 Assert.AreEqual(diagnosticInfos.Count, diagnosticInfos.Count);
             });
 
-            Assert.AreEqual(StatusCodes.BadServiceUnsupported, sre.StatusCode);
+            Assert.AreEqual((StatusCode)StatusCodes.BadServiceUnsupported, (StatusCode)sre.StatusCode);
         }
 
         [Test]
@@ -235,7 +235,7 @@ namespace Technosoftware.UaClient.Tests
                 Assert.AreEqual(diagnosticInfos.Count, diagnosticInfos.Count);
             });
 
-            Assert.AreEqual(StatusCodes.BadServiceUnsupported, sre.StatusCode);
+            Assert.AreEqual((StatusCode)StatusCodes.BadServiceUnsupported, (StatusCode)sre.StatusCode);
         }
 
         [Test]
@@ -261,7 +261,7 @@ namespace Technosoftware.UaClient.Tests
                 Assert.AreEqual(diagnosticInfos.Count, diagnosticInfos.Count);
             });
 
-            Assert.AreEqual(StatusCodes.BadServiceUnsupported, sre.StatusCode);
+            Assert.AreEqual((StatusCode)StatusCodes.BadServiceUnsupported, (StatusCode)sre.StatusCode);
         }
 
         [Test]
@@ -286,7 +286,7 @@ namespace Technosoftware.UaClient.Tests
                 Assert.AreEqual(diagnosticInfos.Count, diagnosticInfos.Count);
             });
 
-            Assert.AreEqual(StatusCodes.BadServiceUnsupported, sre.StatusCode);
+            Assert.AreEqual((StatusCode)StatusCodes.BadServiceUnsupported, (StatusCode)sre.StatusCode);
         }
 
         [Test]
@@ -312,7 +312,7 @@ namespace Technosoftware.UaClient.Tests
                 Assert.AreEqual(diagnosticInfos.Count, diagnosticInfos.Count);
             });
 
-            Assert.AreEqual(StatusCodes.BadServiceUnsupported, sre.StatusCode);
+            Assert.AreEqual((StatusCode)StatusCodes.BadServiceUnsupported, (StatusCode)sre.StatusCode);
         }
 
         [Test]

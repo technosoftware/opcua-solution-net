@@ -22,6 +22,9 @@ namespace Technosoftware.UaPubSub.Configuration
     /// </summary>
     public static class ConfigurationVersionUtils
     {
+        // The epoch date is midnight UTC (00:00) on January 1, 2000.
+        private static readonly DateTime kEpochDate = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
         /// <summary>
         /// Analyze and decide the right ConfigurationVersion for new MetaData 
         /// </summary>
@@ -35,8 +38,8 @@ namespace Technosoftware.UaPubSub.Configuration
                 throw new ArgumentNullException(nameof(newMetaData));
             }
 
-            bool hasMinorVersionChange = false;
-            bool hasMajorVersionChange = false;
+            var hasMinorVersionChange = false;
+            var hasMajorVersionChange = false;
 
             if (oldMetaData == null)
             {
@@ -55,7 +58,7 @@ namespace Technosoftware.UaPubSub.Configuration
                 else
                 {
                     // compare fileds
-                    for (int i = 0; i < oldMetaData.Fields.Count; i++)
+                    for (var i = 0; i < oldMetaData.Fields.Count; i++)
                     {
                         /*If at least one Property value of a DataSetMetaData field changes, the MajorVersion shall be updated.*/
                         if (!Utils.IsEqual(oldMetaData.Fields[i].Properties, newMetaData.Fields[1].Properties))
@@ -74,7 +77,7 @@ namespace Technosoftware.UaPubSub.Configuration
 
             if (hasMajorVersionChange || hasMinorVersionChange)
             {
-                UInt32 versionTime = CalculateVersionTime(DateTime.UtcNow);
+                var versionTime = CalculateVersionTime(DateTime.UtcNow);
                 if (hasMajorVersionChange)
                 {
                     // Change both minor and major version
@@ -113,7 +116,7 @@ namespace Technosoftware.UaPubSub.Configuration
             It is used as version number based on the last change time. If the version is updated, the new value shall be greater than the previous value.
             If a Variable is initialized with a VersionTime value, the value must be either loaded from persisted configuration or time synchronization must be available to ensure a unique version is applied.
             The value 0 is used to indicate that no version information is available.*/
-            return (uint)timeOfConfiguration.Subtract(epochDate_).TotalSeconds;
+            return (uint)timeOfConfiguration.Subtract(kEpochDate).TotalSeconds;
         }
 
         /// <summary>
@@ -124,20 +127,23 @@ namespace Technosoftware.UaPubSub.Configuration
         /// <returns></returns>
         public static bool IsUsable(DataSetMetaDataType dataSetMetaData)
         {
-            if (dataSetMetaData == null) return false;
-            if (dataSetMetaData.Fields == null) return false;
-            if (dataSetMetaData.Fields.Count == 0) return false;
+            if (dataSetMetaData == null)
+            {
+                return false;
+            }
 
-            if (dataSetMetaData.ConfigurationVersion == null) return false;
-            if (dataSetMetaData.ConfigurationVersion.MajorVersion == 0) return false;
-            if (dataSetMetaData.ConfigurationVersion.MinorVersion == 0) return false;
+            if (dataSetMetaData.Fields == null)
+            {
+                return false;
+            }
 
-            return true;
+            if (dataSetMetaData.Fields.Count == 0)
+            {
+                return false;
+            }
+
+            return dataSetMetaData.ConfigurationVersion != null
+                && dataSetMetaData.ConfigurationVersion.MajorVersion != 0 && dataSetMetaData.ConfigurationVersion.MinorVersion != 0;
         }
-
-        #region Private Fields
-        // The epoch date is midnight UTC (00:00) on January 1, 2000.
-        private static readonly DateTime epochDate_ = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-        #endregion
     }
 }

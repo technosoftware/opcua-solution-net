@@ -19,7 +19,7 @@ namespace SampleCompany.NodeManagers.Alarms
 {
     class LimitAlarmTypeHolder : AlarmConditionTypeHolder
     {
-        private bool m_isLimit = true;
+        private bool isLimit_ = true;
 
         public LimitAlarmTypeHolder(
             AlarmNodeManager alarmNodeManager,
@@ -53,7 +53,7 @@ namespace SampleCompany.NodeManagers.Alarms
                 alarm_ = new LimitAlarmState(parent_);
             }
 
-            m_isLimit = isLimit;
+            isLimit_ = isLimit;
 
             LimitAlarmState alarm = GetAlarm();
 

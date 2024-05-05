@@ -17,6 +17,7 @@ using Technosoftware.UaPubSub.PublishedData;
 using System.IO;
 
 using NUnit.Framework;
+using Assert = NUnit.Framework.Legacy.ClassicAssert;
 
 using Opc.Ua;
 
@@ -29,18 +30,18 @@ namespace Technosoftware.UaPubSub.Tests.Encoding
     [TestFixture(Description = "Tests for Encoding/Decoding of UadpNetworkMessage objects")]
     public class UadpNetworkMessageTests
     {
-        private string m_publisherConfigurationFileName = Path.Combine("Configuration", "PublisherConfiguration.xml");
-        private string m_subscriberConfigurationFileName = Path.Combine("Configuration", "SubscriberConfiguration.xml");
+        private string publisherConfigurationFileName_ = Path.Combine("Configuration", "PublisherConfiguration.xml");
+        private string subscriberConfigurationFileName_ = Path.Combine("Configuration", "SubscriberConfiguration.xml");
 
-        private PubSubConfigurationDataType m_publisherConfiguration;
-        private UaPubSubApplication m_publisherApplication;
-        private WriterGroupDataType m_firstWriterGroup;
-        private IUaPubSubConnection m_firstPublisherConnection;
+        private PubSubConfigurationDataType publisherConfiguration_;
+        private UaPubSubApplication publisherApplication_;
+        private WriterGroupDataType firstWriterGroup_;
+        private IUaPubSubConnection firstPublisherConnection_;
 
-        private PubSubConfigurationDataType m_subscriberConfiguration;
-        private UaPubSubApplication m_subscriberApplication;
-        private ReaderGroupDataType m_firstReaderGroup;
-        private List<DataSetReaderDataType> m_firstDataSetReadersType;
+        private PubSubConfigurationDataType subscriberConfiguration_;
+        private UaPubSubApplication subscriberApplication_;
+        private ReaderGroupDataType firstReaderGroup_;
+        private List<DataSetReaderDataType> firstDataSetReadersType_;
 
         public const ushort NamespaceIndexSimple = 2;
         public const ushort NamespaceIndexAllTypes = 3;
@@ -52,39 +53,39 @@ namespace Technosoftware.UaPubSub.Tests.Encoding
         public void MyTestInitialize()
         {
             // Create a publisher application
-            string publisherConfigurationFile = Utils.GetAbsoluteFilePath(m_publisherConfigurationFileName, true, true, false);
-            m_publisherApplication = UaPubSubApplication.Create(publisherConfigurationFile);
-            Assert.IsNotNull(m_publisherApplication, "m_publisherApplication shall not be null");
+            string publisherConfigurationFile = Utils.GetAbsoluteFilePath(publisherConfigurationFileName_, true, true, false);
+            publisherApplication_ = UaPubSubApplication.Create(publisherConfigurationFile);
+            Assert.IsNotNull(publisherApplication_, "publisherApplication_ shall not be null");
 
             // Get the publisher configuration
-            m_publisherConfiguration = m_publisherApplication.UaPubSubConfigurator.PubSubConfiguration;
-            Assert.IsNotNull(m_publisherConfiguration, "m_publisherConfiguration should not be null");
+            publisherConfiguration_ = publisherApplication_.UaPubSubConfigurator.PubSubConfiguration;
+            Assert.IsNotNull(publisherConfiguration_, "publisherConfiguration_ should not be null");
 
             //Get first connection
-            Assert.IsNotNull(m_publisherConfiguration.Connections, "m_publisherConfiguration.Connections should not be null");
-            Assert.IsNotEmpty(m_publisherConfiguration.Connections, "m_publisherConfiguration.Connections should not be empty");
-            m_firstPublisherConnection = m_publisherApplication.PubSubConnections[0];
-            Assert.IsNotNull(m_firstPublisherConnection, "m_firstPublisherConnection should not be null");
+            Assert.IsNotNull(publisherConfiguration_.Connections, "publisherConfiguration_.Connections should not be null");
+            Assert.IsNotEmpty(publisherConfiguration_.Connections, "publisherConfiguration_.Connections should not be empty");
+            firstPublisherConnection_ = publisherApplication_.PubSubConnections[0];
+            Assert.IsNotNull(firstPublisherConnection_, "firstPublisherConnection_ should not be null");
 
             // Read the first writer group
-            Assert.IsNotEmpty(m_publisherConfiguration.Connections[0].WriterGroups, "pubSubConfigConnection.WriterGroups should not be empty");
-            m_firstWriterGroup = m_publisherConfiguration.Connections[0].WriterGroups[0];
-            Assert.IsNotNull(m_firstWriterGroup, "m_firstWriterGroup should not be null");
+            Assert.IsNotEmpty(publisherConfiguration_.Connections[0].WriterGroups, "pubSubConfigConnection.WriterGroups should not be empty");
+            firstWriterGroup_ = publisherConfiguration_.Connections[0].WriterGroups[0];
+            Assert.IsNotNull(firstWriterGroup_, "firstWriterGroup_ should not be null");
 
             // Create a subscriber application
-            string subscriberConfigurationFile = Utils.GetAbsoluteFilePath(m_subscriberConfigurationFileName, true, true, false);
-            m_subscriberApplication = UaPubSubApplication.Create(subscriberConfigurationFile);
-            Assert.IsNotNull(m_subscriberApplication, "m_subscriberApplication should not be null");
+            string subscriberConfigurationFile = Utils.GetAbsoluteFilePath(subscriberConfigurationFileName_, true, true, false);
+            subscriberApplication_ = UaPubSubApplication.Create(subscriberConfigurationFile);
+            Assert.IsNotNull(subscriberApplication_, "subscriberApplication_ should not be null");
 
             // Get the subscriber configuration
-            m_subscriberConfiguration = m_subscriberApplication.UaPubSubConfigurator.PubSubConfiguration;
-            Assert.IsNotNull(m_subscriberConfiguration, "m_subscriberConfiguration should not be null");
+            subscriberConfiguration_ = subscriberApplication_.UaPubSubConfigurator.PubSubConfiguration;
+            Assert.IsNotNull(subscriberConfiguration_, "subscriberConfiguration_ should not be null");
 
             // Get first reader group
-            m_firstReaderGroup = m_subscriberConfiguration.Connections[0].ReaderGroups[0];
-            Assert.IsNotNull(m_firstWriterGroup, "m_firstReaderGroup should not be null");
+            firstReaderGroup_ = subscriberConfiguration_.Connections[0].ReaderGroups[0];
+            Assert.IsNotNull(firstWriterGroup_, "firstReaderGroup_ should not be null");
 
-            m_firstDataSetReadersType = GetFirstDataSetReaders();
+            firstDataSetReadersType_ = GetFirstDataSetReaders();
         }
 
         [Test(Description = "Validate PublisherId with supported data types")]
@@ -440,40 +441,40 @@ namespace Technosoftware.UaPubSub.Tests.Encoding
         /// </summary>
         private void LoadData()
         {
-            Assert.IsNotNull(m_publisherApplication, "m_publisherApplication should not be null");
+            Assert.IsNotNull(publisherApplication_, "publisherApplication_ should not be null");
 
             #region DataSet Simple
             // DataSet 'Simple' fill with data
             DataValue booleanValue = new DataValue(new Variant(true));
-            m_publisherApplication.DataStore.WritePublishedDataItem(new NodeId("BoolToggle", NamespaceIndexSimple), Attributes.Value, booleanValue);
+            publisherApplication_.DataStore.WritePublishedDataItem(new NodeId("BoolToggle", NamespaceIndexSimple), Attributes.Value, booleanValue);
             DataValue scalarInt32XValue = new DataValue(new Variant(100));
-            m_publisherApplication.DataStore.WritePublishedDataItem(new NodeId("Int32", NamespaceIndexSimple), Attributes.Value, scalarInt32XValue);
+            publisherApplication_.DataStore.WritePublishedDataItem(new NodeId("Int32", NamespaceIndexSimple), Attributes.Value, scalarInt32XValue);
             DataValue scalarInt32YValue = new DataValue(new Variant(50));
-            m_publisherApplication.DataStore.WritePublishedDataItem(new NodeId("Int32Fast", NamespaceIndexSimple), Attributes.Value, scalarInt32YValue);
+            publisherApplication_.DataStore.WritePublishedDataItem(new NodeId("Int32Fast", NamespaceIndexSimple), Attributes.Value, scalarInt32YValue);
             DataValue dateTimeValue = new DataValue(new Variant(DateTime.UtcNow));
-            m_publisherApplication.DataStore.WritePublishedDataItem(new NodeId("DateTime", NamespaceIndexSimple), Attributes.Value, dateTimeValue);
+            publisherApplication_.DataStore.WritePublishedDataItem(new NodeId("DateTime", NamespaceIndexSimple), Attributes.Value, dateTimeValue);
             #endregion
 
             #region DataSet AllTypes
             // DataSet 'AllTypes' fill with data
             DataValue allTypesBooleanValue = new DataValue(new Variant(false));
-            m_publisherApplication.DataStore.WritePublishedDataItem(new NodeId("BoolToggle", NamespaceIndexAllTypes), Attributes.Value, allTypesBooleanValue);
+            publisherApplication_.DataStore.WritePublishedDataItem(new NodeId("BoolToggle", NamespaceIndexAllTypes), Attributes.Value, allTypesBooleanValue);
             DataValue byteValue = new DataValue(new Variant((byte)10));
-            m_publisherApplication.DataStore.WritePublishedDataItem(new NodeId("Byte", NamespaceIndexAllTypes), Attributes.Value, byteValue);
+            publisherApplication_.DataStore.WritePublishedDataItem(new NodeId("Byte", NamespaceIndexAllTypes), Attributes.Value, byteValue);
             DataValue int16Value = new DataValue(new Variant((short)100));
-            m_publisherApplication.DataStore.WritePublishedDataItem(new NodeId("Int16", NamespaceIndexAllTypes), Attributes.Value, int16Value);
+            publisherApplication_.DataStore.WritePublishedDataItem(new NodeId("Int16", NamespaceIndexAllTypes), Attributes.Value, int16Value);
             DataValue int32Value = new DataValue(new Variant((int)1000));
-            m_publisherApplication.DataStore.WritePublishedDataItem(new NodeId("Int32", NamespaceIndexAllTypes), Attributes.Value, int32Value);
+            publisherApplication_.DataStore.WritePublishedDataItem(new NodeId("Int32", NamespaceIndexAllTypes), Attributes.Value, int32Value);
             DataValue sByteValue = new DataValue(new Variant((sbyte)11));
-            m_publisherApplication.DataStore.WritePublishedDataItem(new NodeId("SByte", NamespaceIndexAllTypes), Attributes.Value, sByteValue);
+            publisherApplication_.DataStore.WritePublishedDataItem(new NodeId("SByte", NamespaceIndexAllTypes), Attributes.Value, sByteValue);
             DataValue uInt16Value = new DataValue(new Variant((ushort)110));
-            m_publisherApplication.DataStore.WritePublishedDataItem(new NodeId("UInt16", NamespaceIndexAllTypes), Attributes.Value, uInt16Value);
+            publisherApplication_.DataStore.WritePublishedDataItem(new NodeId("UInt16", NamespaceIndexAllTypes), Attributes.Value, uInt16Value);
             DataValue uInt32Value = new DataValue(new Variant((uint)1100));
-            m_publisherApplication.DataStore.WritePublishedDataItem(new NodeId("UInt32", NamespaceIndexAllTypes), Attributes.Value, uInt32Value);
+            publisherApplication_.DataStore.WritePublishedDataItem(new NodeId("UInt32", NamespaceIndexAllTypes), Attributes.Value, uInt32Value);
             DataValue floatValue = new DataValue(new Variant((float)1100.5));
-            m_publisherApplication.DataStore.WritePublishedDataItem(new NodeId("Float", NamespaceIndexAllTypes), Attributes.Value, floatValue);
+            publisherApplication_.DataStore.WritePublishedDataItem(new NodeId("Float", NamespaceIndexAllTypes), Attributes.Value, floatValue);
             DataValue doubleValue = new DataValue(new Variant((double)1100));
-            m_publisherApplication.DataStore.WritePublishedDataItem(new NodeId("Double", NamespaceIndexAllTypes), Attributes.Value, doubleValue);
+            publisherApplication_.DataStore.WritePublishedDataItem(new NodeId("Double", NamespaceIndexAllTypes), Attributes.Value, doubleValue);
             #endregion
 
             #region DataSet MassTest 
@@ -482,7 +483,7 @@ namespace Technosoftware.UaPubSub.Tests.Encoding
             for (uint index = 0; index < 100; index++)
             {
                 DataValue value = new DataValue(new Variant(index));
-                m_publisherApplication.DataStore.WritePublishedDataItem(new NodeId(string.Format("Mass_{0}", index), NamespaceIndexMassTest),
+                publisherApplication_.DataStore.WritePublishedDataItem(new NodeId(Utils.Format("Mass_{0}", index), NamespaceIndexMassTest),
                     Attributes.Value, value);
             }
             #endregion
@@ -495,10 +496,10 @@ namespace Technosoftware.UaPubSub.Tests.Encoding
         private List<DataSetReaderDataType> GetFirstDataSetReaders()
         {
             // Read the first configured ReaderGroup
-            Assert.IsNotNull(m_firstReaderGroup, "m_firstReaderGroup should not be null");
-            Assert.IsNotEmpty(m_firstReaderGroup.DataSetReaders, "m_firstReaderGroup.DataSetReaders should not be empty");
+            Assert.IsNotNull(firstReaderGroup_, "firstReaderGroup_ should not be null");
+            Assert.IsNotEmpty(firstReaderGroup_.DataSetReaders, "firstReaderGroup_.DataSetReaders should not be empty");
 
-            return m_firstReaderGroup.DataSetReaders;
+            return firstReaderGroup_.DataSetReaders;
         }
 
         /// <summary>
@@ -511,7 +512,7 @@ namespace Technosoftware.UaPubSub.Tests.Encoding
             LoadData();
 
             // set the configurable field content mask to allow only Variant data type
-            foreach (DataSetWriterDataType dataSetWriter in m_firstWriterGroup.DataSetWriters)
+            foreach (DataSetWriterDataType dataSetWriter in firstWriterGroup_.DataSetWriters)
             {
                 // 00 The DataSet fields are encoded as Variant data type
                 // The Variant can contain a StatusCode instead of the expected DataType if the status of the field is Bad.
@@ -519,7 +520,7 @@ namespace Technosoftware.UaPubSub.Tests.Encoding
                 dataSetWriter.DataSetFieldContentMask = (uint)dataSetFieldContentMask;
             }
 
-            var networkMessages = m_firstPublisherConnection.CreateNetworkMessages(m_firstWriterGroup, new WriterGroupPublishState());
+            var networkMessages = firstPublisherConnection_.CreateNetworkMessages(firstWriterGroup_, new WriterGroupPublishState());
             // filter out the metadata message
             networkMessages = (from m in networkMessages
                                where !m.IsMetaDataMessage
@@ -544,7 +545,7 @@ namespace Technosoftware.UaPubSub.Tests.Encoding
             byte[] bytes = uadpNetworkMessage.Encode(ServiceMessageContext.GlobalContext);
 
             UadpNetworkMessage uaNetworkMessageDecoded = new UadpNetworkMessage();
-            uaNetworkMessageDecoded.Decode(new ServiceMessageContext(), bytes, m_firstDataSetReadersType);
+            uaNetworkMessageDecoded.Decode(new ServiceMessageContext(), bytes, firstDataSetReadersType_);
 
             // compare uaNetworkMessage with uaNetworkMessageDecoded
             Compare(uadpNetworkMessage, uaNetworkMessageDecoded);
@@ -560,7 +561,7 @@ namespace Technosoftware.UaPubSub.Tests.Encoding
             byte[] bytes = uadpNetworkMessage.Encode(ServiceMessageContext.GlobalContext);
 
             UadpNetworkMessage uaNetworkMessageDecoded = new UadpNetworkMessage();
-            uaNetworkMessageDecoded.Decode(new ServiceMessageContext(), bytes, m_firstDataSetReadersType);
+            uaNetworkMessageDecoded.Decode(new ServiceMessageContext(), bytes, firstDataSetReadersType_);
 
             // compare uaNetworkMessage with uaNetworkMessageDecoded
             // TODO Fix: this might be broken after refactor

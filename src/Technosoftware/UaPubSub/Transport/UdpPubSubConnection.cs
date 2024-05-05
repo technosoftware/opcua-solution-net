@@ -95,7 +95,7 @@ namespace Technosoftware.UaPubSub.Transport
             //publisher initialization    
             if (Publishers.Count > 0)
             {
-                lock (lock_)
+                lock (Lock)
                 {
                     publisherUdpClients_ = UdpClientCreator.GetUdpClients(UsedInContext.Publisher, NetworkInterfaceName, NetworkAddressEndPoint);
                 }
@@ -107,7 +107,7 @@ namespace Technosoftware.UaPubSub.Transport
             //subscriber initialization   
             if (GetAllDataSetReaders().Count > 0)
             {
-                lock (lock_)
+                lock (Lock)
                 {
                     subscriberUdpClients_ = UdpClientCreator.GetUdpClients(UsedInContext.Subscriber, NetworkInterfaceName, NetworkAddressEndPoint);
 
@@ -130,7 +130,7 @@ namespace Technosoftware.UaPubSub.Transport
                 await udpDiscoverySubscriber_.StartAsync(MessageContext).ConfigureAwait(false);
 
                 // add handler to metaDataReceived event
-                this.Application.MetaDataReceivedEvent += Application_MetaDataReceived;
+                this.Application.MetaDataReceivedEvent += MetaDataReceived;
                 this.Application.DataSetWriterConfigurationReceivedEvent += DataSetWriterConfigurationReceived;
             }
         }
@@ -140,13 +140,13 @@ namespace Technosoftware.UaPubSub.Transport
         /// </summary>
         protected override async Task InternalStop()
         {
-            lock (lock_)
+            lock (Lock)
             {
-                foreach (List<UdpClient> list in new List<List<UdpClient>>() { publisherUdpClients_, subscriberUdpClients_ })
+                foreach (var list in new List<List<UdpClient>>() { publisherUdpClients_, subscriberUdpClients_ })
                 {
                     if (list != null && list.Count > 0)
                     {
-                        foreach (UdpClient udpClient in list)
+                        foreach (var udpClient in list)
                         {
                             udpClient.Close();
                             udpClient.Dispose();
@@ -166,7 +166,7 @@ namespace Technosoftware.UaPubSub.Transport
                 await udpDiscoverySubscriber_.StopAsync().ConfigureAwait(false);
 
                 // remove handler to metaDataReceived event
-                this.Application.MetaDataReceivedEvent -= Application_MetaDataReceived;
+                this.Application.MetaDataReceivedEvent -= MetaDataReceived;
             }
         }
 
@@ -175,14 +175,14 @@ namespace Technosoftware.UaPubSub.Transport
         /// </summary>
         public override IList<UaNetworkMessage> CreateNetworkMessages(WriterGroupDataType writerGroupConfiguration, WriterGroupPublishState state)
         {
-            UadpWriterGroupMessageDataType messageSettings = ExtensionObject.ToEncodeable(writerGroupConfiguration.MessageSettings)
+            var messageSettings = ExtensionObject.ToEncodeable(writerGroupConfiguration.MessageSettings)
                 as UadpWriterGroupMessageDataType;
             if (messageSettings == null)
             {
                 //Wrong configuration of writer group MessageSettings
                 return null;
             }
-            DatagramWriterGroupTransportDataType transportSettings = ExtensionObject.ToEncodeable(writerGroupConfiguration.TransportSettings)
+            var transportSettings = ExtensionObject.ToEncodeable(writerGroupConfiguration.TransportSettings)
                 as DatagramWriterGroupTransportDataType;
 
             if (transportSettings == null)
@@ -190,10 +190,10 @@ namespace Technosoftware.UaPubSub.Transport
                 //Wrong configuration of writer group TransportSettings
                 return null;
             }
-            List<UaNetworkMessage> networkMessages = new List<UaNetworkMessage>();
+            var networkMessages = new List<UaNetworkMessage>();
 
             //Create list of dataSet messages to be sent
-            List<UadpDataSetMessage> dataSetMessages = new List<UadpDataSetMessage>();
+            var dataSetMessages = new List<UadpDataSetMessage>();
             foreach (DataSetWriterDataType dataSetWriter in writerGroupConfiguration.DataSetWriters)
             {
                 //check if dataSetWriter enabled
@@ -203,7 +203,7 @@ namespace Technosoftware.UaPubSub.Transport
 
                     if (dataSet != null)
                     {
-                        bool hasMetaDataChanged = state.HasMetaDataChanged(dataSetWriter, dataSet.DataSetMetaData);
+                        var hasMetaDataChanged = state.HasMetaDataChanged(dataSetWriter, dataSet.DataSetMetaData);
 
                         if (hasMetaDataChanged)
                         {
@@ -214,12 +214,12 @@ namespace Technosoftware.UaPubSub.Transport
                             });
                         }
 
-                        UadpDataSetWriterMessageDataType dataSetMessageSettings = ExtensionObject.ToEncodeable(dataSetWriter.MessageSettings) as
+                        var dataSetMessageSettings = ExtensionObject.ToEncodeable(dataSetWriter.MessageSettings) as
                                 UadpDataSetWriterMessageDataType;
                         // check MessageSettings to see how to encode DataSet
                         if (dataSetMessageSettings != null)
                         {
-                            UadpDataSetMessage uadpDataSetMessage = new UadpDataSetMessage(dataSet);
+                            var uadpDataSetMessage = new UadpDataSetMessage(dataSet);
                             uadpDataSetMessage.DataSetWriterId = dataSetWriter.DataSetWriterId;
                             uadpDataSetMessage.SetMessageContentMask((UadpDataSetMessageContentMask)dataSetMessageSettings.DataSetMessageContentMask);
                             uadpDataSetMessage.SetFieldContentMask((DataSetFieldContentMask)dataSetWriter.DataSetFieldContentMask);
@@ -242,7 +242,7 @@ namespace Technosoftware.UaPubSub.Transport
                 return networkMessages;
             }
 
-            UadpNetworkMessage uadpNetworkMessage = new UadpNetworkMessage(writerGroupConfiguration, dataSetMessages);
+            var uadpNetworkMessage = new UadpNetworkMessage(writerGroupConfiguration, dataSetMessages);
             uadpNetworkMessage.SetNetworkMessageContentMask((UadpNetworkMessageContentMask)messageSettings.NetworkMessageContentMask);
             uadpNetworkMessage.WriterGroupId = writerGroupConfiguration.WriterGroupId;
             // Network message header
@@ -266,10 +266,10 @@ namespace Technosoftware.UaPubSub.Transport
         /// <returns></returns>
         public IList<UaNetworkMessage> CreateDataSetMetaDataNetworkMessages(UInt16[] dataSetWriterIds)
         {
-            List<UaNetworkMessage> networkMessages = new List<UaNetworkMessage>();
-            List<DataSetWriterDataType> writers = GetWriterGroupsDataType();
+            var networkMessages = new List<UaNetworkMessage>();
+            var writers = GetWriterGroupsDataType();
 
-            foreach (UInt16 dataSetWriterId in dataSetWriterIds)
+            foreach (var dataSetWriterId in dataSetWriterIds)
             {
                 DataSetWriterDataType writer = writers.Where(w => w.DataSetWriterId == dataSetWriterId).FirstOrDefault();
                 if (writer != null)
@@ -280,7 +280,7 @@ namespace Technosoftware.UaPubSub.Transport
                         DataSetMetaDataType metaData = Application.DataCollector.GetPublishedDataSet(writer.DataSetName)?.DataSetMetaData;
                         if (metaData != null)
                         {
-                            UadpNetworkMessage networkMessage = new UadpNetworkMessage(writerGroup, metaData);
+                            var networkMessage = new UadpNetworkMessage(writerGroup, metaData);
                             networkMessage.PublisherId = PubSubConnectionConfiguration.PublisherId.Value;
                             networkMessage.DataSetWriterId = dataSetWriterId;
 
@@ -300,13 +300,13 @@ namespace Technosoftware.UaPubSub.Transport
         /// <returns></returns>
         public IList<UaNetworkMessage> CreateDataSetWriterCofigurationMessage(UInt16[] dataSetWriterIds)
         {
-            List<UaNetworkMessage> networkMessages = new List<UaNetworkMessage>();
+            var networkMessages = new List<UaNetworkMessage>();
 
             IList<DataSetWriterConfigurationResponse> responses = GetDataSetWriterDiscoveryResponses(dataSetWriterIds);
 
             foreach (DataSetWriterConfigurationResponse response in responses)
             {
-                UadpNetworkMessage networkMessage = new UadpNetworkMessage(response.DataSetWriterIds,
+                var networkMessage = new UadpNetworkMessage(response.DataSetWriterIds,
                     response.DataSetWriterConfig,
                     response.StatusCodes);
 
@@ -330,14 +330,14 @@ namespace Technosoftware.UaPubSub.Transport
 
             try
             {
-                lock (lock_)
+                lock (Lock)
                 {
                     if (publisherUdpClients_ != null && publisherUdpClients_.Count > 0)
                     {
                         // Get encoded bytes
-                        byte[] bytes = networkMessage.Encode(MessageContext);
+                        var bytes = networkMessage.Encode(MessageContext);
 
-                        foreach (UdpClient udpClient in publisherUdpClients_)
+                        foreach (var udpClient in publisherUdpClients_)
                         {
                             try
                             {
@@ -412,7 +412,7 @@ namespace Technosoftware.UaPubSub.Transport
             if (PubSubConnectionConfiguration != null &&
                 PubSubConnectionConfiguration.TransportProfileUri == Profiles.PubSubUdpUadpTransport)
             {
-                UadpNetworkMessage networkMessage = new UadpNetworkMessage(endpoints, publisherProvideEndpointsStatusCode);
+                var networkMessage = new UadpNetworkMessage(endpoints, publisherProvideEndpointsStatusCode);
                 networkMessage.PublisherId = publisherId;
 
                 return networkMessage;
@@ -463,11 +463,11 @@ namespace Technosoftware.UaPubSub.Transport
 
         #region Private methods
         /// <summary>
-        /// Initialize Conection properties from connection configuration object
+        /// Initialize Connection properties from connection configuration object
         /// </summary>
         private void Initialize()
         {
-            NetworkAddressUrlDataType networkAddressUrlState = ExtensionObject.ToEncodeable(PubSubConnectionConfiguration.Address)
+            var networkAddressUrlState = ExtensionObject.ToEncodeable(PubSubConnectionConfiguration.Address)
                        as NetworkAddressUrlDataType;
             if (networkAddressUrlState == null)
             {
@@ -496,7 +496,7 @@ namespace Technosoftware.UaPubSub.Transport
             Utils.Trace(Utils.TraceMasks.Information, "UdpPubSubConnection.ProcessReceivedMessage from source={0}", source);
 
             List<DataSetReaderDataType> dataSetReaders = GetOperationalDataSetReaders();
-            List<DataSetReaderDataType> dataSetReadersToDecode = new List<DataSetReaderDataType>();
+            var dataSetReadersToDecode = new List<DataSetReaderDataType>();
 
             foreach (DataSetReaderDataType dataSetReader in dataSetReaders)
             {
@@ -515,10 +515,10 @@ namespace Technosoftware.UaPubSub.Transport
                 }
             }
 
-            UadpNetworkMessage networkMessage = new UadpNetworkMessage();
-            networkMessage.DataSetDecodeErrorOccurredEvent += NetworkMessage_DataSetDecodeErrorOccurred;
+            var networkMessage = new UadpNetworkMessage();
+            networkMessage.DataSetDecodeErrorOccurred += NetworkMessage_DataSetDecodeErrorOccurred;
             networkMessage.Decode(MessageContext, message, dataSetReadersToDecode);
-            networkMessage.DataSetDecodeErrorOccurredEvent -= NetworkMessage_DataSetDecodeErrorOccurred;
+            networkMessage.DataSetDecodeErrorOccurred -= NetworkMessage_DataSetDecodeErrorOccurred;
 
             // Process the decoded network message 
             ProcessDecodedNetworkMessage(networkMessage, source.ToString());
@@ -531,7 +531,7 @@ namespace Technosoftware.UaPubSub.Transport
         /// <param name="result"></param>
         private void OnUadpReceive(IAsyncResult result)
         {
-            lock (lock_)
+            lock (Lock)
             {
                 if (subscriberUdpClients_ == null || subscriberUdpClients_.Count == 0)
                 {
@@ -540,7 +540,7 @@ namespace Technosoftware.UaPubSub.Transport
             }
 
             // this is what had been passed into BeginReceive as the second parameter:
-            UdpClient socket = result.AsyncState as UdpClient;
+            var socket = result.AsyncState as UdpClient;
 
             if (socket == null)
             {
@@ -548,11 +548,11 @@ namespace Technosoftware.UaPubSub.Transport
             }
 
             // points towards whoever had sent the message:
-            IPEndPoint source = new IPEndPoint(0, 0);
+            var source = new IPEndPoint(0, 0);
             // get the actual message and fill out the source:
             try
             {
-                byte[] message = socket.EndReceive(result, ref source);
+                var message = socket.EndReceive(result, ref source);
 
                 if (message != null)
                 {
@@ -561,7 +561,7 @@ namespace Technosoftware.UaPubSub.Transport
                     if (message.Length > 1)
                     {
                         // raise RawData received event
-                        RawDataReceivedEventArgs rawDataReceivedEventArgs = new RawDataReceivedEventArgs() {
+                        var rawDataReceivedEventArgs = new RawDataReceivedEventArgs() {
                             Message = message,
                             Source = source.Address.ToString(),
                             TransportProtocol = this.TransportProtocol,
@@ -600,7 +600,7 @@ namespace Technosoftware.UaPubSub.Transport
             {
                 Utils.Trace(Utils.TraceMasks.Information, "OnUadpReceive BeginReceive threw Exception {0}", ex.Message);
 
-                lock (lock_)
+                lock (Lock)
                 {
                     Renew(socket);
                 }
@@ -652,7 +652,7 @@ namespace Technosoftware.UaPubSub.Transport
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void Application_MetaDataReceived(object sender, SubscribedDataEventArgs e)
+        private void MetaDataReceived(object sender, SubscribedDataEventArgs e)
         {
             if (udpDiscoverySubscriber_ != null && e.NetworkMessage.DataSetWriterId != null)
             {
@@ -668,7 +668,7 @@ namespace Technosoftware.UaPubSub.Transport
         /// <param name="e"></param>
         private void DataSetWriterConfigurationReceived(object sender, DataSetWriterConfigurationEventArgs e)
         {
-            lock (lock_)
+            lock (Lock)
             {
                 WriterGroupDataType config = e.DataSetWriterConfiguration;
                 if (e.DataSetWriterConfiguration != null)
@@ -679,7 +679,7 @@ namespace Technosoftware.UaPubSub.Transport
         }
 
         /// <summary>
-        /// Handle <see cref="UaNetworkMessage.DataSetDecodeErrorOccurredEvent"/> event.
+        /// Handle <see cref="UaNetworkMessage.DataSetDecodeErrorOccurred"/> event.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>

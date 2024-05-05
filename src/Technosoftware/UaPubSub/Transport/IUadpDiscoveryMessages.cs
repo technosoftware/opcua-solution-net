@@ -16,7 +16,7 @@ using System.Collections.Generic;
 using Opc.Ua;
 #endregion
 
-namespace Technosoftware.UaPubSub.Transport
+namespace Technosoftware.UaPubSub
 {
     /// <summary>
     /// UADP Discovery messages interface

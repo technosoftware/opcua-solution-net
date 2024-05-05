@@ -23,12 +23,12 @@ namespace Technosoftware.UaPubSub.Transport
     public class MqttMetadataPublisher
     {
         #region Private Fields
-        private readonly IMqttPubSubConnection m_parentConnection;
-        private readonly WriterGroupDataType m_writerGroup;
-        private readonly DataSetWriterDataType m_dataSetWriter;
+        private readonly IMqttPubSubConnection parentConnection_;
+        private readonly WriterGroupDataType writerGroup_;
+        private readonly DataSetWriterDataType dataSetWriter_;
 
         // the component that triggers the publish messages
-        private readonly IntervalRunner m_intervalRunner;
+        private readonly IntervalRunner intervalRunner_;
         #endregion
 
         #region Constructor
@@ -38,10 +38,10 @@ namespace Technosoftware.UaPubSub.Transport
         internal MqttMetadataPublisher(IMqttPubSubConnection parentConnection, WriterGroupDataType writerGroup, DataSetWriterDataType dataSetWriter,
             double metaDataUpdateTime)
         {
-            m_parentConnection = parentConnection;
-            m_writerGroup = writerGroup;
-            m_dataSetWriter = dataSetWriter;
-            m_intervalRunner = new IntervalRunner(dataSetWriter.DataSetWriterId, metaDataUpdateTime, CanPublish, PublishMessage);
+            parentConnection_ = parentConnection;
+            writerGroup_ = writerGroup;
+            dataSetWriter_ = dataSetWriter;
+            intervalRunner_ = new IntervalRunner(dataSetWriter.DataSetWriterId, metaDataUpdateTime, CanPublish, PublishMessage);
         }
         #endregion
 
@@ -52,9 +52,9 @@ namespace Technosoftware.UaPubSub.Transport
         /// </summary>
         public void Start()
         {
-            m_intervalRunner.Start();
+            intervalRunner_.Start();
             Utils.Trace("The MqttMetadataPublisher for DataSetWriterId '{0}' was started.",
-                m_dataSetWriter.DataSetWriterId);
+                dataSetWriter_.DataSetWriterId);
         }
 
         /// <summary>
@@ -62,10 +62,10 @@ namespace Technosoftware.UaPubSub.Transport
         /// </summary>
         public virtual void Stop()
         {
-            m_intervalRunner.Stop();
+            intervalRunner_.Stop();
 
             Utils.Trace("The MqttMetadataPublisher for DataSetWriterId '{0}' was stopped.",
-                m_dataSetWriter.DataSetWriterId);
+                dataSetWriter_.DataSetWriterId);
         }
 
         #endregion
@@ -77,7 +77,7 @@ namespace Technosoftware.UaPubSub.Transport
         /// <returns></returns>
         private bool CanPublish()
         {
-            return m_parentConnection.CanPublishMetaData(m_writerGroup, m_dataSetWriter);
+            return parentConnection_.CanPublishMetaData(writerGroup_, dataSetWriter_);
         }
 
         /// <summary>
@@ -87,13 +87,13 @@ namespace Technosoftware.UaPubSub.Transport
         {
             try
             {
-                UaNetworkMessage metaDataNetworkMessage = m_parentConnection.CreateDataSetMetaDataNetworkMessage(m_writerGroup, m_dataSetWriter);
+                UaNetworkMessage metaDataNetworkMessage = parentConnection_.CreateDataSetMetaDataNetworkMessage(writerGroup_, dataSetWriter_);
                 if (metaDataNetworkMessage != null)
                 {
-                    bool success = m_parentConnection.PublishNetworkMessage(metaDataNetworkMessage);
+                    var success = parentConnection_.PublishNetworkMessage(metaDataNetworkMessage);
                     Utils.Trace(
                         "MqttMetadataPublisher Publish DataSetMetaData, DataSetWriterId:{0}; success = {1}",
-                        m_dataSetWriter.DataSetWriterId, success);
+                        dataSetWriter_.DataSetWriterId, success);
                 }
             }
             catch (Exception e)
@@ -120,7 +120,7 @@ namespace Technosoftware.UaPubSub.Transport
                 DataSetWriter = dataSetWriter;
                 LastSendTime = DateTime.MinValue;
 
-                BrokerDataSetWriterTransportDataType transport =
+                var transport =
                     ExtensionObject.ToEncodeable(DataSetWriter.TransportSettings)
                         as BrokerDataSetWriterTransportDataType;
 

@@ -10,6 +10,8 @@
 #endregion Copyright (c) 2022-2024 Technosoftware GmbH. All rights reserved
 
 #region Using Directives
+using System;
+
 using Opc.Ua;
 #endregion
 
@@ -18,7 +20,7 @@ namespace Technosoftware.UaPubSub.PublishedData
     /// <summary>
     /// Base class for a DataSet field
     /// </summary>
-    public class Field
+    public class Field : ICloneable
     {
         /// <summary>
         /// Get/Set Value 
@@ -52,7 +54,7 @@ namespace Technosoftware.UaPubSub.PublishedData
         /// </summary>
         public new object MemberwiseClone()
         {
-            Field copy = base.MemberwiseClone() as Field;
+            var copy = base.MemberwiseClone() as Field;
             if (Value != null)
             {
                 if (copy != null)

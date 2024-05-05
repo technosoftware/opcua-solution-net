@@ -37,6 +37,11 @@ namespace Technosoftware.UaPubSub
             public DateTime LastMetaDataUpdate;
         }
 
+        /// <summary>
+        /// The DataSetStates indexed by dataset writer group id.
+        /// </summary>
+        private readonly Dictionary<ushort, DataSetState> dataSetStates_;
+
         #region Constructor
         /// <summary>
         /// Creates a new instance.
@@ -51,8 +56,6 @@ namespace Technosoftware.UaPubSub
         /// <summary>
         /// Returns TRUE if the next DataSetMessage is a delta frame.
         /// </summary>
-        /// <param name="writer">The DataSetWriter parameters.</param>
-        /// <param name="sequenceNumber">The sequence number.</param>
         public bool IsDeltaFrame(DataSetWriterDataType writer, out uint sequenceNumber)
         {
             lock (dataSetStates_)
@@ -72,8 +75,6 @@ namespace Technosoftware.UaPubSub
         /// <summary>
         /// Returns TRUE if the next DataSetMessage is a delta frame.
         /// </summary>
-        /// <param name="writer">The DataSetWriter parameters.</param>
-        /// <param name="metadata">Metadata for the data set.</param>
         public bool HasMetaDataChanged(DataSetWriterDataType writer, DataSetMetaDataType metadata)
         {
             if (metadata == null)
@@ -90,7 +91,7 @@ namespace Technosoftware.UaPubSub
                 if (version == null)
                 {
                     // keep a copy of ConfigurationVersion
-                    state.ConfigurationVersion = metadata.ConfigurationVersion.MemberwiseClone() as ConfigurationVersionDataType;
+                    state.ConfigurationVersion = metadata.ConfigurationVersion.Clone() as ConfigurationVersionDataType;
                     state.LastMetaDataUpdate = DateTime.UtcNow;
                     return true;
                 }
@@ -99,7 +100,7 @@ namespace Technosoftware.UaPubSub
                     version.MinorVersion != metadata.ConfigurationVersion.MinorVersion)
                 {
                     // keep a copy of ConfigurationVersion
-                    state.ConfigurationVersion = metadata.ConfigurationVersion.MemberwiseClone() as ConfigurationVersionDataType;
+                    state.ConfigurationVersion = metadata.ConfigurationVersion.Clone() as ConfigurationVersionDataType;
                     state.LastMetaDataUpdate = DateTime.UtcNow;
                     return true;
                 }
@@ -111,8 +112,6 @@ namespace Technosoftware.UaPubSub
         /// <summary>
         /// Checks if the DataSet has changed and null
         /// </summary>
-        /// <param name="writer">The DataSetWriter parameters.</param>
-        /// <param name="dataset">The data set.</param>
         public DataSet ExcludeUnchangedFields(DataSetWriterDataType writer, DataSet dataset)
         {
             lock (dataSetStates_)
@@ -123,7 +122,7 @@ namespace Technosoftware.UaPubSub
 
                 if (lastDataSet == null)
                 {
-                    state.LastDataSet = dataset.MemberwiseClone() as DataSet;
+                    state.LastDataSet = Utils.Clone(dataset) as DataSet;
                     return dataset;
                 }
 
@@ -131,8 +130,8 @@ namespace Technosoftware.UaPubSub
 
                 for (var ii = 0; ii < dataset.Fields.Length && ii < lastDataSet.Fields.Length; ii++)
                 {
-                    Field field1 = dataset.Fields[ii];
-                    Field field2 = lastDataSet.Fields[ii];
+                    var field1 = dataset.Fields[ii];
+                    var field2 = lastDataSet.Fields[ii];
 
                     if (field1 == null || field2 == null)
                     {
@@ -167,8 +166,6 @@ namespace Technosoftware.UaPubSub
         /// <summary>
         /// Increments the message counter.
         /// </summary>
-        /// <param name="writer">The DataSetWriter parameters.</param>
-        /// <param name="dataset">The data set.</param>
         public void OnMessagePublished(DataSetWriterDataType writer, DataSet dataset)
         {
             lock (dataSetStates_)
@@ -180,21 +177,21 @@ namespace Technosoftware.UaPubSub
                 {
 
                     state.ConfigurationVersion =
-                        dataset.DataSetMetaData.ConfigurationVersion.MemberwiseClone() as ConfigurationVersionDataType;
+                        dataset.DataSetMetaData.ConfigurationVersion.Clone() as ConfigurationVersionDataType;
 
                     if (state.LastDataSet == null)
                     {
-                        state.LastDataSet = dataset.MemberwiseClone() as DataSet;
+                        state.LastDataSet = Utils.Clone(dataset) as DataSet;
                         return;
                     }
 
                     for (var ii = 0; ii < dataset.Fields.Length && ii < state.LastDataSet.Fields.Length; ii++)
                     {
-                        Field field = dataset.Fields[ii];
+                        var field = dataset.Fields[ii];
 
                         if (field != null)
                         {
-                            state.LastDataSet.Fields[ii] = field.MemberwiseClone() as Field;
+                            state.LastDataSet.Fields[ii] = Utils.Clone(field) as Field;
                         }
                     }
 
@@ -204,6 +201,8 @@ namespace Technosoftware.UaPubSub
         #endregion
 
         #region Private Methods
+
+
         private DataSetState GetState(DataSetWriterDataType writer)
         {
             DataSetState state;
@@ -215,13 +214,6 @@ namespace Technosoftware.UaPubSub
 
             return state;
         }
-        #endregion
-
-        #region Private Fields
-        /// <summary>
-        /// The DataSetStates indexed by dataset writer group id.
-        /// </summary>
-        private Dictionary<ushort, DataSetState> dataSetStates_;
         #endregion
     }
 }

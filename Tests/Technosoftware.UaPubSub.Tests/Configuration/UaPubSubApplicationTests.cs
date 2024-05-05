@@ -15,6 +15,7 @@ using System.IO;
 using System.Linq;
 
 using NUnit.Framework;
+using Assert = NUnit.Framework.Legacy.ClassicAssert;
 
 using Opc.Ua;
 
@@ -28,13 +29,13 @@ namespace Technosoftware.UaPubSub.Tests.Configuration
     {
         private string ConfigurationFileName = Path.Combine("Configuration", "PublisherConfiguration.xml");
 
-        private PubSubConfigurationDataType m_pubSubConfiguration;
+        private PubSubConfigurationDataType pubSubConfiguration_;
 
         [OneTimeSetUp()]
         public void MyTestInitialize()
         {
             string configurationFile = Utils.GetAbsoluteFilePath(ConfigurationFileName, true, true, false);
-            m_pubSubConfiguration = UaPubSubConfigurationHelper.LoadConfiguration(configurationFile);
+            pubSubConfiguration_ = UaPubSubConfigurationHelper.LoadConfiguration(configurationFile);
         }
 
         [Test(Description = "Validate Create call with null path")]
@@ -53,7 +54,7 @@ namespace Technosoftware.UaPubSub.Tests.Configuration
         public void ValidateUaPubSubApplicationCreate()
         {
             // Arrange
-            UaPubSubApplication uaPubSubApplication = UaPubSubApplication.Create(m_pubSubConfiguration);
+            UaPubSubApplication uaPubSubApplication = UaPubSubApplication.Create(pubSubConfiguration_);
 
             // Assert
             Assert.IsTrue(uaPubSubApplication.PubSubConnections != null, "uaPubSubApplication.PubSubConnections collection is null");
@@ -66,7 +67,7 @@ namespace Technosoftware.UaPubSub.Tests.Configuration
             {
                 Assert.IsTrue(publisher != null, "connection.Publishers[{0}] is null", index);
                 Assert.IsTrue(publisher.PubSubConnection == connection, "connection.Publishers[{0}].PubSubConnection is not set correctly", index);
-                Assert.IsTrue(publisher.WriterGroupConfiguration.WriterGroupId == m_pubSubConfiguration.Connections.First().WriterGroups[index].WriterGroupId, "connection.Publishers[{0}].WriterGroupConfiguration is not set correctly", index);
+                Assert.IsTrue(publisher.WriterGroupConfiguration.WriterGroupId == pubSubConfiguration_.Connections.First().WriterGroups[index].WriterGroupId, "connection.Publishers[{0}].WriterGroupConfiguration is not set correctly", index);
                 index++;
             }
         }

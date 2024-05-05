@@ -18,6 +18,7 @@ using System.Net.Sockets;
 using System.Threading;
 
 using NUnit.Framework;
+using Assert = NUnit.Framework.Legacy.ClassicAssert;
 
 using Opc.Ua;
 
@@ -804,7 +805,7 @@ namespace Technosoftware.UaPubSub.Tests.Transport
             catch (Exception ex)
             {
                 Assert.Fail(ex.Message);
-                throw ex;
+                throw;
             }
         }
 
@@ -835,7 +836,7 @@ namespace Technosoftware.UaPubSub.Tests.Transport
             catch (Exception ex)
             {
                 Assert.Fail(ex.Message);
-                throw ex;
+                throw;
             }
         }
 
@@ -908,7 +909,7 @@ namespace Technosoftware.UaPubSub.Tests.Transport
             catch (Exception ex)
             {
                 Assert.Fail(ex.Message);
-                throw ex;
+                throw;
             }
         }
 

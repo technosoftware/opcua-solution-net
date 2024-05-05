@@ -15,6 +15,7 @@ using System.IO;
 using System.Linq;
 
 using NUnit.Framework;
+using Assert = NUnit.Framework.Legacy.ClassicAssert;
 
 using Opc.Ua;
 
@@ -27,7 +28,7 @@ namespace Technosoftware.UaPubSub.Tests.PublishedData
     [TestFixture(Description = "Tests for DataCollector class")]
     public class DataCollectorTests
     {
-        private string m_configurationFileName = Path.Combine("Configuration", "PublisherConfiguration.xml");
+        private string configurationFileName_ = Path.Combine("Configuration", "PublisherConfiguration.xml");
 
         public const int NamespaceIndex = 2;
 
@@ -45,7 +46,7 @@ namespace Technosoftware.UaPubSub.Tests.PublishedData
         public void ValidateAddPublishedDataSet()
         {
             //Arrange
-            string configurationFile = Utils.GetAbsoluteFilePath(m_configurationFileName, true, true, false);
+            string configurationFile = Utils.GetAbsoluteFilePath(configurationFileName_, true, true, false);
             var pubSubConfiguration = UaPubSubConfigurationHelper.LoadConfiguration(configurationFile);
 
             DataCollector dataCollector = new DataCollector(new UaPubSubDataStore());
@@ -150,7 +151,7 @@ namespace Technosoftware.UaPubSub.Tests.PublishedData
             DataSet collectedDataSet = dataCollector.CollectData(publishedDataSetSimple.Name);
 
             //Assert
-            Assert.IsNotNull(publishedDataItems, "The m_firstPublishedDataSet.DataSetSource is not PublishedDataItemsDataType.");
+            Assert.IsNotNull(publishedDataItems, "The firstPublishedDataSet_.DataSetSource is not PublishedDataItemsDataType.");
             Assert.IsNotNull(collectedDataSet, "collectedDataSet is null.");
             Assert.IsNotNull(collectedDataSet.Fields, "collectedDataSet.Fields is null.");
 
@@ -251,7 +252,7 @@ namespace Technosoftware.UaPubSub.Tests.PublishedData
             dataCollector.AddPublishedDataSet(publishedDataSetSimple);
             DataSet collectedDataSet = dataCollector.CollectData(publishedDataSetSimple.Name);
             //Assert
-            Assert.IsNotNull(publishedDataItems, "The m_firstPublishedDataSet.DataSetSource is not PublishedDataItemsDataType.");
+            Assert.IsNotNull(publishedDataItems, "The firstPublishedDataSet_.DataSetSource is not PublishedDataItemsDataType.");
             Assert.IsNotNull(collectedDataSet, "collectedDataSet is null.");
             Assert.IsNotNull(collectedDataSet.Fields, "collectedDataSet.Fields is null.");
 

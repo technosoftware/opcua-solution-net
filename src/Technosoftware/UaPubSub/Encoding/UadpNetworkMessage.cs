@@ -28,10 +28,10 @@ namespace Technosoftware.UaPubSub.Encoding
     {
         #region Fields
         // The UADPVersion for this specification version is 1.
-        private const byte UadpVersion = 1;
-        private const byte PublishedIdTypeUsedBits = 0x07;
-        private const byte UADPVersionBitMask = 0x0F;
-        private const byte PublishedIdResetMask = 0xFC;
+        private const byte kUadpVersion = 1;
+        private const byte kPublishedIdTypeUsedBits = 0x07;
+        private const byte kUADPVersionBitMask = 0x0F;
+        private const byte kPublishedIdResetMask = 0xFC;
 
         private byte uadpVersion_;
         private object publisherId_;
@@ -60,7 +60,7 @@ namespace Technosoftware.UaPubSub.Encoding
         public UadpNetworkMessage(WriterGroupDataType writerGroupConfiguration, List<UadpDataSetMessage> uadpDataSetMessages)
             : base(writerGroupConfiguration, uadpDataSetMessages?.ConvertAll<UaDataSetMessage>(x => (UaDataSetMessage)x) ?? new List<UaDataSetMessage>())
         {
-            UADPVersion = UadpVersion;
+            UADPVersion = kUadpVersion;
             DataSetClassId = Guid.Empty;
             Timestamp = DateTime.UtcNow;
 
@@ -68,12 +68,12 @@ namespace Technosoftware.UaPubSub.Encoding
         }
 
         /// <summary>
-        /// Create new instance of <see cref="UadpNetworkMessage"/> as a DiscoveryResponse DataSetMetadata message
+        /// Create new instance of <see cref="UadpNetworkMessage"/> as a DiscoveryResponse DataSetMetaData message
         /// </summary>
         public UadpNetworkMessage(WriterGroupDataType writerGroupConfiguration, DataSetMetaDataType metadata)
             : base(writerGroupConfiguration, metadata)
         {
-            UADPVersion = UadpVersion;
+            UADPVersion = kUadpVersion;
             DataSetClassId = Guid.Empty;
             Timestamp = DateTime.UtcNow;
 
@@ -89,7 +89,7 @@ namespace Technosoftware.UaPubSub.Encoding
         public UadpNetworkMessage(UADPNetworkMessageDiscoveryType discoveryType)
             : base(null, new List<UaDataSetMessage>())
         {
-            UADPVersion = UadpVersion;
+            UADPVersion = kUadpVersion;
             DataSetClassId = Guid.Empty;
             Timestamp = DateTime.UtcNow;
 
@@ -107,7 +107,7 @@ namespace Technosoftware.UaPubSub.Encoding
         public UadpNetworkMessage(EndpointDescription[] publisherEndpoints, StatusCode publisherProvidesEndpoints)
         : base(null, new List<UaDataSetMessage>())
         {
-            UADPVersion = UadpVersion;
+            UADPVersion = kUadpVersion;
             DataSetClassId = Guid.Empty;
             Timestamp = DateTime.UtcNow;
 
@@ -126,7 +126,7 @@ namespace Technosoftware.UaPubSub.Encoding
         public UadpNetworkMessage(ushort[] writerIds, WriterGroupDataType writerConfig, StatusCode[] streamStatusCodes)
             : base(null, new List<UaDataSetMessage>())
         {
-            UADPVersion = UadpVersion;
+            UADPVersion = kUadpVersion;
             DataSetClassId = Guid.Empty;
             Timestamp = DateTime.UtcNow;
 
@@ -221,7 +221,7 @@ namespace Technosoftware.UaPubSub.Encoding
         public byte UADPVersion
         {
             get { return uadpVersion_; }
-            set { uadpVersion_ = Convert.ToByte(value & UADPVersionBitMask); }
+            set { uadpVersion_ = Convert.ToByte(value & kUADPVersionBitMask); }
         }
 
         /// <summary>
@@ -250,7 +250,7 @@ namespace Technosoftware.UaPubSub.Encoding
                 // Just in case value is a positive signed Integer 
                 // Try to bring it to an accepted type (will overflow if value doesn't fit)
 
-                object adjustedValue = value;
+                var adjustedValue = value;
                 switch (value)
                 {
                     case Int16 int16Value:
@@ -276,7 +276,7 @@ namespace Technosoftware.UaPubSub.Encoding
                 publisherId_ = adjustedValue;
 
                 // Remove previous PublisherId data type
-                ExtendedFlags1 &= (ExtendedFlags1EncodingMask)PublishedIdResetMask;
+                ExtendedFlags1 &= (ExtendedFlags1EncodingMask)kPublishedIdResetMask;
 
                 // ExtendedFlags1: Bit range 0-2: PublisherId Type
                 PublisherIdTypeEncodingMask publishedIdTypeType = PublisherIdTypeEncodingMask.Reserved;
@@ -432,7 +432,7 @@ namespace Technosoftware.UaPubSub.Encoding
         /// <param name="messageContext">The context.</param>
         public override byte[] Encode(IServiceMessageContext messageContext)
         {
-            using (MemoryStream stream = new MemoryStream())
+            using (var stream = new MemoryStream())
             {
                 Encode(messageContext, stream);
                 return stream.ToArray();
@@ -446,7 +446,7 @@ namespace Technosoftware.UaPubSub.Encoding
         /// <param name="stream">The stream to use.</param>
         public override void Encode(IServiceMessageContext messageContext, Stream stream)
         {
-            using (BinaryEncoder binaryEncoder = new BinaryEncoder(stream, messageContext, true))
+            using (var binaryEncoder = new BinaryEncoder(stream, messageContext, true))
             {
                 if (uadpNetworkMessageType_ == UADPNetworkMessageType.DataSetMessage)
                 {
@@ -476,7 +476,7 @@ namespace Technosoftware.UaPubSub.Encoding
         /// <param name="dataSetReaders"></param>
         public override void Decode(IServiceMessageContext context, byte[] message, IList<DataSetReaderDataType> dataSetReaders)
         {
-            using (BinaryDecoder binaryDecoder = new BinaryDecoder(message, context))
+            using (var binaryDecoder = new BinaryDecoder(message, context))
             {
                 // 1. decode network message header (PublisherId & DataSetClassId)
                 DecodeNetworkMessageHeader(binaryDecoder);
@@ -595,7 +595,7 @@ namespace Technosoftware.UaPubSub.Encoding
         private void SetFlagsDataSetNetworkMessageType()
         {
             UADPFlags = 0;
-            ExtendedFlags1 &= (ExtendedFlags1EncodingMask)PublishedIdTypeUsedBits;
+            ExtendedFlags1 &= (ExtendedFlags1EncodingMask)kPublishedIdTypeUsedBits;
             ExtendedFlags2 = 0;
             GroupFlags = 0;
 
@@ -771,7 +771,7 @@ namespace Technosoftware.UaPubSub.Encoding
 
             try
             {
-                List<DataSetReaderDataType> dataSetReadersFiltered = new List<DataSetReaderDataType>();
+                var dataSetReadersFiltered = new List<DataSetReaderDataType>();
 
                 /* 6.2.8.1 PublisherId
                  The parameter PublisherId defines the Publisher to receive NetworkMessages from.
@@ -824,14 +824,14 @@ namespace Technosoftware.UaPubSub.Encoding
                 DecodePayloadSize(binaryDecoder);
 
                 // the list of decode dataset messages for this network message
-                List<UaDataSetMessage> dataSetMessages = new List<UaDataSetMessage>();
+                var dataSetMessages = new List<UaDataSetMessage>();
 
                 /* 6.2.8.3 DataSetWriterId
                 The parameter DataSetWriterId with DataType UInt16 defines the DataSet selected in the Publisher for the DataSetReader.
                 If the value is 0 (null), the parameter shall be ignored and all received DataSetMessages pass the DataSetWriterId filter.*/
                 foreach (DataSetReaderDataType dataSetReader in dataSetReaders)
                 {
-                    List<UaDataSetMessage> uadpDataSetMessages = new List<UaDataSetMessage>(DataSetMessages);
+                    var uadpDataSetMessages = new List<UaDataSetMessage>(DataSetMessages);
                     //if there is no information regarding dataSet in network message, add dummy datasetMessage to try decoding
                     if (uadpDataSetMessages.Count == 0)
                     {
@@ -849,7 +849,7 @@ namespace Technosoftware.UaPubSub.Encoding
 
                         if (dataSetReader.DataSetWriterId == 0 || uadpDataSetMessage.DataSetWriterId == dataSetReader.DataSetWriterId)
                         {
-                            //atempt to decode dataset message using the reader
+                            //attempt to decode dataset message using the reader
                             uadpDataSetMessage.DecodePossibleDataSetReader(binaryDecoder, dataSetReader);
                             if (uadpDataSetMessage.DataSet != null)
                             {
@@ -872,7 +872,7 @@ namespace Technosoftware.UaPubSub.Encoding
                 {
                     dataSetMessages = new List<UaDataSetMessage>();
                     // check if DataSets are decoded into the existing dataSetMessages
-                    foreach (UaDataSetMessage dataSetMessage in uaDataSetMessages_)
+                    foreach (var dataSetMessage in uaDataSetMessages_)
                     {
                         if (dataSetMessage.DataSet != null)
                         {
@@ -966,7 +966,7 @@ namespace Technosoftware.UaPubSub.Encoding
                 }
                 else
                 {
-                    PublisherIdTypeEncodingMask publisherIdType = (PublisherIdTypeEncodingMask)((byte)ExtendedFlags1 & PublishedIdTypeUsedBits);
+                    var publisherIdType = (PublisherIdTypeEncodingMask)((byte)ExtendedFlags1 & kPublishedIdTypeUsedBits);
                     switch (publisherIdType)
                     {
                         case PublisherIdTypeEncodingMask.Byte:
@@ -1040,9 +1040,9 @@ namespace Technosoftware.UaPubSub.Encoding
                 encoder.WriteByte("Count", (byte)DataSetMessages.Count);
 
                 // Collect DataSetSetMessages headers
-                for (int index = 0; index < DataSetMessages.Count; index++)
+                for (var index = 0; index < DataSetMessages.Count; index++)
                 {
-                    UadpDataSetMessage uadpDataSetMessage = DataSetMessages[index] as UadpDataSetMessage;
+                    var uadpDataSetMessage = DataSetMessages[index] as UadpDataSetMessage;
                     if (uadpDataSetMessage != null && uadpDataSetMessage.DataSet != null)
                     {
                         encoder.WriteUInt16("DataSetWriterId", uadpDataSetMessage.DataSetWriterId);
@@ -1110,7 +1110,7 @@ namespace Technosoftware.UaPubSub.Encoding
         /// <param name="encoder"></param>
         private void EncodePayload(BinaryEncoder encoder)
         {
-            int payloadStartPositionInStream = encoder.Position;
+            var payloadStartPositionInStream = encoder.Position;
             if (DataSetMessages.Count > 1
                 && (NetworkMessageContentMask & UadpNetworkMessageContentMask.PayloadHeader) != 0)
             {
@@ -1125,7 +1125,7 @@ namespace Technosoftware.UaPubSub.Encoding
 
             if (DataSetMessages.Count > 1 && (NetworkMessageContentMask & UadpNetworkMessageContentMask.PayloadHeader) != 0)
             {
-                int payloadEndPositionInStream = encoder.Position;
+                var payloadEndPositionInStream = encoder.Position;
                 encoder.Position = payloadStartPositionInStream;
                 foreach (UadpDataSetMessage uadpDataSetMessage in DataSetMessages)
                 {
@@ -1185,8 +1185,8 @@ namespace Technosoftware.UaPubSub.Encoding
         {
             // byte[0..3] UADPVersion value 1 (for now)
             // byte[4..7] UADPFlags
-            byte versionFlags = decoder.ReadByte("VersionFlags");
-            UADPVersion = (byte)(versionFlags & UADPVersionBitMask);
+            var versionFlags = decoder.ReadByte("VersionFlags");
+            UADPVersion = (byte)(versionFlags & kUADPVersionBitMask);
             // Decode UADPFlags
             UADPFlags = (UADPFlagsEncodingMask)(versionFlags & 0xF0);
 
@@ -1218,7 +1218,7 @@ namespace Technosoftware.UaPubSub.Encoding
             // Decode PublisherId
             if ((UADPFlags & UADPFlagsEncodingMask.PublisherId) != 0)
             {
-                PublisherIdTypeEncodingMask publishedIdTypeType = (PublisherIdTypeEncodingMask)((byte)ExtendedFlags1 & PublishedIdTypeUsedBits);
+                var publishedIdTypeType = (PublisherIdTypeEncodingMask)((byte)ExtendedFlags1 & kPublishedIdTypeUsedBits);
 
                 switch (publishedIdTypeType)
                 {
@@ -1293,8 +1293,8 @@ namespace Technosoftware.UaPubSub.Encoding
             // Decode PayloadHeader
             if ((UADPFlags & UADPFlagsEncodingMask.PayloadHeader) != 0)
             {
-                byte count = decoder.ReadByte("Count");
-                for (int idx = 0; idx < count; idx++)
+                var count = decoder.ReadByte("Count");
+                for (var idx = 0; idx < count; idx++)
                 {
                     uaDataSetMessages_.Add(new UadpDataSetMessage());
                 }
@@ -1358,10 +1358,10 @@ namespace Technosoftware.UaPubSub.Encoding
                     }
                 }
             }
-            BinaryDecoder binaryDecoder = decoder as BinaryDecoder;
+            var binaryDecoder = decoder as BinaryDecoder;
             if (binaryDecoder != null)
             {
-                int offset = 0;
+                var offset = 0;
                 // set start position of dataset message in binary stream 
                 foreach (UadpDataSetMessage uadpDataSetMessage in DataSetMessages)
                 {

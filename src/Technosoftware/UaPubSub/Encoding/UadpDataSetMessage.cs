@@ -12,9 +12,9 @@
 #region Using Directives
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Xml;
 using System.Linq;
+using System.Globalization;
 
 using Opc.Ua;
 
@@ -238,7 +238,7 @@ namespace Technosoftware.UaPubSub.Encoding
         }
 
         /// <summary>
-        /// Atempt to Decode dataset
+        /// Attempt to Decode dataset
         /// </summary>
         /// <returns></returns>
         public void DecodePossibleDataSetReader(BinaryDecoder binaryDecoder, DataSetReaderDataType dataSetReader)
@@ -345,7 +345,7 @@ namespace Technosoftware.UaPubSub.Encoding
         /// <param name="binaryEncoder"></param>
         private void EncodeMessageDataKeyFrame(BinaryEncoder binaryEncoder)
         {
-            FieldTypeEncodingMask fieldType = (FieldTypeEncodingMask)(((byte)DataSetFlags1 & kFieldTypeUsedBits) >> 1);
+            var fieldType = (FieldTypeEncodingMask)(((byte)DataSetFlags1 & kFieldTypeUsedBits) >> 1);
             switch (fieldType)
             {
                 case FieldTypeEncodingMask.Variant:
@@ -384,17 +384,20 @@ namespace Technosoftware.UaPubSub.Encoding
         private void EncodeMessageDataDeltaFrame(BinaryEncoder binaryEncoder)
         {
             // calculate the number of fields that will be written
-            int fieldCount = DataSet.Fields.Count(f => f != null);
+            var fieldCount = DataSet.Fields.Count(f => f != null);
 
             // The field count is written for RadData encoding too unlike for KeyFrame message
             binaryEncoder.WriteUInt16("FieldCount", (UInt16)fieldCount);
 
-            FieldTypeEncodingMask fieldType = (FieldTypeEncodingMask)(((byte)DataSetFlags1 & kFieldTypeUsedBits) >> 1);
+            var fieldType = (FieldTypeEncodingMask)(((byte)DataSetFlags1 & kFieldTypeUsedBits) >> 1);
 
-            for (int i = 0; i < DataSet.Fields.Length; i++)
+            for (var i = 0; i < DataSet.Fields.Length; i++)
             {
                 Field field = DataSet.Fields[i];
-                if (field == null) continue; // ignore null fields
+                if (field == null)
+                {
+                    continue; // ignore null fields
+                }
 
                 // write field index
                 binaryEncoder.WriteUInt16("FieldIndex", (UInt16)i);
@@ -458,13 +461,13 @@ namespace Technosoftware.UaPubSub.Encoding
             {
                 // This is the high order 16 bits of the StatusCode DataType representing
                 // the numeric value of the Severity and SubCode of the StatusCode DataType.
-                UInt16 code = decoder.ReadUInt16("Status");
+                var code = decoder.ReadUInt16("Status");
 
                 Status = ((uint)code) << 16;
             }
 
-            uint minorVersion = defaultConfigMinorVersion;
-            uint majorVersion = defaultConfigMajorVersion;
+            var minorVersion = kDefaultConfigMinorVersion;
+            var majorVersion = kDefaultConfigMajorVersion;
             if ((DataSetFlags1 & DataSetFlags1EncodingMask.ConfigurationVersionMajorVersion) != 0)
             {
                 majorVersion = decoder.ReadUInt32("ConfigurationMajorVersion");
@@ -492,7 +495,7 @@ namespace Technosoftware.UaPubSub.Encoding
             try
             {
                 ushort fieldCount = 0;
-                FieldTypeEncodingMask fieldType = (FieldTypeEncodingMask)(((byte)DataSetFlags1 & kFieldTypeUsedBits) >> 1);
+                var fieldType = (FieldTypeEncodingMask)(((byte)DataSetFlags1 & kFieldTypeUsedBits) >> 1);
                 if (fieldType == FieldTypeEncodingMask.RawData)
                 {
                     if (dataSetMetaData != null)
@@ -508,17 +511,17 @@ namespace Technosoftware.UaPubSub.Encoding
 
 
                 // check configuration version
-                List<DataValue> dataValues = new List<DataValue>();
+                var dataValues = new List<DataValue>();
                 switch (fieldType)
                 {
                     case FieldTypeEncodingMask.Variant:
-                        for (int i = 0; i < fieldCount; i++)
+                        for (var i = 0; i < fieldCount; i++)
                         {
                             dataValues.Add(new DataValue(binaryDecoder.ReadVariant("Variant")));
                         }
                         break;
                     case FieldTypeEncodingMask.DataValue:
-                        for (int i = 0; i < fieldCount; i++)
+                        for (var i = 0; i < fieldCount; i++)
                         {
                             dataValues.Add(binaryDecoder.ReadDataValue("DataValue"));
                         }
@@ -526,7 +529,7 @@ namespace Technosoftware.UaPubSub.Encoding
                     case FieldTypeEncodingMask.RawData:
                         if (dataSetMetaData != null)
                         {
-                            for (int i = 0; i < fieldCount; i++)
+                            for (var i = 0; i < fieldCount; i++)
                             {
                                 FieldMetaData fieldMetaData = dataSetMetaData.Fields[i];
                                 if (fieldMetaData != null)
@@ -543,11 +546,11 @@ namespace Technosoftware.UaPubSub.Encoding
                         break;
                 }
 
-                List<Field> dataFields = new List<Field>();
+                var dataFields = new List<Field>();
 
-                for (int i = 0; i < dataValues.Count; i++)
+                for (var i = 0; i < dataValues.Count; i++)
                 {
-                    Field dataField = new Field();
+                    var dataField = new Field();
                     dataField.FieldMetaData = dataSetMetaData?.Fields[i];
                     dataField.Value = dataValues[i];
 
@@ -566,7 +569,7 @@ namespace Technosoftware.UaPubSub.Encoding
                     return null; //the dataset cannot be decoded
                 }
 
-                DataSet dataSet = new DataSet(dataSetMetaData?.Name);
+                var dataSet = new DataSet(dataSetMetaData?.Name);
                 dataSet.DataSetMetaData = dataSetMetaData;
                 dataSet.Fields = dataFields.ToArray();
                 dataSet.DataSetWriterId = DataSetWriterId;
@@ -591,15 +594,15 @@ namespace Technosoftware.UaPubSub.Encoding
             DataSetMetaDataType dataSetMetaData = dataSetReader.DataSetMetaData;
             try
             {
-                FieldTypeEncodingMask fieldType = (FieldTypeEncodingMask)(((byte)DataSetFlags1 & kFieldTypeUsedBits) >> 1);
+                var fieldType = (FieldTypeEncodingMask)(((byte)DataSetFlags1 & kFieldTypeUsedBits) >> 1);
 
                 if (dataSetMetaData != null)
                 {
                     // create dataFields collection
-                    List<Field> dataFields = new List<Field>();
-                    for (int i = 0; i < dataSetMetaData.Fields.Count; i++)
+                    var dataFields = new List<Field>();
+                    for (var i = 0; i < dataSetMetaData.Fields.Count; i++)
                     {
-                        Field dataField = new Field();
+                        var dataField = new Field();
                         dataField.FieldMetaData = dataSetMetaData?.Fields[i];
 
                         if (ExtensionObject.ToEncodeable(dataSetReader.SubscribedDataSet) is TargetVariablesDataType targetVariablesData && targetVariablesData.TargetVariables != null
@@ -615,9 +618,9 @@ namespace Technosoftware.UaPubSub.Encoding
                     // read number of fields encoded in this delta frame message
                     ushort fieldCount = fieldCount = binaryDecoder.ReadUInt16("FieldCount");
 
-                    for (int i = 0; i < fieldCount; i++)
+                    for (var i = 0; i < fieldCount; i++)
                     {
-                        ushort fieldIndex = binaryDecoder.ReadUInt16("FieldIndex");
+                        var fieldIndex = binaryDecoder.ReadUInt16("FieldIndex");
                         // update value in dataFields
 
                         switch (fieldType)
@@ -642,7 +645,7 @@ namespace Technosoftware.UaPubSub.Encoding
                         }
                     }
 
-                    DataSet dataSet = new DataSet(dataSetMetaData?.Name);
+                    var dataSet = new DataSet(dataSetMetaData?.Name);
                     dataSet.DataSetMetaData = dataSetMetaData;
                     dataSet.Fields = dataFields.ToArray();
                     dataSet.IsDeltaFrame = true;
@@ -669,13 +672,13 @@ namespace Technosoftware.UaPubSub.Encoding
             try
             {
                 // 01 RawData Field Encoding 
-                Variant variant = field.Value.WrappedValue;
+                var variant = field.Value.WrappedValue;
 
                 if (variant.TypeInfo == null || variant.TypeInfo.BuiltInType == BuiltInType.Null)
                 {
                     return;
                 }
-                object valueToEncode = variant.Value;
+                var valueToEncode = variant.Value;
 
                 if (field.FieldMetaData.ValueRank == ValueRanks.Scalar)
                 {

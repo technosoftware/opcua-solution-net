@@ -31,7 +31,7 @@ namespace Technosoftware.UaPubSub.Transport
     {
         #region Private fields 
         // Minimum response interval
-        private const int MinimumResponseInterval = 500;
+        private const int kMinimumResponseInterval = 500;
 
         // The list that will store the WriterIds that shall be set as DataSetMetaData Response message
         private readonly List<UInt16> metadataWriterIdsToSend_;
@@ -86,7 +86,7 @@ namespace Technosoftware.UaPubSub.Transport
         private void OnUadpDiscoveryReceive(IAsyncResult result)
         {
             // this is what had been passed into BeginReceive as the second parameter:
-            UdpClient socket = result.AsyncState as UdpClient;
+            var socket = result.AsyncState as UdpClient;
 
             if (socket == null)
             {
@@ -94,11 +94,11 @@ namespace Technosoftware.UaPubSub.Transport
             }
 
             // points towards whoever had sent the message:
-            IPEndPoint source = new IPEndPoint(0, 0);
+            var source = new IPEndPoint(0, 0);
             // get the actual message and fill out the source:
             try
             {
-                byte[] message = socket.EndReceive(result, ref source);
+                var message = socket.EndReceive(result, ref source);
 
                 if (message != null)
                 {
@@ -141,7 +141,7 @@ namespace Technosoftware.UaPubSub.Transport
         {
             Utils.Trace(Utils.TraceMasks.Information, "UdpDiscoveryPublisher.ProcessReceivedMessageDiscovery from source={0}", source);
 
-            UadpNetworkMessage networkMessage = new UadpNetworkMessage();
+            var networkMessage = new UadpNetworkMessage();
             // decode the received message
             networkMessage.Decode(MessageContext, messageBytes, null);
 
@@ -152,7 +152,7 @@ namespace Technosoftware.UaPubSub.Transport
                 Utils.Trace(Utils.TraceMasks.Information, "UdpDiscoveryPublisher.ProcessReceivedMessageDiscovery Request MetaData Received on endpoint {1} for {0}",
                 String.Join(", ", networkMessage.DataSetWriterIds), source.Address);
 
-                foreach (UInt16 dataSetWriterId in networkMessage.DataSetWriterIds)
+                foreach (var dataSetWriterId in networkMessage.DataSetWriterIds)
                 {
                     lock (lock_)
                     {
@@ -183,11 +183,11 @@ namespace Technosoftware.UaPubSub.Transport
 
 
         /// <summary>
-        /// Sends a DataSetMetadata discovery response message
+        /// Sends a DataSetMetaData discovery response message
         /// </summary>
         private async Task SendResponseDataSetMetaData()
         {
-            await Task.Delay(MinimumResponseInterval).ConfigureAwait(false);
+            await Task.Delay(kMinimumResponseInterval).ConfigureAwait(false);
             lock (lock_)
             {
                 if (metadataWriterIdsToSend_.Count > 0)
@@ -210,7 +210,7 @@ namespace Technosoftware.UaPubSub.Transport
         /// </summary>
         private async Task SendResponseDataSetWriterConfiguration()
         {
-            await Task.Delay(MinimumResponseInterval).ConfigureAwait(false);
+            await Task.Delay(kMinimumResponseInterval).ConfigureAwait(false);
             lock (lock_)
             {
                 IList<UInt16> dataSetWriterIdsToSend = new List<UInt16>();
@@ -224,7 +224,7 @@ namespace Technosoftware.UaPubSub.Transport
                     IList<UaNetworkMessage> responsesMessages = udpConnection_.CreateDataSetWriterCofigurationMessage(
                         dataSetWriterIdsToSend.ToArray());
 
-                    foreach (UaNetworkMessage responsesMessage in responsesMessages)
+                    foreach (var responsesMessage in responsesMessages)
                     {
                         Utils.Trace("UdpDiscoveryPublisher.SendResponseDataSetWriterConfiguration Before sending message for DataSetWriterId:{0}", responsesMessage.DataSetWriterId);
 
@@ -239,7 +239,7 @@ namespace Technosoftware.UaPubSub.Transport
         /// </summary>
         private async Task SendResponsePublisherEndpoints()
         {
-            await Task.Delay(MinimumResponseInterval).ConfigureAwait(false);
+            await Task.Delay(kMinimumResponseInterval).ConfigureAwait(false);
 
             lock (lock_)
             {

@@ -11,9 +11,10 @@
 
 #region Using Directives
 using System;
-using Technosoftware.UaPubSub.PublishedData;
 
 using Opc.Ua;
+
+using Technosoftware.UaPubSub.PublishedData;
 #endregion
 
 namespace Technosoftware.UaPubSub
@@ -28,11 +29,11 @@ namespace Technosoftware.UaPubSub
         /// <summary>
         /// Default value for Configured MetaDataVersion.MajorVersion
         /// </summary>
-        protected const UInt32 defaultConfigMajorVersion = 0;
+        protected const uint kDefaultConfigMajorVersion = 0;
         /// <summary>
         /// Default value for Configured MetaDataVersion.MinorVersion
         /// </summary>
-        protected const UInt32 defaultConfigMinorVersion = 0;
+        protected const uint kDefaultConfigMinorVersion = 0;
         #endregion
 
         #region Constructor
@@ -44,8 +45,8 @@ namespace Technosoftware.UaPubSub
             DecodeErrorReason = DataSetDecodeErrorReason.NoError;
             Timestamp = DateTime.UtcNow;
             MetaDataVersion = new ConfigurationVersionDataType() {
-                MajorVersion = defaultConfigMajorVersion,
-                MinorVersion = defaultConfigMinorVersion
+                MajorVersion = kDefaultConfigMajorVersion,
+                MinorVersion = kDefaultConfigMinorVersion
             };
         }
         #endregion
@@ -106,7 +107,7 @@ namespace Technosoftware.UaPubSub
         }
         #endregion
 
-        #region Public Methods
+        #region Methods
         /// <summary>
         /// Set DataSetFieldContentMask 
         /// </summary>
@@ -114,7 +115,6 @@ namespace Technosoftware.UaPubSub
         public abstract void SetFieldContentMask(DataSetFieldContentMask fieldContentMask);
         #endregion
 
-        #region Protected Methods
         /// <summary>
         /// Validates the MetadataVersion against a given ConfigurationVersionDataType
         /// </summary>
@@ -122,7 +122,7 @@ namespace Technosoftware.UaPubSub
         /// <returns>NoError if validation passes or the cause of the failure</returns>
         protected DataSetDecodeErrorReason ValidateMetadataVersion(ConfigurationVersionDataType configurationVersionDataType)
         {
-            if (MetaDataVersion.MajorVersion != defaultConfigMajorVersion)
+            if (MetaDataVersion.MajorVersion != kDefaultConfigMajorVersion)
             {
                 if (MetaDataVersion.MajorVersion != configurationVersionDataType.MajorVersion)
                 {
@@ -132,6 +132,5 @@ namespace Technosoftware.UaPubSub
 
             return DataSetDecodeErrorReason.NoError;
         }
-        #endregion
     }
 }

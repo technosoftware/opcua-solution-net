@@ -23,6 +23,17 @@ namespace Technosoftware.UaPubSub
     /// </summary>
     internal class UaPublisher : IUaPublisher
     {
+        #region Fields
+        private readonly object lock_ = new object();
+        
+        private readonly IUaPubSubConnection pubSubConnection_;
+        private readonly WriterGroupDataType writerGroupConfiguration_;
+        private readonly WriterGroupPublishState writerGroupPublishState_;
+
+        // the component that triggers the publish messages
+        private readonly IntervalRunner intervalRunner_;
+        #endregion
+
         #region Constructors
 
         /// <summary>
@@ -44,7 +55,7 @@ namespace Technosoftware.UaPubSub
             writerGroupPublishState_ = new WriterGroupPublishState();
 
             intervalRunner_ = new IntervalRunner(writerGroupConfiguration_.Name, writerGroupConfiguration_.PublishingInterval, CanPublish, PublishMessages);
-
+            
         }
 
         #endregion
@@ -116,7 +127,7 @@ namespace Technosoftware.UaPubSub
         #endregion
 
         #region Private Methods
-
+        
         /// <summary>
         /// Decide if the connection can publish
         /// </summary>
@@ -130,13 +141,10 @@ namespace Technosoftware.UaPubSub
         }
 
         /// <summary>
-        /// Generate and publish a messages
+        /// Generate and publish the messages
         /// </summary>
         private void PublishMessages()
         {
-            // check for valid license
-            LicenseHandler.ValidateFeatures(LicenseHandler.ProductLicense.PubSub, Opc.Ua.LicenseHandler.ProductFeature.None);
-
             try
             {
                 IList<UaNetworkMessage> networkMessages = pubSubConnection_.CreateNetworkMessages(writerGroupConfiguration_, writerGroupPublishState_);
@@ -146,12 +154,13 @@ namespace Technosoftware.UaPubSub
                     {
                         if (uaNetworkMessage != null)
                         {
-                            bool success = pubSubConnection_.PublishNetworkMessage(uaNetworkMessage);
+                            var success = pubSubConnection_.PublishNetworkMessage(uaNetworkMessage);
                             Utils.Trace(Utils.TraceMasks.Information,
                                 "UaPublisher - PublishNetworkMessage, WriterGroupId:{0}; success = {1}", writerGroupConfiguration_.WriterGroupId, success.ToString());
                         }
                     }
                 }
+               
             }
             catch (Exception e)
             {
@@ -159,17 +168,6 @@ namespace Technosoftware.UaPubSub
                 Utils.Trace(e, "UaPublisher.PublishMessages");
             }
         }
-        #endregion
-
-        #region Private Fields
-        private readonly object lock_ = new object();
-
-        private readonly IUaPubSubConnection pubSubConnection_;
-        private readonly WriterGroupDataType writerGroupConfiguration_;
-        private readonly WriterGroupPublishState writerGroupPublishState_;
-
-        // the component that triggers the publish messages
-        private readonly IntervalRunner intervalRunner_;
         #endregion
     }
 }

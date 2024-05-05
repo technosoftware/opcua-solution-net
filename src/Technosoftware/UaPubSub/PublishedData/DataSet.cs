@@ -18,7 +18,7 @@ using Opc.Ua;
 namespace Technosoftware.UaPubSub.PublishedData
 {
     /// <summary>
-    /// Entity that holds DataSet structure that is published/received bu the PubSub
+    /// Entity that holds DataSet structure that is published/received by the PubSub
     /// </summary>
     public class DataSet : ICloneable
     {
@@ -77,7 +77,7 @@ namespace Technosoftware.UaPubSub.PublishedData
         /// </summary>
         public new object MemberwiseClone()
         {
-            DataSet copy = base.MemberwiseClone() as DataSet;
+            var copy = base.MemberwiseClone() as DataSet;
             if (DataSetMetaData != null)
             {
                 if (copy != null)
@@ -91,7 +91,7 @@ namespace Technosoftware.UaPubSub.PublishedData
                 if (copy != null)
                 {
                     copy.Fields = new Field[Fields.Length];
-                    for (int i = 0; i < Fields.Length; i++)
+                    for (var i = 0; i < Fields.Length; i++)
                     {
                         copy.Fields[i] = Fields[i].Clone() as Field;
                     }

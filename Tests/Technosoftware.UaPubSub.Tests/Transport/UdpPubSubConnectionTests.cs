@@ -20,6 +20,7 @@ using System.Net.Sockets;
 using System.Threading;
 
 using NUnit.Framework;
+using Assert = NUnit.Framework.Legacy.ClassicAssert;
 
 using Opc.Ua;
 
@@ -67,7 +68,7 @@ namespace Technosoftware.UaPubSub.Tests.Transport
         private UdpPubSubConnection udpPublisherConnection_;
 
         private ManualResetEvent shutdownEvent_;
-        //private UdpAddressesType m_udpAddressesType = UdpAddressesType.Unicast;
+        //private UdpAddressesType udpAddressesType_ = UdpAddressesType.Unicast;
         #endregion
 
         [OneTimeSetUp()]
@@ -76,17 +77,17 @@ namespace Technosoftware.UaPubSub.Tests.Transport
             // Create a publisher application
             string configurationFile = Utils.GetAbsoluteFilePath(publisherConfigurationFileName_, true, true, false);
             uaPublisherApplication_ = UaPubSubApplication.Create(configurationFile);
-            Assert.IsNotNull(uaPublisherApplication_, "m_publisherApplication should not be null");
+            Assert.IsNotNull(uaPublisherApplication_, "publisherApplication_ should not be null");
 
             // Get the publisher configuration
             publisherConfiguration_ = uaPublisherApplication_.UaPubSubConfigurator.PubSubConfiguration;
-            Assert.IsNotNull(publisherConfiguration_, "m_publisherConfiguration should not be null");
+            Assert.IsNotNull(publisherConfiguration_, "publisherConfiguration_ should not be null");
 
             // Get publisher connection
-            Assert.IsNotNull(publisherConfiguration_.Connections, "m_publisherConfiguration.Connections should not be null");
-            Assert.IsNotEmpty(publisherConfiguration_.Connections, "m_publisherConfiguration.Connections should not be empty");
+            Assert.IsNotNull(publisherConfiguration_.Connections, "publisherConfiguration_.Connections should not be null");
+            Assert.IsNotEmpty(publisherConfiguration_.Connections, "publisherConfiguration_.Connections should not be empty");
             udpPublisherConnection_ = uaPublisherApplication_.PubSubConnections.First() as UdpPubSubConnection;
-            Assert.IsNotNull(udpPublisherConnection_, "m_uadpPublisherConnection should not be null");
+            Assert.IsNotNull(udpPublisherConnection_, "uadpPublisherConnection_ should not be null");
         }
 
         [Test(Description = "Validate TransportProtocol value")]

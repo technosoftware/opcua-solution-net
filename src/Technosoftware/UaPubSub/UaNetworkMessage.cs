@@ -25,18 +25,34 @@ namespace Technosoftware.UaPubSub
     /// </summary>
     public abstract class UaNetworkMessage
     {
+        private ushort dataSetWriterId_;
+
         #region Public Events
+
         /// <summary>
         /// The Default event for an error encountered during decoding the dataset messages
         /// </summary>
-        public event EventHandler<DataSetDecodeErrorEventArgs> DataSetDecodeErrorOccurredEvent;
+        public event EventHandler<DataSetDecodeErrorEventArgs> DataSetDecodeErrorOccurred;
+
+        #endregion
+
+        #region Protected Fields
+        /// <summary>
+        /// The DataSetMetaData
+        /// </summary>
+        protected DataSetMetaDataType metadata_;
+
+        /// <summary>
+        /// List of DataSet messages
+        /// </summary>
+        protected List<UaDataSetMessage> uaDataSetMessages_;
         #endregion
 
         #region Constructor
         /// <summary>
         /// Create instance of <see cref="UaNetworkMessage"/>.
         /// </summary>
-        /// <param name="writerGroupConfiguration">The <see cref="WriterGroupDataType"/> confguration object that produced this message.</param>
+        /// <param name="writerGroupConfiguration">The <see cref="WriterGroupDataType"/> configuration object that produced this message.</param>
         /// <param name="uaDataSetMessages">The containing data set messages.</param>
         protected UaNetworkMessage(WriterGroupDataType writerGroupConfiguration, List<UaDataSetMessage> uaDataSetMessages)
         {
@@ -69,17 +85,9 @@ namespace Technosoftware.UaPubSub
         {
             get
             {
-                if (dataSetWriterId_ == 0)
-                {
-                    if (uaDataSetMessages_ != null && uaDataSetMessages_.Count == 1)
-                    {
-                        return uaDataSetMessages_[0].DataSetWriterId;
-                    }
-
-                    return null;
-                }
-
-                return ((dataSetWriterId_ != 0) ? dataSetWriterId_ : (UInt16?)null);
+                return dataSetWriterId_ == 0
+                    ? uaDataSetMessages_ != null && uaDataSetMessages_.Count == 1 ? uaDataSetMessages_[0].DataSetWriterId : (ushort?)null
+                    : (dataSetWriterId_ != 0) ? dataSetWriterId_ : (UInt16?)null;
             }
 
             set
@@ -147,18 +155,6 @@ namespace Technosoftware.UaPubSub
         public abstract void Decode(IServiceMessageContext messageContext, byte[] message, IList<DataSetReaderDataType> dataSetReaders);
         #endregion
 
-        #region Protected Fields
-        /// <summary>
-        /// The DataSetMetaData
-        /// </summary>
-        protected DataSetMetaDataType metadata_;
-
-        /// <summary>
-        /// List of DataSet messages
-        /// </summary>
-        protected List<UaDataSetMessage> uaDataSetMessages_;
-        #endregion
-
         #region Protected Methods
         /// <summary>
         /// The DataSetDecodeErrorOccurred event handler
@@ -166,12 +162,8 @@ namespace Technosoftware.UaPubSub
         /// <param name="e"></param>
         protected virtual void OnDataSetDecodeErrorOccurred(DataSetDecodeErrorEventArgs e)
         {
-            DataSetDecodeErrorOccurredEvent?.Invoke(this, e);
+            DataSetDecodeErrorOccurred?.Invoke(this, e);
         }
-        #endregion
-
-        #region Private Fields
-        private ushort dataSetWriterId_;
         #endregion
 
     }

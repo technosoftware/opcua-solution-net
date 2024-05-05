@@ -373,7 +373,7 @@ namespace Technosoftware.UaStandardServer.Tests
                         requestHeader_.Timestamp = DateTime.UtcNow;
                         CommonTestWorkers.VerifySubscriptionTransferred(serverTestServices, requestHeader_, subscriptionIds, true);
                     });
-                    Assert.AreEqual(StatusCodes.BadNoSubscription, sre.StatusCode);
+                    Assert.AreEqual((StatusCode)StatusCodes.BadNoSubscription, (StatusCode)sre.StatusCode);
                 }
             }
             finally
@@ -469,7 +469,7 @@ namespace Technosoftware.UaStandardServer.Tests
                     out bool moreNotifications, out NotificationMessage notificationMessage,
                     out StatusCodeCollection _, out DiagnosticInfoCollection diagnosticInfos);
 
-                Assert.AreEqual(StatusCodes.Good, response.ServiceResult.Code);
+                Assert.AreEqual((StatusCode)StatusCodes.Good, response.ServiceResult);
                 ServerFixtureUtils.ValidateResponse(response);
                 ServerFixtureUtils.ValidateDiagnosticInfos(diagnosticInfos, acknoledgements, response.StringTable);
                 Assert.AreEqual(subscriptionIds[0], publishedId);
@@ -485,7 +485,7 @@ namespace Technosoftware.UaStandardServer.Tests
                         out moreNotifications, out notificationMessage,
                         out StatusCodeCollection _, out diagnosticInfos);
 
-                    Assert.AreEqual(StatusCodes.Good, response.ServiceResult.Code);
+                    Assert.AreEqual((StatusCode)StatusCodes.Good, response.ServiceResult);
                     ServerFixtureUtils.ValidateResponse(response);
                     ServerFixtureUtils.ValidateDiagnosticInfos(diagnosticInfos, acknoledgements, response.StringTable);
                     Assert.AreEqual(subscriptionIds[0], publishedId);
@@ -504,7 +504,7 @@ namespace Technosoftware.UaStandardServer.Tests
 
                 SecureChannelContext.Current = securityContext;
 
-                Assert.AreEqual(StatusCodes.BadUserAccessDenied, results[0].StatusCode.Code);
+                Assert.AreEqual((StatusCode)StatusCodes.BadUserAccessDenied, results[0].StatusCode);
                 ServerFixtureUtils.ValidateResponse(response, results, nodesToCall);
                 ServerFixtureUtils.ValidateDiagnosticInfos(diagnosticInfos, nodesToCall, response.StringTable);
 
@@ -515,7 +515,7 @@ namespace Technosoftware.UaStandardServer.Tests
                     out moreNotifications, out notificationMessage,
                     out StatusCodeCollection _, out diagnosticInfos);
 
-                Assert.AreEqual(StatusCodes.Good, response.ServiceResult.Code);
+                Assert.AreEqual((StatusCode)StatusCodes.Good, response.ServiceResult);
                 ServerFixtureUtils.ValidateResponse(response);
                 ServerFixtureUtils.ValidateDiagnosticInfos(diagnosticInfos, acknoledgements, response.StringTable);
                 Assert.AreEqual(subscriptionIds[0], publishedId);
@@ -542,7 +542,7 @@ namespace Technosoftware.UaStandardServer.Tests
                     out moreNotifications, out notificationMessage,
                     out StatusCodeCollection _, out diagnosticInfos);
 
-                Assert.AreEqual(StatusCodes.Good, response.ServiceResult.Code);
+                Assert.AreEqual((StatusCode)StatusCodes.Good, response.ServiceResult);
                 ServerFixtureUtils.ValidateResponse(response);
                 ServerFixtureUtils.ValidateDiagnosticInfos(diagnosticInfos, acknoledgements, response.StringTable);
                 Assert.AreEqual(subscriptionIds[0], publishedId);
@@ -563,7 +563,7 @@ namespace Technosoftware.UaStandardServer.Tests
                         out moreNotifications, out notificationMessage,
                         out StatusCodeCollection _, out diagnosticInfos);
 
-                    Assert.AreEqual(StatusCodes.Good, response.ServiceResult.Code);
+                    Assert.AreEqual((StatusCode)StatusCodes.Good, response.ServiceResult);
                     ServerFixtureUtils.ValidateResponse(response);
                     ServerFixtureUtils.ValidateDiagnosticInfos(diagnosticInfos, acknoledgements, response.StringTable);
                     Assert.AreEqual(subscriptionIds[0], publishedId);
@@ -584,7 +584,7 @@ namespace Technosoftware.UaStandardServer.Tests
                     out moreNotifications, out notificationMessage,
                     out StatusCodeCollection _, out diagnosticInfos);
 
-                Assert.AreEqual(StatusCodes.Good, response.ServiceResult.Code);
+                Assert.AreEqual((StatusCode)StatusCodes.Good, response.ServiceResult);
                 ServerFixtureUtils.ValidateResponse(response);
                 ServerFixtureUtils.ValidateDiagnosticInfos(diagnosticInfos, acknoledgements, response.StringTable);
                 Assert.AreEqual(subscriptionIds[0], publishedId);
