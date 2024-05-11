@@ -56,9 +56,10 @@ jobs:
 
     - name: Restore Packages
       run: |
-        nuget restore "OpcUaSolutionNet.sln"
-        nuget restore "OpcUaSolutionReference.sln"
-        nuget restore "Tutorials.sln"
+           dotnet nuget add source "https://nuget.pkg.github.com/technosoftware-gmbh/index.json" -n github  -u build -p "${{ secrets.GITHUB_TOKEN }}" --store-password-in-clear-text
+           nuget restore "OpcUaSolutionNet.sln"
+           nuget restore "OpcUaSolutionReference.sln"
+           nuget restore "Tutorials.sln"
         
     - name: Build Solution
       run: |

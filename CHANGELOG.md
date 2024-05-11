@@ -14,13 +14,9 @@
 - The Technosoftware.UaCore nuget package now includes support again for .NET 4.7.2 and .NET 4.6.2 to be 
   able to create custom builds of the solutions
 - Validates the ServerCertificate ApplicationUri to match the ApplicationUri of the Endpoint for an open call (Spec Part 4 5.4.1)
-
 - Implement OpenSecureChannel in compliance with Spec Part 5.4.1
 - check Application URI of the server Certificate on OpenSecureChannel
 - The ApplicationUri specified in the Server Certificate must match the ApplicationUri provided in the EndpointDescription.
-
-
-### Fixed issues
 
 -------------------------------------------------------------------------------------------------------------
 ## OPC UA Solution .NET - 3.2.3
