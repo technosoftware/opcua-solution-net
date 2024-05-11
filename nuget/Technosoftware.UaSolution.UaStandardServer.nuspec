@@ -9,12 +9,12 @@
     <authors>Technosoftware GmbH</authors>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <license type="file">licenses/LICENSE.md</license>
-    <projectUrl>https://github.com/technosoftware-gmbh/opcua-solution-net-samples</projectUrl>
+    <projectUrl>https://github.com/technosoftware-gmbh/opcua-solution-net</projectUrl>
     <icon>images/TechnosoftwareGmbH.png</icon>
-    <releaseNotes>https://github.com/technosoftware-gmbh/opcua-solution-net-samples/releases</releaseNotes>
+    <releaseNotes>https://github.com/technosoftware-gmbh/opcua-solution-net/releases</releaseNotes>
     <copyright>Copyright © 2011 - 2024 Technosoftware GmbH</copyright>
     <tags>Technosoftware OPC UA .NET 8.0 .NET 7.0 .NET 6.0 .NET 4.8 macOS linux dotnet netcore</tags>
-    <repository type="git" url="https://github.com/technosoftware-gmbh/opcua-solution-net-samples" />
+    <repository type="git" url="https://github.com/technosoftware-gmbh/opcua-solution-net" />
     <dependencies>
       <group targetFramework="net8.0">
         <dependency id="Technosoftware.UaSolution.UaCore" version="3.3.0" exclude="Build,Analyzers" />
