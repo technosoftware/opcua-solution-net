@@ -4,6 +4,13 @@
 # https://help.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
 
 version: 2
+
+registries:
+  github-registry:
+    type: github-registry
+    url: https://nuget.pkg.github.com/technosoftware-gmbh/index.json
+    token: {{ secrets.DEPENDABOT_PAT }}
+    
 updates:
   - package-ecosystem: "nuget"
     labels:
@@ -11,6 +18,13 @@ updates:
   directory: "/"
   schedule:
       interval: "weekly"
+
+  - package-ecosystem: "github-registry"
+    directory: "/"
+    registries:
+      - github-registry
+    schedule:
+      interval: "daily"  
 
   - package-ecosystem: github-actions
     labels:
