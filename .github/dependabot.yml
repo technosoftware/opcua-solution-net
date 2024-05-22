@@ -6,26 +6,23 @@
 version: 2
 
 registries:
-  github-registry:
-    type: github-registry
+  public:
+    type: nuget-feed
+    url: https://api.nuget.org/v3/index.json
+  private:
+    type: nuget-feed
     url: https://nuget.pkg.github.com/technosoftware-gmbh/index.json
-    token: {{ secrets.DEPENDABOT_PAT }}
+    token: ${{secrets.DEPENDABOT_PAT}}    
     
 updates:
   - package-ecosystem: "nuget"
     labels:
       - "nuget"
   directory: "/"
+    registries: "*"
   schedule:
       interval: "weekly"
-
-  - package-ecosystem: "github-registry"
-    directory: "/"
-    registries:
-      - github-registry
-    schedule:
-      interval: "daily"  
-
+      
   - package-ecosystem: github-actions
     labels:
       - "actions"
