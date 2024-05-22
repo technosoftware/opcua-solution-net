@@ -18,14 +18,14 @@ updates:
   - package-ecosystem: "nuget"
     labels:
       - "nuget"
-  directory: "/"
+    directory: "/"
     registries: "*"
-  schedule:
+    schedule:
       interval: "weekly"
       
   - package-ecosystem: github-actions
     labels:
       - "actions"
     directory: "./"
-  schedule:
+    schedule:
       interval: "weekly"
