@@ -13,6 +13,10 @@
 //-----------------------------------------------------------------------------
 #endregion Copyright (c) 2011-2024 Technosoftware GmbH. All rights reserved
 
+#if NET6_0_OR_GREATER
+#define PERIODIC_TIMER
+#endif
+
 #region Using Directives
 using System;
 using System.Collections.Generic;
@@ -30,6 +34,7 @@ using System.Xml;
 using Microsoft.Extensions.Logging;
 
 using Opc.Ua;
+using Opc.Ua.Bindings;
 #endregion
 
 namespace Technosoftware.UaClient
@@ -662,17 +667,25 @@ namespace Technosoftware.UaClient
         /// Returns true if the session is not receiving keep alives.
         /// </summary>
         /// <remarks>
-        /// Set to true if the server does not respond for 2 times the KeepAliveInterval.
-        /// Set to false is communication recovers.
+        /// Set to true if the server does not respond for 2 times the KeepAliveInterval
+        /// or if another error was reported.
+        /// Set to false is communication is ok or recovered.
         /// </remarks>
         public bool KeepAliveStopped
         {
             get
             {
-                var delta = TimeSpan.FromTicks(DateTime.UtcNow.Ticks - Interlocked.Read(ref lastKeepAliveTime_));
+                StatusCode lastKeepAliveErrorStatusCode = lastKeepAliveErrorStatusCode_;
+                if (StatusCode.IsGood(lastKeepAliveErrorStatusCode) || lastKeepAliveErrorStatusCode == StatusCodes.BadNoCommunication)
+                {
+                    TimeSpan delta = TimeSpan.FromTicks(DateTime.UtcNow.Ticks - Interlocked.Read(ref lastKeepAliveTime_));
 
-                // add a guard band to allow for network lag.
-                return (keepAliveInterval_ + KeepAliveGuardBand) <= delta.TotalMilliseconds;
+                    // add a guard band to allow for network lag.
+                    return (keepAliveInterval_ + KeepAliveGuardBand) <= delta.TotalMilliseconds;
+                }
+
+                // another error was reported which caused keep alive to stop.
+                return true;
             }
         }
 
@@ -1336,7 +1349,10 @@ namespace Technosoftware.UaClient
 
                 if (!result.AsyncWaitHandle.WaitOne(ReconnectTimeout / 2))
                 {
-                    Utils.LogWarning("WARNING: ACTIVATE SESSION timed out. {0}/{1}", GoodPublishRequestCount, OutstandingRequestCount);
+                    var error = ServiceResult.Create(StatusCodes.BadRequestTimeout, "ACTIVATE SESSION timed out. {0}/{1}", GoodPublishRequestCount, OutstandingRequestCount);
+                    Utils.LogWarning("WARNING: {0}", error.ToString());
+                    var operation = result as ChannelAsyncOperation<int>;
+                    operation?.Fault(false, error);
                 }
 
                 // reactivate session.
@@ -3688,6 +3704,7 @@ namespace Technosoftware.UaClient
         {
             var keepAliveInterval = keepAliveInterval_;
 
+            lastKeepAliveErrorStatusCode_ = StatusCodes.Good;
             Interlocked.Exchange(ref lastKeepAliveTime_, DateTime.UtcNow.Ticks);
 
             serverState_ = ServerState.Unknown;
@@ -3707,7 +3724,7 @@ namespace Technosoftware.UaClient
             {
                 StopKeepAliveTimer();
 
-#if NET6_0_OR_GREATER
+#if PERIODIC_TIMER
                 // start periodic timer loop
                 var keepAliveTimer = new PeriodicTimer(TimeSpan.FromMilliseconds(keepAliveInterval));
                 _ = Task.Run(() => OnKeepAliveAsync(keepAliveTimer, nodesToRead));
@@ -3891,6 +3908,11 @@ namespace Technosoftware.UaClient
 
                 AsyncRequestStarted(result, requestHeader.RequestHandle, DataTypes.ReadRequest);
             }
+            catch (ServiceResultException sre) when (sre.StatusCode == StatusCodes.BadNotConnected)
+            {
+                // recover from error condition when secure channel is still alive
+                OnKeepAliveError(sre.Result);
+            }
             catch (Exception e)
             {
                 Utils.LogError("Could not send keep alive request: {0} {1}", e.GetType().FullName, e.Message);
@@ -3930,10 +3952,10 @@ namespace Technosoftware.UaClient
 
                 return;
             }
-            catch (ServiceResultException sre) when (sre.StatusCode == StatusCodes.BadSessionIdInvalid)
+            catch (ServiceResultException sre)
             {
                 // recover from error condition when secure channel is still alive
-                _ = OnKeepAliveError(ServiceResult.Create(StatusCodes.BadSessionIdInvalid, "Session unavailable for keep alive requests."));
+                OnKeepAliveError(sre.Result);
             }
             catch (Exception e)
             {
@@ -3955,6 +3977,7 @@ namespace Technosoftware.UaClient
                     return;
                 }
 
+                lastKeepAliveErrorStatusCode_ = StatusCodes.Good;
                 _ = Interlocked.Exchange(ref lastKeepAliveTime_, DateTime.UtcNow.Ticks);
 
                 lock (outstandingRequests_)
@@ -3972,6 +3995,7 @@ namespace Technosoftware.UaClient
             }
             else
             {
+                lastKeepAliveErrorStatusCode_ = StatusCodes.Good;
                 _ = Interlocked.Exchange(ref lastKeepAliveTime_, DateTime.UtcNow.Ticks);
             }
 
@@ -3998,14 +4022,20 @@ namespace Technosoftware.UaClient
         /// </summary>
         protected virtual bool OnKeepAliveError(ServiceResult result)
         {
-            var delta = DateTime.UtcNow.Ticks - Interlocked.Read(ref lastKeepAliveTime_);
+            DateTime now = DateTime.UtcNow;
 
-            Utils.LogInfo(
-                "KEEP ALIVE LATE: {0}s, EndpointUrl={1}, RequestCount={2}/{3}",
-                ((double)delta) / TimeSpan.TicksPerSecond,
-                Endpoint?.EndpointUrl,
-                GoodPublishRequestCount,
-                OutstandingRequestCount);
+            lastKeepAliveErrorStatusCode_ = result.StatusCode;
+            if (result.StatusCode == StatusCodes.BadNoCommunication)
+            {
+                // keep alive read timed out
+                long delta = now.Ticks - Interlocked.Read(ref lastKeepAliveTime_);
+                Utils.LogInfo(
+                    "KEEP ALIVE LATE: {0}s, EndpointUrl={1}, RequestCount={2}/{3}",
+                    ((double)delta) / TimeSpan.TicksPerSecond,
+                    this.Endpoint?.EndpointUrl,
+                    this.GoodPublishRequestCount,
+                    this.OutstandingRequestCount);
+            }
 
             EventHandler<SessionKeepAliveEventArgs> callback = KeepAliveEventHandler;
 
@@ -4013,7 +4043,7 @@ namespace Technosoftware.UaClient
             {
                 try
                 {
-                    var args = new SessionKeepAliveEventArgs(result, ServerState.Unknown, DateTime.UtcNow);
+                    var args = new SessionKeepAliveEventArgs(result, ServerState.Unknown, now);
                     callback(this, args);
                     return !args.CancelKeepAlive;
                 }
@@ -4380,7 +4410,14 @@ namespace Technosoftware.UaClient
 
                     if (value != null)
                     {
-                        variableNode.ArrayDimensions = value.Value == null ? (UInt32Collection)Array.Empty<uint>() : (UInt32Collection)(uint[])value.GetValue(typeof(uint[]));
+                        if (value.Value == null)
+                        {
+                            variableNode.ArrayDimensions = Array.Empty<uint>();
+                        }
+                        else
+                        {
+                            variableNode.ArrayDimensions = (uint[])value.GetValue(typeof(uint[]));
+                        }
                     }
 
                     // AccessLevel Attribute
@@ -5053,12 +5090,16 @@ namespace Technosoftware.UaClient
 
                     case StatusCodes.BadNoSubscription:
                     case StatusCodes.BadSessionClosed:
-                    case StatusCodes.BadSessionIdInvalid:
-                    case StatusCodes.BadSecureChannelIdInvalid:
-                    case StatusCodes.BadSecureChannelClosed:
                     case StatusCodes.BadSecurityChecksFailed:
                     case StatusCodes.BadCertificateInvalid:
                     case StatusCodes.BadServerHalted:
+                        return;
+
+                    // may require a reconnect or activate to recover
+                    case StatusCodes.BadSessionIdInvalid:
+                    case StatusCodes.BadSecureChannelIdInvalid:
+                    case StatusCodes.BadSecureChannelClosed:
+                        OnKeepAliveError(error);
                         return;
 
                     // Servers may return this error when overloaded
@@ -5068,9 +5109,12 @@ namespace Technosoftware.UaClient
                         // throttle the next publish to reduce server load
                         _ = Task.Run(async () => {
                             await Task.Delay(100).ConfigureAwait(false);
-                            _ = BeginPublish(OperationTimeout);
+                            QueueBeginPublish();
                         });
                         return;
+
+                    case StatusCodes.BadTimeout:
+                        break;
 
                     default:
                         Utils.LogError(e, "PUBLISH #{0} - Unhandled error {1} during Publish.", requestHeader.RequestHandle, error.StatusCode);
@@ -5079,17 +5123,7 @@ namespace Technosoftware.UaClient
                 }
             }
 
-            var requestCount = GoodPublishRequestCount;
-            var minPublishRequestCount = GetMinPublishRequestCount(false);
-
-            if (requestCount < minPublishRequestCount)
-            {
-                _ = BeginPublish(OperationTimeout);
-            }
-            else
-            {
-                Utils.LogInfo("PUBLISH - Did not send another publish request. GoodPublishRequestCount={0}, MinPublishRequestCount={1}", requestCount, minPublishRequestCount);
-            }
+            QueueBeginPublish();
         }
 
         /// <inheritdoc/>
@@ -5179,6 +5213,24 @@ namespace Technosoftware.UaClient
         #endregion
 
         #region Private Methods
+        /// <summary>
+        /// Queues a publish request if there are not enough outstanding requests.
+        /// </summary>
+        private void QueueBeginPublish()
+        {
+            int requestCount = GoodPublishRequestCount;
+            int minPublishRequestCount = GetMinPublishRequestCount(false);
+
+            if (requestCount < minPublishRequestCount)
+            {
+                BeginPublish(OperationTimeout);
+            }
+            else
+            {
+                Utils.LogInfo("PUBLISH - Did not send another publish request. GoodPublishRequestCount={0}, MinPublishRequestCount={1}", requestCount, minPublishRequestCount);
+            }
+        }
+
         /// <summary>
         /// Validates  the identity for an open call.
         /// </summary>
@@ -6248,9 +6300,10 @@ namespace Technosoftware.UaClient
         private long publishCounter_;
         private int tooManyPublishRequests_;
         private long lastKeepAliveTime_;
+        private StatusCode lastKeepAliveErrorStatusCode_;
         private ServerState serverState_;
         private int keepAliveInterval_;
-#if NET6_0_OR_GREATER
+#if PERIODIC_TIMER
         private PeriodicTimer keepAliveTimer_;
 #else
         private Timer keepAliveTimer_;
