@@ -32,10 +32,11 @@ Documentation of the Model Compiler can be found [here](https://github.com/OPCFo
 
 ##  General Info
 
+This repository includes the source code of the OPC UA Solution .NET. For examples using the NuGet packages of the solution itself please check [here](https://github.com/technosoftware-gmbh/opcua-solution-net-samples).
+
 ### Build Status
 
 [![Build and Test .NET 8.0, .NET 7.0 and .NET 6.0](https://github.com/technosoftware-gmbh/opcua-solution-net/actions/workflows/buildandtest.yml/badge.svg)](https://github.com/technosoftware-gmbh/opcua-solution-net/actions/workflows/buildandtest.yml)
-[![Build Tutorial Sampless .NET 8.0, .NET 7.0 and .NET 6.0](https://github.com/technosoftware-gmbh/opcua-solution-net/actions/workflows/build.yml/badge.svg)](https://github.com/technosoftware-gmbh/opcua-solution-net/actions/workflows/build.yml)
 
 ### Code Quality
 
@@ -43,11 +44,7 @@ Documentation of the Model Compiler can be found [here](https://github.com/OPCFo
 
 ## Getting started
 
- * [Installation and Administration of .NET based OPC UA Applications](./documentation/Installation.md)
- * [Distribution Guide](./documentation/Distribution.md)
- * [OPC UA Development](./documentation/Development.md)
- * [OPC UA Client Development](./documentation/ClientDevelopment.md)
- * [OPC UA Server Development](./documentation/ServerDevelopment.md)
+Please check the examples [here](https://github.com/technosoftware-gmbh/opcua-solution-net-samples)
  
 ### Online Help
 

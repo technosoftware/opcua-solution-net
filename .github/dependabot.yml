@@ -4,17 +4,30 @@
 # https://help.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
 
 version: 2
-updates:
-  - package-ecosystem: "nuget"
-    labels:
-      - "nuget"
-  directory: "/"
-  schedule:
-      interval: "weekly"
 
-  - package-ecosystem: github-actions
-    labels:
-      - "actions"
-    directory: "./"
+registries:
+  public:
+    type: nuget-feed
+    url: https://api.nuget.org/v3/index.json
+  private:
+    type: nuget-feed
+    url: https://nuget.pkg.github.com/technosoftware-gmbh/index.json
+    token: ${{secrets.DEPENDABOT_PAT}}    
+
+updates:
+# Set update schedule for GitHub Actions
+- package-ecosystem: "github-actions"
+  labels:
+    - "actions"
+  directory: "./"
   schedule:
-      interval: "weekly"
+    interval: "weekly"
+
+- package-ecosystem: "nuget"
+  labels:
+    - "nuget"
+  directory: "/"
+  registries: "*"
+  schedule:
+    interval: daily
+  open-pull-requests-limit: 10

@@ -301,8 +301,8 @@ namespace Technosoftware.UaClient
                     keepaliveRecovered = true;
                     // breaking change, the callback must only assign the new
                     // session if the property is != null
-                    Session = null;
                     Utils.LogInfo("Reconnect {0} aborted, KeepAlive recovered.", Session?.SessionId);
+                    Session = null;
                 }
                 else
                 {
@@ -361,6 +361,7 @@ namespace Technosoftware.UaClient
             // helper to override operation timeout
             var operationTimeout = Session.OperationTimeout;
             var reconnectOperationTimeout = Math.Max(reconnectPeriod_, MinReconnectOperationTimeout);
+            ITransportChannel transportChannel = null;
 
             // try a reconnect.
             if (!reconnectFailed_)
@@ -416,10 +417,15 @@ namespace Technosoftware.UaClient
                             updateFromServer_ = true;
                             Utils.LogInfo("Reconnect failed due to security check. Request endpoint update from server. {0}", sre.Message);
                         }
-                        // wait for next scheduled reconnect if connection failed,
-                        // otherwise recreate session immediately
-                        else if (sre.StatusCode != StatusCodes.BadSessionIdInvalid)
+                        // recreate session immediately, use existing channel
+                        else if (sre.StatusCode == StatusCodes.BadSessionIdInvalid)
                         {
+                            transportChannel = Session.NullableTransportChannel;
+                            Session.DetachChannel();
+                        }
+                        else
+                        {
+                        // wait for next scheduled reconnect if connection failed,
                             // next attempt is to recreate session
                             reconnectFailed_ = true;
                             return false;
@@ -479,7 +485,7 @@ namespace Technosoftware.UaClient
                         updateFromServer_ = false;
                     }
 
-                    session = await Session.SessionFactory.RecreateAsync(Session).ConfigureAwait(false);
+                    session = await Session.SessionFactory.RecreateAsync(Session, transportChannel).ConfigureAwait(false);
                 }
                 // note: the template session is not connected at this point
                 //       and must be disposed by the owner

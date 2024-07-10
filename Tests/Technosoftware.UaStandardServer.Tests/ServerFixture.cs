@@ -38,6 +38,7 @@ namespace Technosoftware.UaStandardServer.Tests
         public bool LogConsole { get; set; }
         public bool AutoAccept { get; set; }
         public bool OperationLimits { get; set; }
+        public int MaxChannelCount { get; set; } = 10;
         public int ReverseConnectTimeout { get; set; }
         public bool AllNodeManagers { get; set; }
         public int TraceMasks { get; set; } = Utils.TraceMasks.Error | Utils.TraceMasks.StackTrace | Utils.TraceMasks.Security | Utils.TraceMasks.Information;
@@ -119,10 +120,10 @@ namespace Technosoftware.UaStandardServer.Tests
                 });
             }
 
-            serverConfig.SetMaxMessageQueueSize(20);
-            serverConfig.SetDiagnosticsEnabled(true);
-            serverConfig.SetAuditingEnabled(true);
-            serverConfig.SetMaxChannelCount(10);
+            serverConfig.SetMaxChannelCount(MaxChannelCount)
+                .SetMaxMessageQueueSize(20)
+                .SetDiagnosticsEnabled(true)
+                .SetAuditingEnabled(true);
 
             if (ReverseConnectTimeout != 0)
             {
