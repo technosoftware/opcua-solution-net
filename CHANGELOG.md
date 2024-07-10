@@ -1,6 +1,12 @@
 # Changelog
 
 -------------------------------------------------------------------------------------------------------------
+## OPC UA Solution .NET - 3.3.1
+
+### Security Fix
+- Fixed Microsoft Security Advisory [CVE-2024-38095]( https://github.com/advisories/GHSA-447r-wph3-92pm) | .NET Denial of Service Vulnerability (Updated to UaCore 3.3.1)
+
+-------------------------------------------------------------------------------------------------------------
 ## OPC UA Solution .NET - 3.3.0
 
 ### Enhancements
