@@ -69,11 +69,16 @@ A Support subscriptions includes
 
 By purchasing support, you agree to our [Support Services Agreement](https://technosoftware.com/documents/Support_Services_Agreement.pdf).
 
-The Support Subscription is available [here](https://technosoftware.com/opc-ua-support/).
+The Support Subscription is available [here](https://technosoftware.com/product/opc-ua-support-subscription/).
 
 ### Get Support for the Solution without a Support Subscription:
 
-Free of charge support for the Solution is available [here](https://github.com/technosoftware-gmbh/opcua-solution-net/issues).
+Support for the Solution without a Support Subscription is available as a paid service. Options available are:
+
+ * [Support Email Incident](https://technosoftware.com/product/support-email-incident/) handling a single question or a very specific issue about one of Technosoftware GmbH’s solutions.
+ * [Support or Consulting Hour](https://technosoftware.com/product/support-or-consulting-hour/) can involve application design or OPC related issues such as compatibility issues between server and clients, programming issues or design questions.
+
+Please be aware that there is no obligation that Technosoftware will provide free maintenance, support or training.
 
 ## Contribution
 
