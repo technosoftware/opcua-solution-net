@@ -1,9 +1,8 @@
 # Technosoftware GmbH OPC UA Solution .NET
 
-The OPC UA Solution .NET is the implementation for the
+The OPC UA Solution .NET offers everything to be able to develop OPC UA Clients and OPC UA Servers with only one solution needed:
 
- * [OPC UA Client .NET](https://technosoftware.com/opc-ua-client-net/)
- * [OPC UA Server .NET](https://technosoftware.com/opc-ua-server-net/)
+ * [OPC UA Bundle .NET](https://technosoftware.com/product/opc-ua-bundle-net/)
 
 ## OPC UA Client .NET
 
@@ -59,7 +58,33 @@ You can also use the PDFs provided from our Workshop available [here](./Workshop
 - The Redistributable of the OPC UA Local Discovery Server are available [here](https://opcfoundation.org/developer-tools/samples-and-tools-unified-architecture/local-discovery-server-lds/).
 - We used the version 1.04.405 for our tests
 
-## Available Support Subscriptions
+## Purchasing
+
+### Product license
+
+A license must be purchased to enable all features. It is available via
+
+ * [OPC UA Bundle .NET](https://technosoftware.com/product/opc-ua-bundle-net/)
+
+The license includes
+
+ * .NET 8.0, .NET 7.0, .NET 6.0, .NET 4.8 support.
+ * Software may be used by multiple developers of the Licensee’s organization.
+ * Any application developed with the solutions can be delivered to an unlimited number of customers (no royalties)
+ 
+#### Updates
+ 
+ * Updates and fixes are delivered here free of charge, if/when they are made available. For all upcoming updates of 3.x or even upgrades to 4.x.
+ * This is valid for license purchases since 1-JAN-2021. 
+ * All others can order an OPC UA Support subscription incl. Update [here](https://technosoftware.com/product/opc-support-subscription-update/). Be aware that you need the original invoice as proof of your license.
+
+### Support
+
+The product license does not include support, please be aware that there is no obligation that Technosoftware will provide free maintenance, support or training.
+
+For technical support, direct Email contact or remote sessions you need to purchase either an OPC UA Support Subscription, a Support Email Incident or a Support or Consulting Hour first.
+
+#### Support Subscriptions
 
 Ideal for a corporation and a user of Technosoftware GmbH’s solutions on productive systems for which you want to get support for. 
 A Support subscriptions includes
@@ -71,14 +96,12 @@ By purchasing support, you agree to our [Support Services Agreement](https://tec
 
 The Support Subscription is available [here](https://technosoftware.com/product/opc-ua-support-subscription/).
 
-### Get Support for the Solution without a Support Subscription:
+#### Other Support Options
 
 Support for the Solution without a Support Subscription is available as a paid service. Options available are:
 
  * [Support Email Incident](https://technosoftware.com/product/support-email-incident/) handling a single question or a very specific issue about one of Technosoftware GmbH’s solutions.
  * [Support or Consulting Hour](https://technosoftware.com/product/support-or-consulting-hour/) can involve application design or OPC related issues such as compatibility issues between server and clients, programming issues or design questions.
-
-Please be aware that there is no obligation that Technosoftware will provide free maintenance, support or training.
 
 ## Contribution
 
