@@ -220,8 +220,14 @@ namespace Technosoftware.UaClient
 
         /// <summary>
         /// Gets the time of the last keep alive.
+        /// This time may not be monotonic if the system time is changed.
         /// </summary>
         DateTime LastKeepAliveTime { get; }
+
+        /// <summary>
+        /// Gets the TickCount in ms of the last keep alive based on <see cref="HiResClock.TickCount"/>.
+        /// </summary>
+        int LastKeepAliveTickCount { get; }
 
         /// <summary>
         /// Gets the number of outstanding publish or keep alive requests.
@@ -244,6 +250,11 @@ namespace Technosoftware.UaClient
         int MinPublishRequestCount { get; set; }
 
         /// <summary>
+        /// Gets and sets the maximum number of publish requests to be used in the session.
+        /// </summary>
+        int MaxPublishRequestCount { get; set; }
+
+        /// <summary>
         /// Stores the operation limits of a OPC UA Server.
         /// </summary>
         OperationLimits OperationLimits { get; }
@@ -261,6 +272,12 @@ namespace Technosoftware.UaClient
         /// Whether the endpoint Url domain is checked in the certificate.
         /// </summary>
         bool CheckDomain { get; }
+
+        /// <summary>
+        /// gets or set the policy which is used to prevent the allocation of too many
+        /// Continuation Points in the ManagedBrowse(Async) methods
+        /// </summary>
+        ContinuationPointPolicy ContinuationPointPolicy { get; set; }
         #endregion
 
         #region Delegates and Events
@@ -625,7 +642,7 @@ namespace Technosoftware.UaClient
         /// <summary>
         /// Finds the NodeIds for the components for an instance.
         /// </summary>
-        void FindComponentIds(NodeId instanceId, IList<string> componentPaths, out NodeIdCollection componentIds, out List<ServiceResult> errors);
+        void FindComponentIds(NodeId instanceId, IList<string> componentPaths, out NodeIdCollection componentIds, out IList<ServiceResult> errors);
 
         /// <summary>
         /// Reads the values for a set of variables.
@@ -634,7 +651,7 @@ namespace Technosoftware.UaClient
         /// <param name="expectedTypes">The expected types.</param>
         /// <param name="values">The list of returned values.</param>
         /// <param name="errors">The list of returned errors.</param>
-        void ReadValues(IList<NodeId> variableIds, IList<Type> expectedTypes, out List<object> values, out List<ServiceResult> errors);
+        void ReadValues(IList<NodeId> variableIds, IList<Type> expectedTypes, out IList<object> values, out IList<ServiceResult> errors);
 
         /// <summary>
         /// Reads the display name for a set of Nodes.
@@ -926,6 +943,46 @@ namespace Technosoftware.UaClient
             out ReferenceDescriptionCollection references);
         #endregion
 
+        #region ManagedBrowse methods
+        /// <summary>
+        /// Execute browse and, if necessary, browse next in one service call.
+        /// Takes care of BadNoContinuationPoint and BadInvalidContnuationPoint status codes.
+        /// </summary>
+        void ManagedBrowse(
+            RequestHeader requestHeader,
+            ViewDescription view,
+            IList<NodeId> nodesToBrowse,
+            uint maxResultsToReturn,
+            BrowseDirection browseDirection,
+            NodeId referenceTypeId,
+            bool includeSubtypes,
+            uint nodeClassMask,
+            out IList<ReferenceDescriptionCollection> result,
+            out IList<ServiceResult> errors
+            );
+
+        /// <summary>
+        /// Execute BrowseAsync and, if necessary, BrowseNextAsync, in one service call.
+        /// Takes care of BadNoContinuationPoint and BadInvalidContinuationPoint status codes.
+        /// </summary>
+        Task<(
+            IList<ReferenceDescriptionCollection>,
+            IList<ServiceResult>
+            )>
+                ManagedBrowseAsync(
+                RequestHeader requestHeader,
+                ViewDescription view,
+                IList<NodeId> nodesToBrowse,
+                uint maxResultsToReturn,
+                BrowseDirection browseDirection,
+                NodeId referenceTypeId,
+                bool includeSubtypes,
+                uint nodeClassMask,
+                CancellationToken ct = default
+            );
+        #endregion ManagedBrowse methods
+
+
         #region Call Methods
         /// <summary>
         /// Calls the specified method and returns the output arguments.
@@ -978,5 +1035,33 @@ namespace Technosoftware.UaClient
         /// </summary>
         Task<(bool, IList<ServiceResult>)> ResendDataAsync(IEnumerable<Subscription> subscriptions, CancellationToken ct = default);
         #endregion
+    }
+
+    /// <summary>
+    /// controls how the client treats continuation points
+    /// if the server has restrictions on their number
+    /// As of now only used for browse/browse next in the
+    /// ManagedBrowse method.
+    /// </summary>
+    public enum ContinuationPointPolicy
+    {
+        /// <summary>
+        /// Ignore how many Continuation Points are in use already.
+        /// Rebrowse nodes for which BadNoContinuationPoint or
+        /// BadInvalidContinuationPoint was raised. Can be used
+        /// whenever the server has no restrictions no the maximum
+        /// number of continuation points
+        /// </summary>
+        Default,
+
+        /// <summary>
+        /// Restrict the number of nodes which are browsed in a
+        /// single service call to the maximum number of
+        /// continuation points the server can allocae
+        /// (if set to a value different from 0)
+        /// </summary>
+        Balanced
+
+
     }
 }

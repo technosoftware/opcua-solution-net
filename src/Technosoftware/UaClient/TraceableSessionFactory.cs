@@ -58,7 +58,7 @@ namespace Technosoftware.UaClient
             IList<string> preferredLocales,
             CancellationToken ct = default)
         {
-            using (Activity activity = TraceableSession.ActivitySource.StartActivity(nameof(CreateAsync)))
+            using (Activity activity = TraceableSession.ActivitySource.StartActivity())
             {
                 IUaSession session = await base.CreateAsync(configuration, endpoint, updateBeforeConnect, false,
                     sessionName, sessionTimeout, identity, preferredLocales, ct).ConfigureAwait(false);
@@ -78,7 +78,7 @@ namespace Technosoftware.UaClient
             IList<string> preferredLocales,
             CancellationToken ct = default)
         {
-            using (Activity activity = TraceableSession.ActivitySource.StartActivity(nameof(CreateAsync)))
+            using (Activity activity = TraceableSession.ActivitySource.StartActivity())
             {
                 IUaSession session = await Session.CreateAsync(this, configuration, (ITransportWaitingConnection)null, endpoint,
                     updateBeforeConnect, checkDomain, sessionName, sessionTimeout,
@@ -101,7 +101,7 @@ namespace Technosoftware.UaClient
             IList<string> preferredLocales,
             CancellationToken ct = default)
         {
-            using (Activity activity = TraceableSession.ActivitySource.StartActivity(nameof(CreateAsync)))
+            using (Activity activity = TraceableSession.ActivitySource.StartActivity())
             {
                 IUaSession session = await Session.CreateAsync(this, configuration, connection, endpoint,
                     updateBeforeConnect, checkDomain, sessionName, sessionTimeout,
@@ -121,14 +121,14 @@ namespace Technosoftware.UaClient
            EndpointDescriptionCollection availableEndpoints = null,
            StringCollection discoveryProfileUris = null)
         {
-            using (Activity activity = TraceableSession.ActivitySource.StartActivity(nameof(CreateAsync)))
+            using (Activity activity = TraceableSession.ActivitySource.StartActivity())
             {
                 return new TraceableSession(base.Create(configuration, channel, endpoint, clientCertificate, availableEndpoints, discoveryProfileUris));
             }
         }
 
         /// <inheritdoc/>
-        public override Task<ITransportChannel> CreateChannelAsync(
+        public override async Task<ITransportChannel> CreateChannelAsync(
             ApplicationConfiguration configuration,
             ITransportWaitingConnection connection,
             ConfiguredEndpoint endpoint,
@@ -136,9 +136,9 @@ namespace Technosoftware.UaClient
             bool checkDomain,
             CancellationToken ct = default)
         {
-            using (Activity activity = TraceableSession.ActivitySource.StartActivity(nameof(CreateAsync)))
+            using (Activity activity = TraceableSession.ActivitySource.StartActivity())
             {
-                return base.CreateChannelAsync(configuration, connection, endpoint, updateBeforeConnect, checkDomain, ct);
+                return await base.CreateChannelAsync(configuration, connection, endpoint, updateBeforeConnect, checkDomain, ct).ConfigureAwait(false);
             }
         }
 
@@ -170,32 +170,32 @@ namespace Technosoftware.UaClient
         }
 
         /// <inheritdoc/>
-        public override Task<IUaSession> RecreateAsync(IUaSession sessionTemplate, CancellationToken ct = default)
+        public override async Task<IUaSession> RecreateAsync(IUaSession sessionTemplate, CancellationToken ct = default)
         {
             Session session = ValidateIUaSession(sessionTemplate);
-            using (Activity activity = TraceableSession.ActivitySource.StartActivity(nameof(RecreateAsync)))
+            using (Activity activity = TraceableSession.ActivitySource.StartActivity())
             {
-                return Task.FromResult((IUaSession)new TraceableSession(Session.Recreate(session)));
+                return new TraceableSession(await Session.RecreateAsync(session, ct).ConfigureAwait(false));
             }
         }
 
         /// <inheritdoc/>
-        public override Task<IUaSession> RecreateAsync(IUaSession sessionTemplate, ITransportWaitingConnection connection, CancellationToken ct = default)
+        public override async Task<IUaSession> RecreateAsync(IUaSession sessionTemplate, ITransportWaitingConnection connection, CancellationToken ct = default)
         {
             Session session = ValidateIUaSession(sessionTemplate);
-            using (Activity activity = TraceableSession.ActivitySource.StartActivity(nameof(RecreateAsync)))
+            using (Activity activity = TraceableSession.ActivitySource.StartActivity())
             {
-                return Task.FromResult((IUaSession)new TraceableSession(Session.Recreate(session, connection)));
+                return new TraceableSession(await Session.RecreateAsync(session, connection, ct).ConfigureAwait(false));
             }
         }
 
         /// <inheritdoc/>
-        public override Task<IUaSession> RecreateAsync(IUaSession sessionTemplate, ITransportChannel channel, CancellationToken ct = default)
+        public override async Task<IUaSession> RecreateAsync(IUaSession sessionTemplate, ITransportChannel channel, CancellationToken ct = default)
         {
             Session session = ValidateIUaSession(sessionTemplate);
-            using (Activity activity = TraceableSession.ActivitySource.StartActivity(nameof(RecreateAsync)))
+            using (Activity activity = TraceableSession.ActivitySource.StartActivity())
             {
-                return Task.FromResult((IUaSession)new TraceableSession(Session.Recreate(session, channel)));
+                return new TraceableSession(await Session.RecreateAsync(session, channel, ct).ConfigureAwait(false));
             }
         }
         #endregion

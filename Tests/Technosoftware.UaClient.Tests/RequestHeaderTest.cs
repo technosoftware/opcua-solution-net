@@ -35,7 +35,7 @@ namespace Technosoftware.UaClient.Tests
         [OneTimeSetUp]
         public Task OneTimeSetUpAsync()
         {
-            return base.OneTimeSetUpAsync(null, false, false);
+            return base.OneTimeSetUpAsync(writer: null, securityNone: false, enableClientSideTracing: false ,enableServerSideTracing: false);
         }
 
         /// <summary>
@@ -75,7 +75,7 @@ namespace Technosoftware.UaClient.Tests
         public new void GlobalSetup()
         {
             Console.WriteLine("GlobalSetup: Start Server");
-            OneTimeSetUpAsync(Console.Out, enableTracing: false, disableActivityLogging: false).GetAwaiter().GetResult();
+            OneTimeSetUpAsync(Console.Out, enableServerSideTracing: false, enableClientSideTracing: false, disableActivityLogging: false).GetAwaiter().GetResult();
             Console.WriteLine("GlobalSetup: Connecting");
             InitializeSession(ClientFixture.ConnectAsync(ServerUrl, SecurityPolicy).GetAwaiter().GetResult());
             Console.WriteLine("GlobalSetup: Ready");

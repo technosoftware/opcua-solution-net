@@ -1062,8 +1062,8 @@ namespace Technosoftware.UaServer.Diagnostics
                        "CertificateUpdateRequestedAuditEvent",
                        "en-US",
                        "CertificateUpdateRequestedAuditEvent.");
-                
-                
+
+
 
                 e.Initialize(
                    systemContext,
@@ -1341,7 +1341,7 @@ namespace Technosoftware.UaServer.Diagnostics
                 }
                 if (exception is ServiceResultException sre)
                 {
-                    statusCode = sre.InnerResult.StatusCode;
+                    statusCode = sre.InnerResult?.StatusCode ?? StatusCodes.Uncertain;
                 }
 
                 ISystemContext systemContext = server.DefaultAuditContext;

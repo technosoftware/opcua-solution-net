@@ -17,6 +17,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
@@ -31,7 +32,6 @@ using Technosoftware.UaServer.NodeManager;
 using Technosoftware.UaServer.Sessions;
 using Technosoftware.UaServer.Subscriptions;
 using Technosoftware.UaServer.Server;
-using System.Diagnostics;
 #endregion
 
 namespace Technosoftware.UaServer
@@ -3062,6 +3062,7 @@ namespace Technosoftware.UaServer
                 {
                     if (genericServerData_ != null)
                     {
+                        genericServerData_.SessionManager.SessionChannelKeepAliveEvent -= OnSessionChannelKeepAlive;
                         genericServerData_.SubscriptionManager.Shutdown();
                         genericServerData_.SessionManager.Shutdown();
                         genericServerData_.NodeManager.Shutdown();

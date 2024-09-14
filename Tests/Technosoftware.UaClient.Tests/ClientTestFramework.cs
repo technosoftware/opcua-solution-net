@@ -18,6 +18,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
+using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 using Assert = NUnit.Framework.Legacy.ClassicAssert;
 
@@ -60,6 +61,7 @@ namespace Technosoftware.UaClient.Tests
         public string UriScheme { get; private set; }
         public string PkiRoot { get; set; }
         public Uri ServerUrl { get; private set; }
+        public int ServerFixturePort { get; set; }
         public ExpandedNodeId[] TestSetStatic { get; private set; }
         public ExpandedNodeId[] TestSetSimulation { get; private set; }
         public ExpandedNodeId[] TestSetDataSimulation { get; private set; }
@@ -96,7 +98,12 @@ namespace Technosoftware.UaClient.Tests
         /// Setup a server and client fixture.
         /// </summary>
         /// <param name="writer">The test output writer.</param>
-        public async Task OneTimeSetUpAsync(TextWriter writer = null, bool securityNone = false, bool enableTracing = false, bool disableActivityLogging = false)
+        public async Task OneTimeSetUpAsync(TextWriter writer = null,
+            bool securityNone = false,
+            bool enableClientSideTracing = false,
+            bool enableServerSideTracing = false,
+            bool disableActivityLogging = false
+            )
         {
             // pki directory root for test runs.
             PkiRoot = Path.GetTempPath() + Path.GetRandomFileName();
@@ -123,35 +130,10 @@ namespace Technosoftware.UaClient.Tests
 
             if (customUrl == null)
             {
-                // start Ref server
-                ServerFixture = new ServerFixture<ReferenceServer>(enableTracing, disableActivityLogging) {
-                    UriScheme = UriScheme,
-                    SecurityNone = securityNone,
-                    AutoAccept = true,
-                    AllNodeManagers = true,
-                    OperationLimits = true,
-                    MaxChannelCount = MaxChannelCount,
-                };
-
-                if (writer != null)
-                {
-                    ServerFixture.TraceMasks = Utils.TraceMasks.Error | Utils.TraceMasks.Security;
+                await CreateReferenceServerFixture(enableServerSideTracing, disableActivityLogging, securityNone, writer).ConfigureAwait(false);
                 }
 
-                await ServerFixture.LoadConfiguration(PkiRoot).ConfigureAwait(false);
-                ServerFixture.Config.TransportQuotas.MaxMessageSize = TransportQuotaMaxMessageSize;
-                ServerFixture.Config.TransportQuotas.MaxByteStringLength =
-                ServerFixture.Config.TransportQuotas.MaxStringLength = TransportQuotaMaxStringLength;
-                ServerFixture.Config.ServerConfiguration.UserTokenPolicies.Add(new UserTokenPolicy(UserTokenType.UserName));
-                ServerFixture.Config.ServerConfiguration.UserTokenPolicies.Add(new UserTokenPolicy(UserTokenType.Certificate));
-                ServerFixture.Config.ServerConfiguration.UserTokenPolicies.Add(
-                    new UserTokenPolicy(UserTokenType.IssuedToken) { IssuedTokenType = Opc.Ua.Profiles.JwtUserToken });
-
-                ReferenceServer = await ServerFixture.StartAsync(writer ?? TestContext.Out).ConfigureAwait(false);
-                ReferenceServer.TokenValidator = this.TokenValidator;
-            }
-
-            ClientFixture = new ClientFixture(enableTracing, disableActivityLogging);
+            ClientFixture = new ClientFixture(enableClientSideTracing, disableActivityLogging);
 
             await ClientFixture.LoadClientConfiguration(PkiRoot).ConfigureAwait(false);
             ClientFixture.Config.TransportQuotas.MaxMessageSize = TransportQuotaMaxMessageSize;
@@ -164,7 +146,7 @@ namespace Technosoftware.UaClient.Tests
             }
             else
             {
-                ServerUrl = new Uri(UriScheme + "://localhost:" + ServerFixture.Port.ToString(CultureInfo.InvariantCulture));
+                ServerUrl = new Uri(UriScheme + "://localhost:" + ServerFixturePort.ToString(CultureInfo.InvariantCulture));
             }
 
             if (SingleSession)
@@ -180,6 +162,42 @@ namespace Technosoftware.UaClient.Tests
                     Assert.Warn($"OneTimeSetup failed to create session with {ServerUrl}, tests fail. Error: {e.Message}");
                 }
             }
+        }
+
+        virtual public async Task CreateReferenceServerFixture(
+            bool enableTracing,
+            bool disableActivityLogging,
+            bool securityNone,
+            TextWriter writer)
+        {
+            {
+                // start Ref server
+                ServerFixture = new ServerFixture<ReferenceServer>(enableTracing, disableActivityLogging) {
+                    UriScheme = UriScheme,
+                    SecurityNone = securityNone,
+                    AutoAccept = true,
+                    AllNodeManagers = true,
+                    OperationLimits = true
+                };
+            }
+
+            if (writer != null)
+            {
+                ServerFixture.TraceMasks = Utils.TraceMasks.Error | Utils.TraceMasks.Security;
+            }
+
+            await ServerFixture.LoadConfiguration(PkiRoot).ConfigureAwait(false);
+            ServerFixture.Config.TransportQuotas.MaxMessageSize = TransportQuotaMaxMessageSize;
+            ServerFixture.Config.TransportQuotas.MaxByteStringLength =
+            ServerFixture.Config.TransportQuotas.MaxStringLength = TransportQuotaMaxStringLength;
+            ServerFixture.Config.ServerConfiguration.UserTokenPolicies.Add(new UserTokenPolicy(UserTokenType.UserName));
+            ServerFixture.Config.ServerConfiguration.UserTokenPolicies.Add(new UserTokenPolicy(UserTokenType.Certificate));
+            ServerFixture.Config.ServerConfiguration.UserTokenPolicies.Add(
+                new UserTokenPolicy(UserTokenType.IssuedToken) { IssuedTokenType = Opc.Ua.Profiles.JwtUserToken });
+
+            ReferenceServer = await ServerFixture.StartAsync(writer ?? TestContext.Out).ConfigureAwait(false);
+            ReferenceServer.TokenValidator = this.TokenValidator;
+            ServerFixturePort = ServerFixture.Port;
         }
 
         /// <summary>
