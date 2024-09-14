@@ -197,6 +197,9 @@ namespace Technosoftware.UaClient
         public DateTime LastKeepAliveTime => Session.LastKeepAliveTime;
 
         /// <inheritdoc/>
+        public int LastKeepAliveTickCount => Session.LastKeepAliveTickCount;
+
+        /// <inheritdoc/>
         public int OutstandingRequestCount => Session.OutstandingRequestCount;
 
         /// <inheritdoc/>
@@ -210,6 +213,13 @@ namespace Technosoftware.UaClient
         {
             get => Session.MinPublishRequestCount;
             set => Session.MinPublishRequestCount = value;
+        }
+
+        /// <inheritdoc/>
+        public int MaxPublishRequestCount
+        {
+            get => Session.MaxPublishRequestCount;
+            set => Session.MaxPublishRequestCount = value;
         }
 
         /// <inheritdoc/>
@@ -262,6 +272,13 @@ namespace Technosoftware.UaClient
 
         /// <inheritdoc/>
         public bool CheckDomain => Session.CheckDomain;
+
+        /// <inheritdoc/>
+        public ContinuationPointPolicy ContinuationPointPolicy
+        {
+            get => Session.ContinuationPointPolicy;
+            set => Session.ContinuationPointPolicy = value;
+        }
 
         /// <inheritdoc/>
         public override bool Equals(object obj)
@@ -612,7 +629,7 @@ namespace Technosoftware.UaClient
         }
 
         /// <inheritdoc/>
-        public void FindComponentIds(NodeId instanceId, IList<string> componentPaths, out NodeIdCollection componentIds, out List<ServiceResult> errors)
+        public void FindComponentIds(NodeId instanceId, IList<string> componentPaths, out NodeIdCollection componentIds, out IList<ServiceResult> errors)
         {
             using (Activity activity = ActivitySource.StartActivity())
             {
@@ -621,7 +638,7 @@ namespace Technosoftware.UaClient
         }
 
         /// <inheritdoc/>
-        public void ReadValues(IList<NodeId> variableIds, IList<Type> expectedTypes, out List<object> values, out List<ServiceResult> errors)
+        public void ReadValues(IList<NodeId> variableIds, IList<Type> expectedTypes, out IList<object> values, out IList<ServiceResult> errors)
         {
             using (Activity activity = ActivitySource.StartActivity())
             {
@@ -1236,6 +1253,28 @@ namespace Technosoftware.UaClient
             using (Activity activity = ActivitySource.StartActivity())
             {
                 return await Session.BrowseNextAsync(requestHeader, releaseContinuationPoints, continuationPoints, ct).ConfigureAwait(false);
+            }
+        }
+
+        /// <inheritdoc/>
+        public void ManagedBrowse(RequestHeader requestHeader, ViewDescription view, IList<NodeId> nodesToBrowse, uint maxResultsToReturn, BrowseDirection browseDirection, NodeId referenceTypeId, bool includeSubtypes, uint nodeClassMask, out IList<ReferenceDescriptionCollection> result, out IList<ServiceResult> errors)
+        {
+            using (Activity activity = ActivitySource.StartActivity())
+            {
+                Session.ManagedBrowse(requestHeader, view, nodesToBrowse, maxResultsToReturn, browseDirection, referenceTypeId, includeSubtypes, nodeClassMask, out result, out errors);
+            }
+
+        }
+
+        /// <inheritdoc/>        
+        public async Task<(
+            IList<ReferenceDescriptionCollection>,
+            IList<ServiceResult>
+            )> ManagedBrowseAsync(RequestHeader requestHeader, ViewDescription view, IList<NodeId> nodesToBrowse, uint maxResultsToReturn, BrowseDirection browseDirection, NodeId referenceTypeId, bool includeSubtypes, uint nodeClassMask, CancellationToken ct = default)
+        {
+            using (Activity activity = ActivitySource.StartActivity())
+            {
+                return await Session.ManagedBrowseAsync(requestHeader, view, nodesToBrowse, maxResultsToReturn, browseDirection, referenceTypeId, includeSubtypes, nodeClassMask, ct);
             }
         }
 
@@ -2028,7 +2067,7 @@ namespace Technosoftware.UaClient
         /// <inheritdoc/>
         public bool ResendData(IEnumerable<Subscription> subscriptions, out IList<ServiceResult> errors)
         {
-            using (Activity activity = ActivitySource.StartActivity(nameof(ResendData)))
+            using (Activity activity = ActivitySource.StartActivity())
             {
                 return Session.ResendData(subscriptions, out errors);
             }

@@ -455,7 +455,7 @@ namespace Technosoftware.UaClient
         public async Task<ITransportWaitingConnection> WaitForConnectionAsync(
             Uri endpointUrl,
             string serverUri,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             var tcs = new TaskCompletionSource<ITransportWaitingConnection>();
             var hashCode = RegisterWaitingConnection(endpointUrl, serverUri,
@@ -463,7 +463,7 @@ namespace Technosoftware.UaClient
                 ReverseConnectStrategy.Once);
 
             Func<Task> listenForCancelTaskFnc = async () => {
-                if (cancellationToken == default(CancellationToken))
+                if (cancellationToken == default)
                 {
                     var waitTimeout = reverseConnectClientConfiguration_.WaitTimeout > 0 ? reverseConnectClientConfiguration_.WaitTimeout : DefaultWaitTimeout;
                     await Task.Delay(waitTimeout).ConfigureAwait(false);
@@ -611,8 +611,9 @@ namespace Technosoftware.UaClient
         /// </summary>
         private async Task OnConnectionWaiting(object sender, ConnectionWaitingEventArgs e)
         {
-            DateTime startTime = DateTime.UtcNow;
-            DateTime endTime = startTime + TimeSpan.FromMilliseconds(reverseConnectClientConfiguration_.HoldTime);
+            int startTime = HiResClock.TickCount;
+            int endTime = startTime + reverseConnectClientConfiguration_.HoldTime;
+
             var matched = MatchRegistration(sender, e);
             while (!matched)
             {
@@ -622,8 +623,8 @@ namespace Technosoftware.UaClient
                 {
                     ct = cts_.Token;
                 }
-                TimeSpan delay = endTime - DateTime.UtcNow;
-                if (delay.TotalMilliseconds > 0)
+                int delay = endTime - HiResClock.TickCount;
+                if (delay > 0)
                 {
                     await Task.Delay(delay, ct).ContinueWith(tsk => {
                         if (tsk.IsCanceled)
@@ -633,7 +634,7 @@ namespace Technosoftware.UaClient
                             {
                                 Utils.LogInfo("Matched reverse connection {0} {1} after {2}ms",
                                      e.ServerUri, e.EndpointUrl,
-                                    (int)(DateTime.UtcNow - startTime).TotalMilliseconds);
+                                     HiResClock.TickCount - startTime);
                             }
                         }
                     }
@@ -644,7 +645,7 @@ namespace Technosoftware.UaClient
 
             Utils.LogInfo("{0} reverse connection: {1} {2} after {3}ms",
                 e.Accepted ? "Accepted" : "Rejected",
-                e.ServerUri, e.EndpointUrl, (int)DateTime.UtcNow.Subtract(startTime).TotalMilliseconds);
+                e.ServerUri, e.EndpointUrl, HiResClock.TickCount - startTime);
         }
 
         /// <summary>

@@ -946,11 +946,6 @@ namespace Technosoftware.UaClient
                     break;
                 }
 
-                case NodeClass.Unspecified:
-                case NodeClass.Method:
-                case NodeClass.ObjectType:
-                case NodeClass.ReferenceType:
-                case NodeClass.DataType:
                 default:
                 {
                     throw ServiceResultException.Create(StatusCodes.BadFilterNotAllowed, "Filters may not be specified for nodes of class '{0}'.", nodeClass);

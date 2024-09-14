@@ -14,6 +14,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 using Opc.Ua;
 
@@ -232,6 +233,17 @@ namespace Technosoftware.UaStandardServer.Tests
         public void SetTraceOutput(TextWriter writer)
         {
             traceLogger_.SetWriter(writer);
+        }
+
+        /// <summary>
+        /// Adjust the Log level for the tracer
+        /// </summary>
+        public void SetTraceOutputLevel(LogLevel logLevel = LogLevel.Debug)
+        {
+            if (traceLogger_ != null)
+            {
+                traceLogger_.MinimumLogLevel = logLevel;
+            }
         }
 
         /// <summary>
