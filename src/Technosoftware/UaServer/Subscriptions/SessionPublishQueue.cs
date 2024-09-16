@@ -901,10 +901,10 @@ namespace Technosoftware.UaServer.Subscriptions
 
         #region Private Fields
         private readonly object lock_ = new object();
-        private readonly IUaServerData server_;
-        private readonly Sessions.Session session_;
-        private readonly ManualResetEvent publishEvent_;
-        private readonly LinkedList<QueuedRequest> queuedRequests_;
+        private IUaServerData server_;
+        private Sessions.Session session_;
+        private ManualResetEvent publishEvent_;
+        private LinkedList<QueuedRequest> queuedRequests_;
         private List<QueuedSubscription> queuedSubscriptions_;
         private readonly int maxPublishRequests_;
         private bool subscriptionsWaiting_;

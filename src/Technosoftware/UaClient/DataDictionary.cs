@@ -153,9 +153,17 @@ namespace Technosoftware.UaClient
         /// </summary>
         public string GetSchema(NodeId descriptionId)
         {
-            return descriptionId != null
-                ? !DataTypes.TryGetValue(descriptionId, out QualifiedName browseName) ? null : validator_.GetSchema(browseName.Name)
-                : validator_.GetSchema(null);
+            if (descriptionId != null)
+            {
+                if (!DataTypes.TryGetValue(descriptionId, out QualifiedName browseName))
+                {
+                    return null;
+                }
+
+                return validator_.GetSchema(browseName.Name);
+            }
+
+            return validator_.GetSchema(null);
         }
         #endregion
 
@@ -213,8 +221,14 @@ namespace Technosoftware.UaClient
             IList<NodeId> dictionaryIds,
             CancellationToken ct = default)
         {
-            var itemsToRead = new ReadValueIdCollection();
-            foreach (NodeId nodeId in dictionaryIds)
+            var result = new Dictionary<NodeId, byte[]>();
+            if (dictionaryIds.Count == 0)
+            {
+                return result;
+            }
+
+            ReadValueIdCollection itemsToRead = new ReadValueIdCollection();
+            foreach (var nodeId in dictionaryIds)
             {
                 // create item to read.
                 var itemToRead = new ReadValueId {
@@ -240,8 +254,6 @@ namespace Technosoftware.UaClient
 
             ClientBase.ValidateResponse(values, itemsToRead);
             ClientBase.ValidateDiagnosticInfos(diagnosticInfos, itemsToRead);
-
-            var result = new Dictionary<NodeId, byte[]>();
 
             var ii = 0;
             foreach (NodeId nodeId in dictionaryIds)

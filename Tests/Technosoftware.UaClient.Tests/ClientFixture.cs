@@ -14,6 +14,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 
 using Opc.Ua;
@@ -347,6 +348,17 @@ namespace Technosoftware.UaClient.Tests
         }
 
         /// <summary>
+        /// Adjust the Log level for the tracer
+        /// </summary>
+        public void SetTraceOutputLevel(LogLevel logLevel = LogLevel.Debug)
+        {
+            if(traceLogger_ != null)
+            {
+                traceLogger_.MinimumLogLevel = logLevel;
+            }
+        }
+
+        /// <summary>
         /// Configures Activity Listener and registers with Activity Source.
         /// </summary>
         public void StartActivityListenerInternal(bool disableActivityLogging)
@@ -381,7 +393,6 @@ namespace Technosoftware.UaClient.Tests
             ActivitySource.AddActivityListener(ActivityListener);
         }
 
-
         /// <summary>
         /// Disposes Activity Listener and unregisters from Activity Source.
         /// </summary>
@@ -398,7 +409,7 @@ namespace Technosoftware.UaClient.Tests
             var session = (IUaSession)sender;
             if (ServiceResult.IsBad(e.Status))
             {
-                session?.Dispose();
+                Utils.LogError("Session '{0}' keep alive error: {1}", session.SessionName, e.Status);
             }
         }
         #endregion

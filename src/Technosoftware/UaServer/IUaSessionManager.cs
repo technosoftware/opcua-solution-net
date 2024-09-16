@@ -65,6 +65,12 @@ namespace Technosoftware.UaServer
         /// </summary>
         /// <returns>A list of the sessions.</returns>
         IList<Sessions.Session> GetSessions();
+
+        /// <summary>
+        /// Find and return a session specified by authentication token
+        /// </summary>
+        /// <returns>The requested session.</returns>
+        Sessions.Session GetSession(NodeId authenticationToken);
     }
 
     #region ValidateSessionLessRequestEventArgs Class

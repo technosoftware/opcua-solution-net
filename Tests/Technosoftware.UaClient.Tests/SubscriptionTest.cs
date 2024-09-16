@@ -50,7 +50,7 @@ namespace Technosoftware.UaClient.Tests
             // create a new session for every test
             SingleSession = false;
             MaxChannelCount = 1000;
-            return base.OneTimeSetUpAsync(null, true);
+            return base.OneTimeSetUpAsync(writer: null, securityNone: true);
         }
 
         /// <summary>
@@ -467,14 +467,30 @@ namespace Technosoftware.UaClient.Tests
         /// <summary>
         /// Open a session on a channel, then reconnect (activate)
         /// the same session on a new channel with saved session secrets.
+        /// Use only synchronous methods.
         /// </summary>
-        [Test, Combinatorial, Order(350)]
-        public async Task ReconnectWithSavedSessionSecrets(
+        [Test, Combinatorial, Order(350), Explicit]
+        public Task ReconnectWithSavedSessionSecretsSync(
             [Values(SecurityPolicies.None, SecurityPolicies.Basic256Sha256)] string securityPolicy,
             [Values(true, false)] bool anonymous,
             [Values(true, false)] bool sequentialPublishing,
-            [Values(true, false)] bool sendInitialValues,
-            [Values(true, false)] bool asyncTest)
+            [Values(true, false)] bool sendInitialValues)
+            => ReconnectWithSavedSessionSecretsAsync(securityPolicy, anonymous, sequentialPublishing, sendInitialValues, false);
+
+        /// <summary>
+        /// Open a session on a channel, then reconnect (activate)
+        /// the same session on a new channel with saved session secrets.
+        /// Use only asnc methods.
+        /// </summary>
+        [Test, Combinatorial, Order(351)]
+        public Task ReconnectWithSavedSessionSecretsOnlyAsync(
+            [Values(SecurityPolicies.None, SecurityPolicies.Basic256Sha256)] string securityPolicy,
+            [Values(true, false)] bool anonymous,
+            [Values(true, false)] bool sequentialPublishing,
+            [Values(true, false)] bool sendInitialValues)
+            => ReconnectWithSavedSessionSecretsAsync(securityPolicy, anonymous, sequentialPublishing, sendInitialValues, true);
+
+        public async Task ReconnectWithSavedSessionSecretsAsync(string securityPolicy, bool anonymous, bool sequentialPublishing, bool sendInitialValues, bool asyncTest)
         {
             const int kTestSubscriptions = 5;
             const int kDelay = 2_000;
@@ -666,7 +682,7 @@ namespace Technosoftware.UaClient.Tests
                 if (endpoint.EndpointUrl.ToString().StartsWith(Utils.UriSchemeOpcTcp, StringComparison.Ordinal))
                 {
                     sre = Assert.Throws<ServiceResultException>(() => session1.ReadValue(VariableIds.Server_ServerStatus, typeof(ServerStatusDataType)));
-                    Assert.AreEqual((StatusCode)StatusCodes.BadSecureChannelClosed, (StatusCode)sre.StatusCode, sre.Message);
+                    Assert.AreEqual((StatusCode)StatusCodes.BadSecureChannelIdInvalid, (StatusCode)sre.StatusCode, sre.Message);
                 }
                 else
                 {
@@ -798,7 +814,15 @@ namespace Technosoftware.UaClient.Tests
         }
 
         [Theory, Order(810)]
-        public async Task TransferSubscriptionAsync(TransferType transferType, bool sendInitialValues, bool sequentialPublishing, bool asyncTransfer)
+        [Explicit]
+        public Task TransferSubscriptionSync(TransferType transferType, bool sendInitialValues, bool sequentialPublishing)
+            => InternalTransferSubscriptionAsync(transferType, sendInitialValues, sequentialPublishing, false);
+
+        [Theory, Order(811)]
+        public Task TransferSubscriptionOnlyAsync(TransferType transferType, bool sendInitialValues, bool sequentialPublishing)
+            => InternalTransferSubscriptionAsync(transferType, sendInitialValues, sequentialPublishing, true);
+
+        public async Task InternalTransferSubscriptionAsync(TransferType transferType, bool sendInitialValues, bool sequentialPublishing, bool asyncTransfer)
         {
             const int kTestSubscriptions = 5;
             const int kDelay = 2_000;
@@ -1258,8 +1282,8 @@ namespace Technosoftware.UaClient.Tests
 
                 var list = CreateMonitoredItemTestSet(subscription, testSet).ToList();
                 list.ForEach(i => i.MonitoredItemNotificationEvent += (object sender, MonitoredItemNotificationEventArgs e) => {
-                    notificationCounters[(int)subscription.Handle]++;
                     MonitoredItem item = (MonitoredItem)sender;
+                    notificationCounters[(int)subscription.Handle]++;
                     foreach (var value in item.DequeueValues())
                     {
                         TestContext.Out.WriteLine("Org:{0}: {1:20}, {2}, {3}, {4}", subscription.Id, item.DisplayName, value.Value, value.SourceTimestamp, value.StatusCode);
@@ -1270,7 +1294,7 @@ namespace Technosoftware.UaClient.Tests
             }
         }
 
-        private IList<MonitoredItem> CreateMonitoredItemTestSet(Subscription subscription, IList<NodeId> nodeIds)
+        private List<MonitoredItem> CreateMonitoredItemTestSet(Subscription subscription, IList<NodeId> nodeIds)
         {
             var list = new List<MonitoredItem>();
             foreach (NodeId nodeId in nodeIds)

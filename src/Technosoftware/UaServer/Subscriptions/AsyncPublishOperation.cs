@@ -24,7 +24,7 @@ using Technosoftware.UaServer.Server;
 namespace Technosoftware.UaServer.Subscriptions
 {
     /// <summary>
-    /// Stores the state of an asynchrounous publish operation.
+    /// Stores the state of an asynchronous publish operation.
     /// </summary>  
     public class AsyncPublishOperation
     {

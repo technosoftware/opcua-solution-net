@@ -72,7 +72,7 @@ namespace Technosoftware.UaStandardServer
         {
             base.OnServerStarted(server);
 
-            UpdateConfiguration(Configuration);
+            UpdateConfiguration(base.Configuration);
             StartTimer(true);
         }
 
@@ -183,7 +183,7 @@ namespace Technosoftware.UaStandardServer
                             try
                             {
                                 reverseConnection.LastState = UaReverseConnectState.Connecting;
-                                CreateConnection(reverseConnection.ClientUrl,
+                                base.CreateConnection(reverseConnection.ClientUrl,
                                     reverseConnection.Timeout > 0 ? reverseConnection.Timeout : connectTimeout_);
                                 Utils.LogInfo("Create Connection! [{0}][{1}]", reverseConnection.LastState, reverseConnection.ClientUrl);
                             }

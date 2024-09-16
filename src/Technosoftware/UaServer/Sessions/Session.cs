@@ -17,9 +17,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Security.Cryptography.X509Certificates;
-using System.Reflection;
 
 using Opc.Ua;
 
@@ -96,49 +94,16 @@ namespace Technosoftware.UaServer.Sessions
             Identity = new UserIdentity();
 
             // initialize diagnostics.
+            DateTime now = DateTime.UtcNow;
             SessionDiagnostics = new SessionDiagnosticsDataType {
                 SessionId = null,
                 SessionName = sessionName,
                 ClientDescription = clientDescription,
                 ServerUri = null,
                 EndpointUrl = endpointUrl,
-                LocaleIds = new StringCollection(),
                 ActualSessionTimeout = sessionTimeout,
-                ClientConnectionTime = DateTime.UtcNow,
-                ClientLastContactTime = DateTime.UtcNow,
-                CurrentSubscriptionsCount = 0,
-                CurrentMonitoredItemsCount = 0,
-                CurrentPublishRequestsInQueue = 0,
-                TotalRequestCount = new ServiceCounterDataType(),
-                UnauthorizedRequestCount = 0,
-                ReadCount = new ServiceCounterDataType(),
-                HistoryReadCount = new ServiceCounterDataType(),
-                WriteCount = new ServiceCounterDataType(),
-                HistoryUpdateCount = new ServiceCounterDataType(),
-                CallCount = new ServiceCounterDataType(),
-                CreateMonitoredItemsCount = new ServiceCounterDataType(),
-                ModifyMonitoredItemsCount = new ServiceCounterDataType(),
-                SetMonitoringModeCount = new ServiceCounterDataType(),
-                SetTriggeringCount = new ServiceCounterDataType(),
-                DeleteMonitoredItemsCount = new ServiceCounterDataType(),
-                CreateSubscriptionCount = new ServiceCounterDataType(),
-                ModifySubscriptionCount = new ServiceCounterDataType(),
-                SetPublishingModeCount = new ServiceCounterDataType(),
-                PublishCount = new ServiceCounterDataType(),
-                RepublishCount = new ServiceCounterDataType(),
-                TransferSubscriptionsCount = new ServiceCounterDataType(),
-                DeleteSubscriptionsCount = new ServiceCounterDataType(),
-                AddNodesCount = new ServiceCounterDataType(),
-                AddReferencesCount = new ServiceCounterDataType(),
-                DeleteNodesCount = new ServiceCounterDataType(),
-                DeleteReferencesCount = new ServiceCounterDataType(),
-                BrowseCount = new ServiceCounterDataType(),
-                BrowseNextCount = new ServiceCounterDataType(),
-                TranslateBrowsePathsToNodeIdsCount = new ServiceCounterDataType(),
-                QueryFirstCount = new ServiceCounterDataType(),
-                QueryNextCount = new ServiceCounterDataType(),
-                RegisterNodesCount = new ServiceCounterDataType(),
-                UnregisterNodesCount = new ServiceCounterDataType()
+                ClientConnectionTime = now,
+                ClientLastContactTime = now,
             };
 
             // initialize security diagnostics.
@@ -147,8 +112,8 @@ namespace Technosoftware.UaServer.Sessions
                 ClientUserIdOfSession = Identity.DisplayName,
                 AuthenticationMechanism = Identity.TokenType.ToString(),
                 Encoding = context.ChannelContext.MessageEncoding.ToString(),
-                ClientUserIdHistory = new StringCollection { Identity.DisplayName }
             };
+            securityDiagnostics_.ClientUserIdHistory.Add(Identity.DisplayName);
 
             EndpointDescription description = context.ChannelContext.EndpointDescription;
 
@@ -335,6 +300,11 @@ namespace Technosoftware.UaServer.Sessions
         /// Returns the session's SecureChannelId
         /// </summary>
         public string SecureChannelId { get; private set; }
+
+        /// <summary>
+        /// allow derived classes access
+        /// </summary>
+        protected int MaxBrowseContinuationPoints { get => maxBrowseContinuationPoints_; set => maxBrowseContinuationPoints_ = value; }
 
         /// <summary>
         /// Validates the request.
@@ -1109,7 +1079,7 @@ namespace Technosoftware.UaServer.Sessions
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1823:AvoidUnusedPrivateFields")]
         private readonly uint maxResponseMessageSize_;
         private readonly double maxRequestAge_;
-        private readonly int maxBrowseContinuationPoints_;
+        private int maxBrowseContinuationPoints_;
         private readonly int maxHistoryContinuationPoints_;
 
         private readonly SessionSecurityDiagnosticsDataType securityDiagnostics_;
