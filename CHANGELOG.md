@@ -1,6 +1,19 @@
 # Changelog
 
 -------------------------------------------------------------------------------------------------------------
+## OPC UA Solution .NET - 3.3.2
+
+### Changes
+- Updated to OPC UA Solution .NET 3.3.2
+
+### Enhancements
+- Improve reconnect
+
+
+### Known Issues
+- Synchronous Reconnect unstable
+
+-------------------------------------------------------------------------------------------------------------
 ## OPC UA Solution .NET - 3.3.1
 
 ### Security Fix

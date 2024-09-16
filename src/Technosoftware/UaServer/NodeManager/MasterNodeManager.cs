@@ -808,7 +808,7 @@ namespace Technosoftware.UaServer.NodeManager
         /// <summary>
         /// Updates the diagnostics return parameter.
         /// </summary>
-        private void UpdateDiagnostics(
+        protected void UpdateDiagnostics(
             UaServerOperationContext context,
             bool diagnosticsExist,
             ref DiagnosticInfoCollection diagnosticInfos)
@@ -1363,7 +1363,7 @@ namespace Technosoftware.UaServer.NodeManager
         /// <summary>
         /// Returns the set of references that meet the filter criteria.
         /// </summary>
-        private ServiceResult Browse(
+        protected ServiceResult Browse(
             UaServerOperationContext context,
             ViewDescription view,
             uint maxReferencesPerNode,

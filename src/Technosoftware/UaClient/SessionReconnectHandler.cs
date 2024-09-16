@@ -240,10 +240,10 @@ namespace Technosoftware.UaClient
         public virtual int JitteredReconnectPeriod(int reconnectPeriod)
         {
             // The factors result in a jitter of 10%.
-            const int JitterResolution = 1000;
-            const int JitterFactor = 10;
-            var jitter = (reconnectPeriod * random_.Next(-JitterResolution, JitterResolution)) /
-                (JitterResolution * JitterFactor);
+            const int jitterResolution = 1000;
+            const int jitterFactor = 10;
+            var jitter = (reconnectPeriod * random_.Next(-jitterResolution, jitterResolution)) /
+                (jitterResolution * jitterFactor);
             return reconnectPeriod + jitter;
         }
 
@@ -274,7 +274,7 @@ namespace Technosoftware.UaClient
         /// </summary>
         private async void OnReconnectAsync(object state)
         {
-            DateTime reconnectStart = DateTime.UtcNow;
+            int reconnectStart = HiResClock.TickCount;
             try
             {
                 // check for exit.
@@ -340,7 +340,7 @@ namespace Technosoftware.UaClient
                     }
                     else
                     {
-                        var elapsed = (int)DateTime.UtcNow.Subtract(reconnectStart).TotalMilliseconds;
+                        int elapsed = HiResClock.TickCount - reconnectStart;
                         Utils.LogInfo("Reconnect period is {0} ms, {1} ms elapsed in reconnect.", reconnectPeriod_, elapsed);
                         var adjustedReconnectPeriod = CheckedReconnectPeriod(reconnectPeriod_ - elapsed);
                         adjustedReconnectPeriod = JitteredReconnectPeriod(adjustedReconnectPeriod);
@@ -359,8 +359,6 @@ namespace Technosoftware.UaClient
         private async Task<bool> DoReconnectAsync()
         {
             // helper to override operation timeout
-            var operationTimeout = Session.OperationTimeout;
-            var reconnectOperationTimeout = Math.Max(reconnectPeriod_, MinReconnectOperationTimeout);
             ITransportChannel transportChannel = null;
 
             // try a reconnect.
@@ -368,10 +366,9 @@ namespace Technosoftware.UaClient
             {
                 try
                 {
-                    Session.OperationTimeout = reconnectOperationTimeout;
                     if (reverseConnectManager_ != null)
                     {
-                        ITransportWaitingConnection connection = await reverseConnectManager_.WaitForConnectionAsync(
+                        var connection = await reverseConnectManager_.WaitForConnectionAsync(
                                 new Uri(Session.Endpoint.EndpointUrl),
                                 Session.Endpoint.Server.ApplicationUri
                             ).ConfigureAwait(false);
@@ -401,11 +398,10 @@ namespace Technosoftware.UaClient
                             sre.StatusCode == StatusCodes.BadTimeout)
                         {
                             // check if reactivating is still an option.
-                            TimeSpan timeout = Session.LastKeepAliveTime.AddMilliseconds(Session.SessionTimeout) - DateTime.UtcNow;
-
-                            if (timeout.TotalMilliseconds > 0)
+                            int timeout = Convert.ToInt32(Session.SessionTimeout) - (HiResClock.TickCount - Session.LastKeepAliveTickCount);
+                            if (timeout > 0)
                             {
-                                Utils.LogInfo("Retry to reactivate, est. session timeout in {0} ms.", timeout.TotalMilliseconds);
+                                Utils.LogInfo("Retry to reactivate, est. session timeout in {0} ms.", timeout);
                                 return false;
                             }
                         }
@@ -438,17 +434,12 @@ namespace Technosoftware.UaClient
 
                     reconnectFailed_ = true;
                 }
-                finally
-                {
-                    Session.OperationTimeout = operationTimeout;
-                }
             }
 
             // re-create the session.
             try
             {
                 IUaSession session;
-                Session.OperationTimeout = reconnectOperationTimeout;
                 if (reverseConnectManager_ != null)
                 {
                     ITransportWaitingConnection connection;
@@ -516,10 +507,6 @@ namespace Technosoftware.UaClient
             {
                 Utils.LogError("Could not reconnect the Session. {0}", Redact.Create(exception));
                 return false;
-            }
-            finally
-            {
-                Session.OperationTimeout = operationTimeout;
             }
         }
 

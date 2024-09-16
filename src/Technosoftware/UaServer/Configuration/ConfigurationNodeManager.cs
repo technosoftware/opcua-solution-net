@@ -575,7 +575,12 @@ namespace Technosoftware.UaServer.Configuration
             ref byte[][] certificates)
         {
             HasApplicationSecureAdminAccess(context);
-
+            //No rejected store configured
+            if (rejectedStorePath_ == null)
+            {
+                certificates = Array.Empty<byte[]>();
+                return StatusCodes.Good;
+            }
             using (ICertificateStore store = CertificateStoreIdentifier.OpenStore(rejectedStorePath_))
             {
                 X509Certificate2Collection collection = store.Enumerate().Result;
@@ -611,14 +616,14 @@ namespace Technosoftware.UaServer.Configuration
             //TODO support multiple Application Instance Certificates
             if (certificateTypeId != null)
             {
-                certificateTypeIds = new NodeId[1] {certificateTypeId };
+                certificateTypeIds = new NodeId[1] { certificateTypeId };
                 certificates = new byte[1][];
                 certificates[0] = certificateGroup.ApplicationCertificate.Certificate.GetRawCertData();
             }
             else
             {
                 certificateTypeIds = new NodeId[0];
-                certificates = new byte[0][];
+                certificates = Array.Empty<byte[]>();
             }
 
             return ServiceResult.Good;
@@ -662,7 +667,6 @@ namespace Technosoftware.UaServer.Configuration
         /// Finds the <see cref="NamespaceMetadataState"/> node for the specified NamespaceUri.
         /// </summary>
         /// <param name="namespaceUri"></param>
-        /// <returns></returns>
         private NamespaceMetadataState FindNamespaceMetadataState(string namespaceUri)
         {
             try

@@ -16,6 +16,7 @@
 #region Using Directives
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading;
@@ -36,6 +37,8 @@ namespace Technosoftware.UaClient
         #region Constants
         const int MinKeepAliveTimerInterval = 1000;
         const int KeepAliveTimerMargin = 1000;
+        const int kRepublishMessageTimeout = 2500;
+        const int kRepublishMessageExpiredTimeout = 10000;
         #endregion
 
         #region Constructors, Destructor, Initialization
@@ -65,29 +68,7 @@ namespace Technosoftware.UaClient
 
             if (template != null)
             {
-                var displayName = template.DisplayName;
-
-                if (String.IsNullOrEmpty(displayName))
-                {
-                    displayName = DisplayName;
-                }
-
-                // remove any existing numeric suffix.
-                var index = displayName.LastIndexOf(' ');
-
-                if (index != -1)
-                {
-                    try
-                    {
-                        displayName = displayName.Substring(0, index);
-                    }
-                    catch
-                    {
-                        // not a numeric suffix.
-                    }
-                }
-
-                DisplayName = Utils.Format("{0} {1}", displayName, Utils.IncrementIdentifier(ref globalSubscriptionCounter_));
+                DisplayName = template.DisplayName;
                 PublishingInterval = template.PublishingInterval;
                 KeepAliveCount = template.KeepAliveCount;
                 LifetimeCount = template.LifetimeCount;
@@ -114,12 +95,16 @@ namespace Technosoftware.UaClient
                 }
 
                 // copy the list of monitored items.
+                var clonedMonitoredItems = new List<MonitoredItem>();
                 foreach (MonitoredItem monitoredItem in template.MonitoredItems)
                 {
-                    var clone = new MonitoredItem(monitoredItem, copyEventHandlers, true) {
-                        DisplayName = monitoredItem.DisplayName
-                    };
-                    AddItem(clone);
+                    MonitoredItem clone = monitoredItem.CloneMonitoredItem(copyEventHandlers, true);
+                    clone.DisplayName = monitoredItem.DisplayName;
+                    clonedMonitoredItems.Add(clone);
+                }
+                if (clonedMonitoredItems.Count > 0)
+                {
+                    AddItems(clonedMonitoredItems);
                 }
             }
         }
@@ -351,7 +336,8 @@ namespace Technosoftware.UaClient
         /// <c>true</c> if incoming messages are handled sequentially; <c>false</c> otherwise.
         /// </value>
         /// <remarks>
-        /// Setting <see cref="SequentialPublishing"/> to <c>true</c> means incoming messages are processed in a "single-threaded" manner and callbacks will not be invoked in parallel. 
+        /// Setting <see cref="SequentialPublishing"/> to <c>true</c> means incoming messages are processed in
+        /// a "single-threaded" manner and callbacks will not be invoked in parallel.
         /// </remarks>
         [DataMember(Order = 14)]
         public bool SequentialPublishing
@@ -455,11 +441,7 @@ namespace Technosoftware.UaClient
                 lock (cache_)
                 {
                     monitoredItems_.Clear();
-
-                    foreach (MonitoredItem monitoredItem in value)
-                    {
-                        AddItem(monitoredItem);
-                    }
+                    AddItems(value);
                 }
             }
         }
@@ -561,7 +543,7 @@ namespace Technosoftware.UaClient
         public byte CurrentPriority { get; private set; }
 
         /// <summary>
-        /// The when that the last notification received was published.
+        /// The time that the last notification received was published.
         /// </summary>
         public DateTime PublishTime
         {
@@ -580,7 +562,7 @@ namespace Technosoftware.UaClient
         }
 
         /// <summary>
-        /// The when that the last notification was received.
+        /// The time that the last notification was received.
         /// </summary>
         public DateTime LastNotificationTime
         {
@@ -691,8 +673,13 @@ namespace Technosoftware.UaClient
         {
             get
             {
-                var timeSinceLastNotification = TimeSpan.FromTicks(DateTime.UtcNow.Ticks - Interlocked.Read(ref lastNotificationTime_));
-                return timeSinceLastNotification.TotalMilliseconds > m_keepAliveInterval + KeepAliveTimerMargin;
+                int timeSinceLastNotification = HiResClock.TickCount - m_lastNotificationTickCount;
+                if (timeSinceLastNotification > m_keepAliveInterval + KeepAliveTimerMargin)
+                {
+                    return true;
+                }
+
+                return false;
             }
         }
         #endregion
@@ -776,12 +763,13 @@ namespace Technosoftware.UaClient
                     return false;
                 }
 
-                if (serverHandles.Count != monitoredItems_.Count ||
-                    clientHandles.Count != monitoredItems_.Count)
+                int monitoredItemsCount = monitoredItems_.Count;
+                if (serverHandles.Count != monitoredItemsCount ||
+                    clientHandles.Count != monitoredItemsCount)
                 {
                     // invalid state
                     Utils.LogError("SubscriptionId {0}: Number of Monitored Items on client and server do not match after transfer {1}!={2}",
-                        Id, serverHandles.Count, monitoredItems_.Count);
+                        Id, serverHandles.Count, monitoredItemsCount);
                     return false;
                 }
 
@@ -853,12 +841,13 @@ namespace Technosoftware.UaClient
                     return false;
                 }
 
+                int monitoredItemsCount = monitoredItems_.Count;
                 if (serverHandles.Count != monitoredItems_.Count ||
                     clientHandles.Count != monitoredItems_.Count)
                 {
                     // invalid state
                     Utils.LogError("SubscriptionId {0}: Number of Monitored Items on client and server do not match after transfer {1}!={2}",
-                        Id, serverHandles.Count, monitoredItems_.Count);
+                        Id, serverHandles.Count, monitoredItemsCount);
                     return false;
                 }
 
@@ -1285,7 +1274,9 @@ namespace Technosoftware.UaClient
                 }
 
                 DateTime now = DateTime.UtcNow;
-                _ = Interlocked.Exchange(ref lastNotificationTime_, now.Ticks);
+                Interlocked.Exchange(ref lastNotificationTime_, now.Ticks);
+                int tickCount = HiResClock.TickCount;
+                m_lastNotificationTickCount = tickCount;
 
                 // save the string table that came with notification.
                 message.StringTable = new List<string>(stringTable);
@@ -1297,7 +1288,7 @@ namespace Technosoftware.UaClient
                 }
 
                 // find or create an entry for the incoming sequence number.
-                IncomingMessage entry = FindOrCreateEntry(now, message.SequenceNumber);
+                IncomingMessage entry = FindOrCreateEntry(now, tickCount, message.SequenceNumber);
 
                 // check for keep alive.
                 if (message.NotificationData.Count > 0)
@@ -1318,7 +1309,8 @@ namespace Technosoftware.UaClient
                     {
                         var placeholder = new IncomingMessage {
                             SequenceNumber = entry.SequenceNumber + 1,
-                            Timestamp = now
+                            Timestamp = now,
+                            TickCount = tickCount
                         };
                         node = incomingMessages_.AddAfter(node, placeholder);
                         continue;
@@ -1335,8 +1327,9 @@ namespace Technosoftware.UaClient
                     entry = node.Value;
                     LinkedListNode<IncomingMessage> next = node.Next;
 
-                    // can only pull off processed or expired messages.
-                    if (!entry.Processed && !(entry.Republished && entry.Timestamp.AddSeconds(10) < now))
+                    // can only pull off processed or expired or missing messages.
+                    if (!entry.Processed &&
+                        !(entry.Republished && (entry.RepublishStatus != StatusCodes.Good || (tickCount - entry.TickCount) > kRepublishMessageExpiredTimeout)))
                     {
                         break;
                     }
@@ -1461,7 +1454,7 @@ namespace Technosoftware.UaClient
         }
 
         /// <summary>
-        /// Removes an item from the subscription.
+        /// Removes items from the subscription.
         /// </summary>
         public void RemoveItems(IEnumerable<MonitoredItem> monitoredItems)
         {
@@ -1592,7 +1585,8 @@ namespace Technosoftware.UaClient
                     // only republish consecutive sequence numbers
                     // triggers the republish mechanism immediately,
                     // if event is in the past
-                    DateTime now = DateTime.UtcNow.AddSeconds(-5);
+                    DateTime now = DateTime.UtcNow.AddMilliseconds(-kRepublishMessageTimeout * 2);
+                    int tickCount = HiResClock.TickCount - (kRepublishMessageTimeout * 2);
                     var lastSequenceNumberToRepublish = lastSequenceNumberProcessed_ - 1;
                     var availableNumbers = availableSequenceNumbers.Count;
                     var republishMessages = 0;
@@ -1603,7 +1597,7 @@ namespace Technosoftware.UaClient
                         {
                             if (lastSequenceNumberToRepublish == sequenceNumber)
                             {
-                                _ = FindOrCreateEntry(now, sequenceNumber);
+                                _ = FindOrCreateEntry(now, tickCount, sequenceNumber);
                                 found = true;
                                 break;
                             }
@@ -1690,6 +1684,7 @@ namespace Technosoftware.UaClient
                 publishTimer_ = null;
 
                 Interlocked.Exchange(ref lastNotificationTime_, DateTime.UtcNow.Ticks);
+                m_lastNotificationTickCount = HiResClock.TickCount;
                 m_keepAliveInterval = (int)(Math.Min(CurrentPublishingInterval * (CurrentKeepAliveCount + 1), Int32.MaxValue));
                 if (m_keepAliveInterval < MinKeepAliveTimerInterval)
                 {
@@ -1828,7 +1823,7 @@ namespace Technosoftware.UaClient
         /// </summary>
         private int BeginPublishTimeout()
         {
-            return Math.Max(Math.Min(m_keepAliveInterval * 3, Int32.MaxValue), MinKeepAliveTimerInterval); ;
+            return Math.Max(Math.Min(m_keepAliveInterval * 3, Int32.MaxValue), MinKeepAliveTimerInterval);
         }
 
         /// <summary>
@@ -2088,16 +2083,28 @@ namespace Technosoftware.UaClient
                         // check for missing messages.
                         else if (ii.Next != null && ii.Value.Message == null && !ii.Value.Processed && !ii.Value.Republished)
                         {
-                            if (ii.Value.Timestamp.AddSeconds(2) < DateTime.UtcNow)
+                            // tolerate if a single request was received out of order
+                            if (ii.Next.Next != null &&
+                                (HiResClock.TickCount - ii.Value.TickCount) > kRepublishMessageTimeout)
                             {
-                                if (messagesToRepublish == null)
-                                {
-                                    messagesToRepublish = new List<IncomingMessage>();
-                                }
-
-                                messagesToRepublish.Add(ii.Value);
                                 ii.Value.Republished = true;
                                 publishStateChangedMask |= PublishStateChangedMask.Republish;
+
+                                // only call republish if the sequence number is available
+                                if (availableSequenceNumbers_?.Contains(ii.Value.SequenceNumber) == true)
+                                {
+                                    if (messagesToRepublish == null)
+                                    {
+                                        messagesToRepublish = new List<IncomingMessage>();
+                                    }
+
+                                    messagesToRepublish.Add(ii.Value);
+                                }
+                                else
+                                {
+                                    Utils.LogInfo("Skipped to receive RepublishAsync for {0}-{1}-BadMessageNotAvailable", subscriptionId, ii.Value.SequenceNumber);
+                                    ii.Value.RepublishStatus = StatusCodes.BadMessageNotAvailable;
+                                }
                             }
                         }
 #if DEBUG
@@ -2155,10 +2162,7 @@ namespace Technosoftware.UaClient
                                         SaveDataChange(message, datachange, message.StringTable);
                                     }
 
-                                    if (datachangeCallback != null)
-                                    {
-                                        datachangeCallback(this, datachange, message.StringTable);
-                                    }
+                                    datachangeCallback?.Invoke(this, datachange, message.StringTable);
                                 }
 
 
@@ -2174,10 +2178,7 @@ namespace Technosoftware.UaClient
                                         SaveEvents(message, events, message.StringTable);
                                     }
 
-                                    if (eventCallback != null)
-                                    {
-                                        eventCallback(this, events, message.StringTable);
-                                    }
+                                    eventCallback?.Invoke(this, events, message.StringTable);
                                 }
 
 
@@ -2228,12 +2229,27 @@ namespace Technosoftware.UaClient
                 // do any re-publishes.
                 if (messagesToRepublish != null && session != null && subscriptionId != 0)
                 {
-                    for (var ii = 0; ii < messagesToRepublish.Count; ii++)
+                    int count = messagesToRepublish.Count;
+                    var tasks = new Task<(bool, ServiceResult)>[count];
+                    for (int ii = 0; ii < count; ii++)
                     {
-                        (var success, _) = await session.RepublishAsync(subscriptionId, messagesToRepublish[ii].SequenceNumber, ct).ConfigureAwait(false);
-                        if (!success)
+                        tasks[ii] = session.RepublishAsync(subscriptionId, messagesToRepublish[ii].SequenceNumber, ct);
+                    }
+
+                    await Task.WhenAll(tasks).ConfigureAwait(false);
+
+                    lock (cache_)
+                    {
+                        for (int ii = 0; ii < count; ii++)
                         {
-                            messagesToRepublish[ii].Republished = false;
+                            bool success = false;
+                            ServiceResult serviceResult = StatusCodes.BadMessageNotAvailable;
+                            if (tasks[ii].IsCompleted)
+                            {
+                                (success, serviceResult) = tasks[ii].Result.ToTuple();
+                            }
+                            messagesToRepublish[ii].Republished = success;
+                            messagesToRepublish[ii].RepublishStatus = serviceResult.StatusCode;
                         }
                     }
                 }
@@ -2551,12 +2567,14 @@ namespace Technosoftware.UaClient
         /// Find or create an entry for the incoming sequence number.
         /// </summary>
         /// <param name="utcNow">The current Utc time.</param>
+        /// <param name="tickCount">The current monotonic time</param>
         /// <param name="sequenceNumber">The sequence number for the new entry.</param>
-        private IncomingMessage FindOrCreateEntry(DateTime utcNow, uint sequenceNumber)
+        private IncomingMessage FindOrCreateEntry(DateTime utcNow,  int tickCount, uint sequenceNumber)
         {
             IncomingMessage entry = null;
             LinkedListNode<IncomingMessage> node = incomingMessages_.Last;
 
+            Debug.Assert(Monitor.IsEntered(cache_));
             while (node != null)
             {
                 entry = node.Value;
@@ -2565,6 +2583,7 @@ namespace Technosoftware.UaClient
                 if (entry.SequenceNumber == sequenceNumber)
                 {
                     entry.Timestamp = utcNow;
+                    entry.TickCount = tickCount;
                     break;
                 }
 
@@ -2573,6 +2592,7 @@ namespace Technosoftware.UaClient
                     entry = new IncomingMessage();
                     entry.SequenceNumber = sequenceNumber;
                     entry.Timestamp = utcNow;
+                    entry.TickCount = tickCount;
                     _ = incomingMessages_.AddAfter(node, entry);
                     break;
                 }
@@ -2586,6 +2606,7 @@ namespace Technosoftware.UaClient
                 entry = new IncomingMessage();
                 entry.SequenceNumber = sequenceNumber;
                 entry.Timestamp = utcNow;
+                entry.TickCount = tickCount;
                 _ = incomingMessages_.AddLast(entry);
             }
 
@@ -2604,6 +2625,7 @@ namespace Technosoftware.UaClient
         private Timer publishTimer_;
 #endif
         private long lastNotificationTime_;
+        private int m_lastNotificationTickCount;
         private int m_keepAliveInterval;
         private int publishLateCount_;
         private event EventHandler<PublishStateChangedEventArgs> PublishStatusChangedEventHandler;
@@ -2629,14 +2651,14 @@ namespace Technosoftware.UaClient
         {
             public uint SequenceNumber;
             public DateTime Timestamp;
+            public int TickCount;
             public NotificationMessage Message;
             public bool Processed;
             public bool Republished;
+            public StatusCode RepublishStatus;
         }
 
         private LinkedList<IncomingMessage> incomingMessages_;
-
-        private static long globalSubscriptionCounter_;
         #endregion
     }
 

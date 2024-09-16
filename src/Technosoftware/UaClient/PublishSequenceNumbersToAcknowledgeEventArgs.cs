@@ -36,7 +36,7 @@ namespace Technosoftware.UaClient
         /// <summary>
         /// Creates a new instance.
         /// </summary>
-        internal PublishSequenceNumbersToAcknowledgeEventArgs(
+        public PublishSequenceNumbersToAcknowledgeEventArgs(
             SubscriptionAcknowledgementCollection acknowledgementsToSend,
             SubscriptionAcknowledgementCollection deferredAcknowledgementsToSend)
         {
